@@ -1,0 +1,31 @@
+@model ChuA.ERP.Web.Mvc.ViewModels.Inventory.InventoryBalanceViewModel
+@{
+    ViewData["Title"] = $"Balance — {Model.Item.Name}";
+}
+<h1 class="h3 mb-4">Warehouse balance</h1>
+
+<dl class="row">
+    <dt class="col-sm-3">Item</dt><dd class="col-sm-9">@Model.Item.Name <small class="text-muted">@Model.Item.Sku</small></dd>
+    <dt class="col-sm-3">Item id</dt><dd class="col-sm-9"><code>@Model.ItemId</code></dd>
+    <dt class="col-sm-3">Warehouse id</dt><dd class="col-sm-9"><code>@Model.WarehouseId</code></dd>
+</dl>
+
+<div class="table-responsive">
+    <table class="table table-bordered w-auto">
+        <thead>
+            <tr><th>Metric</th><th class="text-end">Quantity</th></tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th>On hand</th>
+                <td class="text-end">@Html.Quantity(Model.OnHand)</td>
+            </tr>
+            <tr>
+                <th>Available</th>
+                <td class="text-end">@Html.Quantity(Model.Available)</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<a asp-action="Details" asp-route-id="@Model.ItemId" class="btn btn-link">&larr; Back to item</a>

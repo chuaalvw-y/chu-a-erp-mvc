@@ -1,0 +1,29 @@
+@model RoleDto
+@{
+    ViewData["Title"] = "Delete role";
+}
+<h1 class="h3 mb-4 text-danger">Delete role</h1>
+
+@if (Model.IsSystemRole)
+{
+    <div class="alert alert-warning">
+        <strong>Warning:</strong> <strong>@Model.Name</strong> is a system role and cannot be deleted. Attempting to confirm will be rejected.
+    </div>
+}
+
+<div class="alert alert-danger">
+    <strong>This action cannot be undone.</strong> Confirm you want to delete <strong>@Model.Name</strong>.
+</div>
+
+<dl class="row">
+    <dt class="col-sm-3">Role id</dt><dd class="col-sm-9"><code>@Model.Id</code></dd>
+    <dt class="col-sm-3">Name</dt><dd class="col-sm-9">@Model.Name</dd>
+    <dt class="col-sm-3">Description</dt><dd class="col-sm-9">@Model.Description</dd>
+    <dt class="col-sm-3">Type</dt><dd class="col-sm-9">@Html.StatusBadge(Model.IsSystemRole ? "System" : "Custom")</dd>
+</dl>
+
+<form asp-action="Delete" asp-route-id="@Model.Id" method="post" data-confirm="Delete this role? This cannot be undone.">
+    @Html.AntiForgeryToken()
+    <button type="submit" class="btn btn-danger" disabled="@Model.IsSystemRole">Delete role</button>
+    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-link">Cancel</a>
+</form>

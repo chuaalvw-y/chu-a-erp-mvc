@@ -1,0 +1,51 @@
+@using Microsoft.Extensions.Options
+@inject IOptions<AppEnvironmentOptions> Env
+@inject ICurrentUserService CurrentUser
+@{
+    var env = Env.Value;
+    var title = ViewData["Title"] as string;
+    var breadcrumbs = ViewData["Breadcrumbs"] as IReadOnlyList<Breadcrumb> ?? Array.Empty<Breadcrumb>();
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@(string.IsNullOrWhiteSpace(title) ? env.ProductName : $"{title} · {env.ProductName}")</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/css/bootstrap.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <header class="erp-topbar bg-dark text-white d-flex align-items-center px-3 py-2">
+        <button class="btn btn-sm btn-outline-light me-3 d-md-none" id="sidebarToggle" aria-label="Toggle navigation">&#9776;</button>
+        <a href="/" class="navbar-brand text-white fw-bold me-3">@env.ProductName</a>
+        <span class="badge text-bg-@env.BadgeColor me-auto">@env.Label</span>
+        <partial name="_LoginPartial" />
+    </header>
+
+    <div class="d-flex flex-grow-1">
+        <aside class="erp-sidebar bg-light border-end" id="sidebar">
+            <partial name="_Navigation" />
+        </aside>
+        <main class="flex-grow-1 p-3" role="main">
+            @if (breadcrumbs.Count > 0)
+            {
+                <partial name="_Breadcrumb" model="breadcrumbs" />
+            }
+            <partial name="_Toasts" />
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="erp-footer text-muted small text-center py-2 border-top">
+        &copy; @DateTime.UtcNow.Year @env.ProductName · <span title="@Context.TraceIdentifier">request @Context.TraceIdentifier</span>
+    </footer>
+
+    <script src="~/lib/jquery/jquery.min.js" asp-append-version="true"></script>
+    <script src="~/lib/bootstrap/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
+    <script src="~/lib/jquery-validation/jquery.validate.min.js" asp-append-version="true"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js" asp-append-version="true"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

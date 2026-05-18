@@ -1,0 +1,35 @@
+@model ChuA.ERP.Web.Mvc.ViewModels.Reports.ReportListViewModel
+@{
+    ViewData["Title"] = "Reports";
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Reports</h1>
+</div>
+
+@if (Model.Reports.Count == 0)
+{
+    @Html.EmptyState("No reports are available.")
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead><tr>
+                <th>Code</th><th>Name</th><th>Description</th><th class="actions">Actions</th>
+            </tr></thead>
+            <tbody>
+            @foreach (var r in Model.Reports)
+            {
+                <tr>
+                    <td><code>@r.Code</code></td>
+                    <td>@r.Name</td>
+                    <td>@r.Description</td>
+                    <td class="actions">
+                        <a asp-action="Run" asp-route-code="@r.Code" class="btn btn-sm btn-outline-primary" asp-authorize-policy="ReportRun">Run</a>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}

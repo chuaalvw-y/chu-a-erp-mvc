@@ -1,0 +1,21 @@
+@model BillDto
+@{
+    ViewData["Title"] = "Delete bill";
+}
+<h1 class="h3 mb-4 text-danger">Delete bill</h1>
+<div class="alert alert-danger">
+    <strong>This action cannot be undone.</strong> Confirm you want to delete bill <strong>@Model.BillNumber</strong>.
+</div>
+
+<dl class="row">
+    <dt class="col-sm-3">Bill id</dt><dd class="col-sm-9"><code>@Model.Id</code></dd>
+    <dt class="col-sm-3">Bill number</dt><dd class="col-sm-9">@Model.BillNumber</dd>
+    <dt class="col-sm-3">Total</dt><dd class="col-sm-9">@Html.Money(Model.TotalAmount)</dd>
+    <dt class="col-sm-3">Status</dt><dd class="col-sm-9">@Html.StatusBadge(Model.Status)</dd>
+</dl>
+
+<form asp-action="Delete" asp-route-id="@Model.Id" method="post" data-confirm="Delete this bill? This cannot be undone.">
+    @Html.AntiForgeryToken()
+    <button type="submit" class="btn btn-danger">Delete bill</button>
+    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-link">Cancel</a>
+</form>

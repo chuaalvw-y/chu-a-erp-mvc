@@ -1,0 +1,26 @@
+@{
+    ViewData["Title"] = "Sign in";
+    Layout = "_Layout";
+    var returnUrl = ViewData["ReturnUrl"] as string ?? "/";
+}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header">
+                <h1 class="h4 mb-0">Sign in</h1>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">OIDC is not enabled — use this development login. Enable OIDC in <code>appsettings.json</code> for SSO.</p>
+                <form asp-action="DevLogin" method="post">
+                    <input type="hidden" name="returnUrl" value="@returnUrl" />
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <label class="form-label" for="userName">User name</label>
+                        <input id="userName" name="userName" class="form-control" value="dev.user" autocomplete="username" />
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Continue</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

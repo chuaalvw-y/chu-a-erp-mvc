@@ -1,0 +1,40 @@
+@model ChuA.ERP.Web.Mvc.ViewModels.Bills.BillListViewModel
+@{
+    ViewData["Title"] = "Bills awaiting approval";
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Bills awaiting approval</h1>
+    <a asp-action="Index" class="btn btn-link">&larr; All bills</a>
+</div>
+
+@if (Model.Page.Items.Count == 0)
+{
+    @Html.EmptyState("No bills are currently awaiting approval.")
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead><tr>
+                <th>Bill #</th><th>Bill date</th><th>Due date</th><th class="text-end">Total</th><th>Status</th><th class="actions">Actions</th>
+            </tr></thead>
+            <tbody>
+            @foreach (var b in Model.Page.Items)
+            {
+                <tr>
+                    <td><a asp-action="Details" asp-route-id="@b.Id">@b.BillNumber</a></td>
+                    <td>@b.BillDate.ToString("yyyy-MM-dd")</td>
+                    <td>@b.DueDate.ToString("yyyy-MM-dd")</td>
+                    <td class="text-end">@Html.Money(b.TotalAmount)</td>
+                    <td>@Html.StatusBadge(b.Status)</td>
+                    <td class="actions">
+                        <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@b.Id">View</a>
+                        <a class="btn btn-sm btn-success" asp-action="Approve" asp-route-id="@b.Id" asp-authorize-policy="BillApprove">Approve</a>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+    <partial name="_Pager" model="Model.Page" />
+}

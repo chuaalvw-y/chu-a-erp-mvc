@@ -1,0 +1,42 @@
+@model HealthIndexViewModel
+@{
+    ViewData["Title"] = "System Health";
+    ViewData["Breadcrumbs"] = new[]
+    {
+        new Breadcrumb("Dashboard", Url.Action("Index", "Dashboard")),
+        new Breadcrumb("System Health", null, true)
+    };
+}
+<h1 class="h3 mb-4">System Health</h1>
+
+<div class="card">
+    <div class="card-header">
+        <strong>API status</strong>
+    </div>
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">Reachable</dt>
+            <dd class="col-sm-9">
+                @if (Model.ApiReachable)
+                {
+                    <span class="badge text-bg-success">Yes</span>
+                }
+                else
+                {
+                    <span class="badge text-bg-danger">No</span>
+                }
+            </dd>
+            <dt class="col-sm-3">Service</dt>
+            <dd class="col-sm-9">@(Model.Service ?? "—")</dd>
+            <dt class="col-sm-3">Reported status</dt>
+            <dd class="col-sm-9">@Html.StatusBadge(Model.Status)</dd>
+            <dt class="col-sm-3">Last response at</dt>
+            <dd class="col-sm-9">@(Model.Timestamp?.ToString("u") ?? "—")</dd>
+            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+            {
+                <dt class="col-sm-3">Error</dt>
+                <dd class="col-sm-9 text-danger">@Model.ErrorMessage</dd>
+            }
+        </dl>
+    </div>
+</div>

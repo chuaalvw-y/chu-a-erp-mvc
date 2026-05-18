@@ -1,0 +1,31 @@
+@model CurrentUserDto
+@{
+    ViewData["Title"] = "My profile";
+    ViewData["Breadcrumbs"] = new[]
+    {
+        new Breadcrumb("Dashboard", Url.Action("Index", "Dashboard")),
+        new Breadcrumb("My profile", null, true)
+    };
+}
+<h1 class="h3 mb-4">My profile</h1>
+@if (Model is null)
+{
+    <div class="alert alert-warning">Profile data is not available — the API call to <code>/users/me</code> failed.</div>
+}
+else
+{
+    <dl class="row">
+        <dt class="col-sm-3">User id</dt><dd class="col-sm-9"><code>@Model.UserId</code></dd>
+        <dt class="col-sm-3">Company id</dt><dd class="col-sm-9"><code>@Model.CompanyId</code></dd>
+        <dt class="col-sm-3">Roles</dt>
+        <dd class="col-sm-9">
+            @if (Model.Roles.Count == 0) { <span class="text-muted">None</span>; }
+            else { foreach (var r in Model.Roles) { <span class="badge text-bg-primary me-1">@r</span> } }
+        </dd>
+        <dt class="col-sm-3">Permissions</dt>
+        <dd class="col-sm-9">
+            @if (Model.Permissions.Count == 0) { <span class="text-muted">None</span>; }
+            else { foreach (var p in Model.Permissions) { <span class="badge text-bg-secondary me-1 mb-1">@p</span> } }
+        </dd>
+    </dl>
+}

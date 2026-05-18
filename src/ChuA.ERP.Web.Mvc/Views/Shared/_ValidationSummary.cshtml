@@ -1,0 +1,7 @@
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger" role="alert">
+        <strong>Please correct the following errors:</strong>
+        @Html.ValidationSummary(false, "", new { @class = "mb-0" })
+    </div>
+}

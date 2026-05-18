@@ -1,0 +1,20 @@
+@model CompanyDto
+@{
+    ViewData["Title"] = "Delete company";
+}
+<h1 class="h3 mb-4 text-danger">Delete company</h1>
+<div class="alert alert-danger">
+    <strong>This action cannot be undone.</strong> Confirm you want to delete <strong>@Model.Name</strong> (@Model.Code).
+</div>
+
+<dl class="row">
+    <dt class="col-sm-3">Company id</dt><dd class="col-sm-9"><code>@Model.Id</code></dd>
+    <dt class="col-sm-3">Name</dt><dd class="col-sm-9">@Model.Name</dd>
+    <dt class="col-sm-3">Base currency</dt><dd class="col-sm-9">@Model.BaseCurrencyCode</dd>
+</dl>
+
+<form asp-action="Delete" asp-route-id="@Model.Id" method="post" data-confirm="Delete this company? This cannot be undone.">
+    @Html.AntiForgeryToken()
+    <button type="submit" class="btn btn-danger">Delete company</button>
+    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-link">Cancel</a>
+</form>

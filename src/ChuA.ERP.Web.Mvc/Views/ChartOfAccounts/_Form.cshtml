@@ -1,0 +1,50 @@
+@model ChuA.ERP.Web.Mvc.ViewModels.ChartOfAccounts.ChartOfAccountFormViewModel
+<partial name="_ValidationSummary" />
+<div class="row g-3">
+    <div class="col-md-4">
+        <label asp-for="AccountCode" class="form-label"></label>
+        <input asp-for="AccountCode" class="form-control" autocomplete="off" disabled="@Model.IsEdit" />
+        <span asp-validation-for="AccountCode" class="text-danger"></span>
+    </div>
+    <div class="col-md-8">
+        <label asp-for="Name" class="form-label"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="AccountType" class="form-label"></label>
+        <select asp-for="AccountType" class="form-select">
+            <option>Asset</option>
+            <option>Liability</option>
+            <option>Equity</option>
+            <option>Revenue</option>
+            <option>Expense</option>
+        </select>
+        <span asp-validation-for="AccountType" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="NormalBalance" class="form-label"></label>
+        <select asp-for="NormalBalance" class="form-select">
+            <option>Debit</option>
+            <option>Credit</option>
+        </select>
+        <span asp-validation-for="NormalBalance" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="CurrencyCode" class="form-label"></label>
+        <input asp-for="CurrencyCode" class="form-control" maxlength="3" />
+        <span asp-validation-for="CurrencyCode" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="ParentAccountId" class="form-label"></label>
+        <input asp-for="ParentAccountId" class="form-control" placeholder="Optional parent account id" />
+        <span asp-validation-for="ParentAccountId" class="text-danger"></span>
+    </div>
+    <div class="col-md-6 d-flex align-items-end">
+        <div class="form-check">
+            <input asp-for="IsPostable" class="form-check-input" />
+            <label asp-for="IsPostable" class="form-check-label"></label>
+        </div>
+    </div>
+</div>
+<input type="hidden" asp-for="Id" />

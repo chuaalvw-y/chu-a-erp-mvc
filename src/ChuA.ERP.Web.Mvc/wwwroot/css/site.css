@@ -1,0 +1,42 @@
+/* ChuA ERP – application-wide overrides over Bootstrap 5 */
+
+html, body { height: 100%; }
+body { font-family: 'Segoe UI', Roboto, system-ui, sans-serif; }
+
+/* Top bar */
+.erp-topbar { min-height: 48px; }
+.erp-topbar .navbar-brand { font-size: 1.1rem; }
+
+/* Sidebar */
+.erp-sidebar {
+    width: 240px;
+    min-height: calc(100vh - 96px);
+    overflow-y: auto;
+}
+.erp-sidebar .nav-link {
+    color: #333;
+    padding: .35rem 1rem;
+}
+.erp-sidebar .nav-link:hover { background-color: #e9ecef; }
+.erp-sidebar .nav-link.active { background-color: #0d6efd; color: #fff; }
+.erp-sidebar .nav-section { font-weight: 600; letter-spacing: .04em; }
+
+/* Responsive sidebar toggle for small screens */
+@media (max-width: 767.98px) {
+    .erp-sidebar { display: none; }
+    .erp-sidebar.show { display: block; position: absolute; z-index: 1050; background: #fff; height: 100%; }
+}
+
+/* Footer */
+.erp-footer { background-color: #f8f9fa; }
+
+/* Tables */
+.table thead th { white-space: nowrap; }
+.table td.actions { white-space: nowrap; text-align: right; }
+
+/* Empty state */
+.empty-state { background: #f8f9fa; border-radius: .5rem; }
+
+/* Validation */
+.field-validation-error { color: #dc3545; font-size: .875rem; }
+.input-validation-error { border-color: #dc3545 !important; }

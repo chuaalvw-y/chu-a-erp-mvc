@@ -1,0 +1,20 @@
+@model UserDto
+@{
+    ViewData["Title"] = "Delete user";
+}
+<h1 class="h3 mb-4 text-danger">Delete user</h1>
+<div class="alert alert-danger">
+    <strong>This action cannot be undone.</strong> Confirm you want to delete <strong>@Model.FirstName @Model.LastName</strong> (@Model.UserName).
+</div>
+
+<dl class="row">
+    <dt class="col-sm-3">User id</dt><dd class="col-sm-9"><code>@Model.Id</code></dd>
+    <dt class="col-sm-3">User name</dt><dd class="col-sm-9">@Model.UserName</dd>
+    <dt class="col-sm-3">Email</dt><dd class="col-sm-9">@Model.Email</dd>
+</dl>
+
+<form asp-action="Delete" asp-route-id="@Model.Id" method="post" data-confirm="Delete this user? This cannot be undone.">
+    @Html.AntiForgeryToken()
+    <button type="submit" class="btn btn-danger">Delete user</button>
+    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-link">Cancel</a>
+</form>

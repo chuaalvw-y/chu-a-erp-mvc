@@ -1,0 +1,69 @@
+@inject ICurrentUserService CurrentUser
+<nav class="erp-nav py-2" aria-label="Primary">
+    <ul class="nav flex-column">
+        <li class="nav-item">
+            <a class="nav-link" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+        </li>
+
+        <li class="nav-section text-uppercase small text-muted px-3 pt-3">Purchasing</li>
+        <li class="nav-item" asp-authorize-policy="VendorRead">
+            <a class="nav-link" asp-controller="Vendors" asp-action="Index">Vendors</a>
+        </li>
+        <li class="nav-item" asp-authorize-policy="PurchaseOrderRead">
+            <a class="nav-link" asp-controller="PurchaseOrders" asp-action="Index">Purchase Orders</a>
+        </li>
+        <li class="nav-item" asp-authorize-policy="BillRead">
+            <a class="nav-link" asp-controller="Bills" asp-action="Index">Bills</a>
+        </li>
+
+        <li class="nav-section text-uppercase small text-muted px-3 pt-3">Sales</li>
+        <li class="nav-item" asp-authorize-policy="CustomerRead">
+            <a class="nav-link" asp-controller="Customers" asp-action="Index">Customers</a>
+        </li>
+        <li class="nav-item" asp-authorize-policy="SalesOrderRead">
+            <a class="nav-link" asp-controller="SalesOrders" asp-action="Index">Sales Orders</a>
+        </li>
+        <li class="nav-item" asp-authorize-policy="InvoiceRead">
+            <a class="nav-link" asp-controller="Invoices" asp-action="Index">Invoices</a>
+        </li>
+
+        <li class="nav-section text-uppercase small text-muted px-3 pt-3">Inventory</li>
+        <li class="nav-item" asp-authorize-policy="InventoryRead">
+            <a class="nav-link" asp-controller="Inventory" asp-action="Index">Items</a>
+        </li>
+
+        <li class="nav-section text-uppercase small text-muted px-3 pt-3">Finance</li>
+        <li class="nav-item" asp-authorize-policy="ChartOfAccountRead">
+            <a class="nav-link" asp-controller="ChartOfAccounts" asp-action="Index">Chart of Accounts</a>
+        </li>
+        <li class="nav-item" asp-authorize-policy="JournalEntryRead">
+            <a class="nav-link" asp-controller="JournalEntries" asp-action="Index">Journal Entries</a>
+        </li>
+
+        <li class="nav-section text-uppercase small text-muted px-3 pt-3">Workflow</li>
+        <li class="nav-item" asp-authorize-policy="WorkflowRead">
+            <a class="nav-link" asp-controller="Workflow" asp-action="Index">Approvals</a>
+        </li>
+
+        <li class="nav-section text-uppercase small text-muted px-3 pt-3">Reports</li>
+        <li class="nav-item" asp-authorize-policy="ReportRun">
+            <a class="nav-link" asp-controller="Reports" asp-action="Index">Reports</a>
+        </li>
+
+        <li class="nav-section text-uppercase small text-muted px-3 pt-3" asp-authorize-role="SystemAdmin,CompanyAdmin">Administration</li>
+        <li class="nav-item" asp-authorize-role="SystemAdmin">
+            <a class="nav-link" asp-controller="Companies" asp-action="Index">Companies</a>
+        </li>
+        <li class="nav-item" asp-authorize-role="SystemAdmin,CompanyAdmin">
+            <a class="nav-link" asp-controller="Users" asp-action="Index">Users</a>
+        </li>
+        <li class="nav-item" asp-authorize-role="SystemAdmin,CompanyAdmin">
+            <a class="nav-link" asp-controller="Roles" asp-action="Index">Roles</a>
+        </li>
+
+        <li class="nav-section text-uppercase small text-muted px-3 pt-3">System</li>
+        <li class="nav-item">
+            <a class="nav-link" asp-controller="Health" asp-action="Index">System Health</a>
+        </li>
+    </ul>
+</nav>

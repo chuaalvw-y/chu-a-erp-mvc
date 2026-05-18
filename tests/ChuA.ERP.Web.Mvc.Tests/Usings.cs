@@ -1,0 +1,16 @@
+global using Xunit;
+global using FluentAssertions;
+global using Moq;
+global using ChuA.ERP.Web.Mvc;
+global using ChuA.ERP.Web.Mvc.ApiClients;
+global using ChuA.ERP.Web.Mvc.Configuration;
+global using ChuA.ERP.Web.Mvc.Contracts.Common;
+global using ChuA.ERP.Web.Mvc.Contracts.Dtos;
+global using ChuA.ERP.Web.Mvc.Controllers;
+global using ChuA.ERP.Web.Mvc.Extensions;
+global using ChuA.ERP.Web.Mvc.Filters;
+global using ChuA.ERP.Web.Mvc.Models;
+global using ChuA.ERP.Web.Mvc.Security;
+global using ChuA.ERP.Web.Mvc.Services;
+global using ChuA.ERP.Web.Mvc.TagHelpers;
+global using ChuA.ERP.Web.Mvc.Utilities;

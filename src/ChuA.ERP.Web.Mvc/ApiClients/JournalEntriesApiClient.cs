@@ -1,0 +1,43 @@
+using ChuA.ERP.Web.Mvc.Contracts.Common;
+using ChuA.ERP.Web.Mvc.Contracts.Dtos;
+using ChuA.ERP.Web.Mvc.Services;
+using Microsoft.Extensions.Logging;
+
+namespace ChuA.ERP.Web.Mvc.ApiClients;
+
+/// <inheritdoc cref="IJournalEntriesApiClient"/>
+public sealed class JournalEntriesApiClient : ApiClientBase, IJournalEntriesApiClient
+{
+    public JournalEntriesApiClient(
+        HttpClient httpClient,
+        ITokenAcquisitionService tokenAcquisition,
+        ICorrelationIdAccessor correlationIds,
+        ILogger<JournalEntriesApiClient> logger)
+        : base(httpClient, tokenAcquisition, correlationIds, logger)
+    {
+    }
+
+    public Task<Result<IReadOnlyList<JournalEntryDto>>> ListAsync(Guid? fiscalPeriodId = null, string? status = null, CancellationToken cancellationToken = default) =>
+        SendAsync<IReadOnlyList<JournalEntryDto>>(
+            HttpMethod.Get,
+            "v1/journal-entries" + QueryString(("fiscalPeriodId", fiscalPeriodId), ("status", status)),
+            cancellationToken: cancellationToken);
+
+    public Task<Result<JournalEntryDto>> GetAsync(Guid id, CancellationToken cancellationToken = default) =>
+        SendAsync<JournalEntryDto>(HttpMethod.Get, $"v1/journal-entries/{id}", cancellationToken: cancellationToken);
+
+    public Task<Result<Guid>> CreateDraftAsync(PostJournalEntryRequest request, CancellationToken cancellationToken = default) =>
+        SendAsync<Guid>(HttpMethod.Post, "v1/journal-entries", request, cancellationToken);
+
+    public Task<Result<Guid>> CreateAndPostAsync(PostJournalEntryRequest request, CancellationToken cancellationToken = default) =>
+        SendAsync<Guid>(HttpMethod.Post, "v1/journal-entries/post", request, cancellationToken);
+
+    public Task<Result> PostExistingAsync(Guid id, CancellationToken cancellationToken = default) =>
+        SendAsync(HttpMethod.Post, $"v1/journal-entries/{id}/post", cancellationToken: cancellationToken);
+
+    public Task<Result<JournalEntryDto>> UpdateAsync(Guid id, UpdateJournalEntryRequest request, CancellationToken cancellationToken = default) =>
+        SendAsync<JournalEntryDto>(HttpMethod.Put, $"v1/journal-entries/{id}", request, cancellationToken);
+
+    public Task<Result> DeleteAsync(Guid id, CancellationToken cancellationToken = default) =>
+        SendAsync(HttpMethod.Delete, $"v1/journal-entries/{id}", cancellationToken: cancellationToken);
+}

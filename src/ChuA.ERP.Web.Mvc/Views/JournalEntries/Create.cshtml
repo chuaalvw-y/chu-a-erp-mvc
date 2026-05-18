@@ -1,0 +1,15 @@
+@model ChuA.ERP.Web.Mvc.ViewModels.JournalEntries.JournalEntryFormViewModel
+@{
+    ViewData["Title"] = "New journal entry";
+}
+<h1 class="h3 mb-4">New journal entry</h1>
+<form asp-action="Create" method="post" novalidate>
+    @Html.AntiForgeryToken()
+    <partial name="_Form" model="Model" />
+    <div class="mt-3 d-flex gap-2">
+        <button type="submit" name="postImmediately" value="false" class="btn btn-outline-primary">Save as draft</button>
+        <button type="submit" name="postImmediately" value="true" class="btn btn-success" asp-authorize-policy="JournalEntryPost">Save and post</button>
+        <a asp-action="Index" class="btn btn-link">Cancel</a>
+    </div>
+</form>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

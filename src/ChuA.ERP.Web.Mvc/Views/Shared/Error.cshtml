@@ -1,0 +1,36 @@
+@model ErrorViewModel
+@{
+    ViewData["Title"] = "Error";
+}
+<div class="card border-danger">
+    <div class="card-header bg-danger text-white">
+        <h1 class="h4 mb-0">Something went wrong</h1>
+    </div>
+    <div class="card-body">
+        @if (Model.StatusCode is { } code)
+        {
+            <p class="mb-2"><strong>Status:</strong> @code</p>
+        }
+        @if (!string.IsNullOrEmpty(Model.ErrorCode))
+        {
+            <p class="mb-2"><strong>Error code:</strong> <code>@Model.ErrorCode</code></p>
+        }
+        <p>@(Model.Message ?? "An unexpected error occurred while processing your request.")</p>
+        @if (Model.Details is { Count: > 0 })
+        {
+            <ul class="text-muted small">
+                @foreach (var d in Model.Details)
+                {
+                    <li>@d</li>
+                }
+            </ul>
+        }
+        @if (Model.ShowCorrelationId)
+        {
+            <p class="text-muted small mb-0">Correlation id: <code>@Model.CorrelationId</code> — please share this with support if you need help.</p>
+        }
+    </div>
+    <div class="card-footer">
+        <a asp-controller="Dashboard" asp-action="Index" class="btn btn-outline-secondary">Return to dashboard</a>
+    </div>
+</div>

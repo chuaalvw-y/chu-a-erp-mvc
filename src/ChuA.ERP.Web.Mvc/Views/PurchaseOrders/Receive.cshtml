@@ -1,0 +1,103 @@
+@model ChuA.ERP.Web.Mvc.ViewModels.PurchaseOrders.ReceiveGoodsFormViewModel
+@{
+    ViewData["Title"] = "Receive goods";
+}
+<h1 class="h3 mb-4">Receive goods</h1>
+<form asp-action="Receive" asp-route-id="@Model.Id" method="post" novalidate>
+    @Html.AntiForgeryToken()
+    <partial name="_ValidationSummary" />
+    <input type="hidden" asp-for="Id" />
+
+    <div class="row g-3">
+        <div class="col-md-3">
+            <label asp-for="ReceiptDate" class="form-label"></label>
+            <input asp-for="ReceiptDate" type="date" class="form-control" />
+            <span asp-validation-for="ReceiptDate" class="text-danger"></span>
+        </div>
+        <div class="col-md-5">
+            <label asp-for="WarehouseId" class="form-label"></label>
+            <input asp-for="WarehouseId" class="form-control" placeholder="Warehouse GUID" />
+            <span asp-validation-for="WarehouseId" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="ReceiptNumber" class="form-label"></label>
+            <input asp-for="ReceiptNumber" class="form-control" />
+            <span asp-validation-for="ReceiptNumber" class="text-danger"></span>
+        </div>
+    </div>
+
+    <h2 class="h5 mt-4">Received lines</h2>
+    <div class="table-responsive">
+        <table class="table table-sm" id="receive-lines-table">
+            <thead>
+                <tr>
+                    <th>PO line id</th>
+                    <th>Item id</th>
+                    <th>Received qty</th>
+                    <th>UoM</th>
+                    <th>Unit cost</th>
+                    <th>Currency</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="receive-lines-body">
+                @for (int i = 0; i < Model.Lines.Count; i++)
+                {
+                    <tr class="receive-line-row">
+                        <td><input name="Lines[@i].PurchaseOrderLineId" value="@Model.Lines[i].PurchaseOrderLineId" class="form-control form-control-sm" /></td>
+                        <td><input name="Lines[@i].ItemId" value="@Model.Lines[i].ItemId" class="form-control form-control-sm" /></td>
+                        <td><input name="Lines[@i].ReceivedValue" value="@Model.Lines[i].ReceivedValue" type="number" step="0.0001" class="form-control form-control-sm" /></td>
+                        <td><input name="Lines[@i].ReceivedUnitOfMeasure" value="@Model.Lines[i].ReceivedUnitOfMeasure" class="form-control form-control-sm" maxlength="20" /></td>
+                        <td><input name="Lines[@i].UnitCostAmount" value="@Model.Lines[i].UnitCostAmount" type="number" step="0.01" class="form-control form-control-sm" /></td>
+                        <td><input name="Lines[@i].UnitCostCurrencyCode" value="@Model.Lines[i].UnitCostCurrencyCode" class="form-control form-control-sm" maxlength="3" /></td>
+                        <td><button type="button" class="btn btn-sm btn-outline-danger receive-line-remove">&times;</button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <button type="button" id="receive-line-add" class="btn btn-outline-secondary btn-sm">+ Add line</button>
+
+    <template id="receive-line-template">
+        <tr class="receive-line-row">
+            <td><input name="Lines[__i__].PurchaseOrderLineId" class="form-control form-control-sm" /></td>
+            <td><input name="Lines[__i__].ItemId" class="form-control form-control-sm" /></td>
+            <td><input name="Lines[__i__].ReceivedValue" type="number" step="0.0001" class="form-control form-control-sm" value="1" /></td>
+            <td><input name="Lines[__i__].ReceivedUnitOfMeasure" class="form-control form-control-sm" maxlength="20" value="EA" /></td>
+            <td><input name="Lines[__i__].UnitCostAmount" type="number" step="0.01" class="form-control form-control-sm" /></td>
+            <td><input name="Lines[__i__].UnitCostCurrencyCode" class="form-control form-control-sm" maxlength="3" value="USD" /></td>
+            <td><button type="button" class="btn btn-sm btn-outline-danger receive-line-remove">&times;</button></td>
+        </tr>
+    </template>
+
+    <div class="mt-3">
+        <button type="submit" class="btn btn-primary">Record receipt</button>
+        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-link">Cancel</a>
+    </div>
+</form>
+
+<script>
+(function () {
+    var body = document.getElementById('receive-lines-body');
+    var template = document.getElementById('receive-line-template');
+    document.getElementById('receive-line-add').addEventListener('click', function () {
+        var html = template.innerHTML.replace(/__i__/g, body.querySelectorAll('tr.receive-line-row').length);
+        var temp = document.createElement('tbody');
+        temp.innerHTML = html;
+        body.appendChild(temp.firstElementChild);
+    });
+    body.addEventListener('click', function (e) {
+        if (e.target.classList.contains('receive-line-remove')) {
+            var row = e.target.closest('tr');
+            row.parentNode.removeChild(row);
+            body.querySelectorAll('tr.receive-line-row').forEach(function (tr, idx) {
+                tr.querySelectorAll('input').forEach(function (input) {
+                    input.name = input.name.replace(/Lines\[\d+\]/, 'Lines[' + idx + ']');
+                });
+            });
+        }
+    });
+})();
+</script>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

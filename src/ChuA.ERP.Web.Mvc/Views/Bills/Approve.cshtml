@@ -1,0 +1,23 @@
+@model BillDto
+@{
+    ViewData["Title"] = "Approve bill";
+}
+<h1 class="h3 mb-4 text-success">Approve bill</h1>
+<div class="alert alert-info">
+    Confirm you want to approve bill <strong>@Model.BillNumber</strong>. Approval marks the bill as ready for payment.
+</div>
+
+<dl class="row">
+    <dt class="col-sm-3">Bill id</dt><dd class="col-sm-9"><code>@Model.Id</code></dd>
+    <dt class="col-sm-3">Bill number</dt><dd class="col-sm-9">@Model.BillNumber</dd>
+    <dt class="col-sm-3">Bill date</dt><dd class="col-sm-9">@Model.BillDate.ToString("yyyy-MM-dd")</dd>
+    <dt class="col-sm-3">Due date</dt><dd class="col-sm-9">@Model.DueDate.ToString("yyyy-MM-dd")</dd>
+    <dt class="col-sm-3">Total</dt><dd class="col-sm-9">@Html.Money(Model.TotalAmount)</dd>
+    <dt class="col-sm-3">Status</dt><dd class="col-sm-9">@Html.StatusBadge(Model.Status)</dd>
+</dl>
+
+<form asp-action="Approve" asp-route-id="@Model.Id" method="post" data-confirm="Approve this bill?">
+    @Html.AntiForgeryToken()
+    <button type="submit" class="btn btn-success">Confirm approval</button>
+    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-link">Cancel</a>
+</form>

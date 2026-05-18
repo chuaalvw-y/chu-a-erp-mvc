@@ -1,0 +1,107 @@
+@model ChuA.ERP.Web.Mvc.ViewModels.SalesOrders.ShipSalesOrderFormViewModel
+@{
+    ViewData["Title"] = "Ship sales order";
+}
+<h1 class="h3 mb-4">Ship sales order</h1>
+<form asp-action="Ship" asp-route-id="@Model.Id" method="post" novalidate>
+    @Html.AntiForgeryToken()
+    <partial name="_ValidationSummary" />
+    <input type="hidden" asp-for="Id" />
+
+    <div class="row g-3">
+        <div class="col-md-3">
+            <label asp-for="ShipmentDate" class="form-label"></label>
+            <input asp-for="ShipmentDate" type="date" class="form-control" />
+            <span asp-validation-for="ShipmentDate" class="text-danger"></span>
+        </div>
+        <div class="col-md-5">
+            <label asp-for="WarehouseId" class="form-label"></label>
+            <input asp-for="WarehouseId" class="form-control" placeholder="Warehouse GUID" />
+            <span asp-validation-for="WarehouseId" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="ShipmentNumber" class="form-label"></label>
+            <input asp-for="ShipmentNumber" class="form-control" />
+            <span asp-validation-for="ShipmentNumber" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="Carrier" class="form-label"></label>
+            <input asp-for="Carrier" class="form-control" />
+            <span asp-validation-for="Carrier" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="TrackingNumber" class="form-label"></label>
+            <input asp-for="TrackingNumber" class="form-control" />
+            <span asp-validation-for="TrackingNumber" class="text-danger"></span>
+        </div>
+    </div>
+
+    <h2 class="h5 mt-4">Shipped lines</h2>
+    <div class="table-responsive">
+        <table class="table table-sm" id="ship-lines-table">
+            <thead>
+                <tr>
+                    <th>SO line id</th>
+                    <th>Item id</th>
+                    <th>Shipped qty</th>
+                    <th>UoM</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="ship-lines-body">
+                @for (int i = 0; i < Model.Lines.Count; i++)
+                {
+                    <tr class="ship-line-row">
+                        <td><input name="Lines[@i].SalesOrderLineId" value="@Model.Lines[i].SalesOrderLineId" class="form-control form-control-sm" /></td>
+                        <td><input name="Lines[@i].ItemId" value="@Model.Lines[i].ItemId" class="form-control form-control-sm" /></td>
+                        <td><input name="Lines[@i].ShippedValue" value="@Model.Lines[i].ShippedValue" type="number" step="0.0001" class="form-control form-control-sm" /></td>
+                        <td><input name="Lines[@i].ShippedUnitOfMeasure" value="@Model.Lines[i].ShippedUnitOfMeasure" class="form-control form-control-sm" maxlength="20" /></td>
+                        <td><button type="button" class="btn btn-sm btn-outline-danger ship-line-remove">&times;</button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <button type="button" id="ship-line-add" class="btn btn-outline-secondary btn-sm">+ Add line</button>
+
+    <template id="ship-line-template">
+        <tr class="ship-line-row">
+            <td><input name="Lines[__i__].SalesOrderLineId" class="form-control form-control-sm" /></td>
+            <td><input name="Lines[__i__].ItemId" class="form-control form-control-sm" /></td>
+            <td><input name="Lines[__i__].ShippedValue" type="number" step="0.0001" class="form-control form-control-sm" value="1" /></td>
+            <td><input name="Lines[__i__].ShippedUnitOfMeasure" class="form-control form-control-sm" maxlength="20" value="EA" /></td>
+            <td><button type="button" class="btn btn-sm btn-outline-danger ship-line-remove">&times;</button></td>
+        </tr>
+    </template>
+
+    <div class="mt-3">
+        <button type="submit" class="btn btn-primary">Record shipment</button>
+        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-link">Cancel</a>
+    </div>
+</form>
+
+<script>
+(function () {
+    var body = document.getElementById('ship-lines-body');
+    var template = document.getElementById('ship-line-template');
+    document.getElementById('ship-line-add').addEventListener('click', function () {
+        var html = template.innerHTML.replace(/__i__/g, body.querySelectorAll('tr.ship-line-row').length);
+        var temp = document.createElement('tbody');
+        temp.innerHTML = html;
+        body.appendChild(temp.firstElementChild);
+    });
+    body.addEventListener('click', function (e) {
+        if (e.target.classList.contains('ship-line-remove')) {
+            var row = e.target.closest('tr');
+            row.parentNode.removeChild(row);
+            body.querySelectorAll('tr.ship-line-row').forEach(function (tr, idx) {
+                tr.querySelectorAll('input').forEach(function (input) {
+                    input.name = input.name.replace(/Lines\[\d+\]/, 'Lines[' + idx + ']');
+                });
+            });
+        }
+    });
+})();
+</script>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

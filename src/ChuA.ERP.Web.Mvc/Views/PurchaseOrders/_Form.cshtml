@@ -1,0 +1,94 @@
+@model ChuA.ERP.Web.Mvc.ViewModels.PurchaseOrders.PurchaseOrderFormViewModel
+<partial name="_ValidationSummary" />
+<div class="row g-3">
+    <div class="col-md-6">
+        <label asp-for="VendorId" class="form-label"></label>
+        <input asp-for="VendorId" class="form-control" placeholder="Vendor GUID" />
+        <span asp-validation-for="VendorId" class="text-danger"></span>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="OrderNumber" class="form-label"></label>
+        <input asp-for="OrderNumber" class="form-control" />
+        <span asp-validation-for="OrderNumber" class="text-danger"></span>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="OrderDate" class="form-label"></label>
+        <input asp-for="OrderDate" type="date" class="form-control" />
+        <span asp-validation-for="OrderDate" class="text-danger"></span>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="CurrencyCode" class="form-label"></label>
+        <input asp-for="CurrencyCode" class="form-control" maxlength="3" />
+        <span asp-validation-for="CurrencyCode" class="text-danger"></span>
+    </div>
+</div>
+<input type="hidden" asp-for="Id" />
+
+<h2 class="h5 mt-4">Lines</h2>
+<div class="table-responsive">
+    <table class="table table-sm" id="po-lines-table">
+        <thead>
+            <tr>
+                <th>Item id</th>
+                <th>Description</th>
+                <th>Qty</th>
+                <th>UoM</th>
+                <th>Unit price</th>
+                <th>Currency</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody id="po-lines-body">
+            @for (int i = 0; i < Model.Lines.Count; i++)
+            {
+                <tr class="po-line-row">
+                    <td><input name="Lines[@i].ItemId" value="@Model.Lines[i].ItemId" class="form-control form-control-sm" /></td>
+                    <td><input name="Lines[@i].Description" value="@Model.Lines[i].Description" class="form-control form-control-sm" /></td>
+                    <td><input name="Lines[@i].QuantityValue" value="@Model.Lines[i].QuantityValue" type="number" step="0.0001" class="form-control form-control-sm" /></td>
+                    <td><input name="Lines[@i].QuantityUnitOfMeasure" value="@Model.Lines[i].QuantityUnitOfMeasure" class="form-control form-control-sm" maxlength="20" /></td>
+                    <td><input name="Lines[@i].UnitPriceAmount" value="@Model.Lines[i].UnitPriceAmount" type="number" step="0.01" class="form-control form-control-sm" /></td>
+                    <td><input name="Lines[@i].UnitPriceCurrencyCode" value="@Model.Lines[i].UnitPriceCurrencyCode" class="form-control form-control-sm" maxlength="3" /></td>
+                    <td><button type="button" class="btn btn-sm btn-outline-danger po-line-remove">&times;</button></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+<button type="button" id="po-line-add" class="btn btn-outline-secondary btn-sm">+ Add line</button>
+
+<template id="po-line-template">
+    <tr class="po-line-row">
+        <td><input name="Lines[__i__].ItemId" class="form-control form-control-sm" /></td>
+        <td><input name="Lines[__i__].Description" class="form-control form-control-sm" /></td>
+        <td><input name="Lines[__i__].QuantityValue" type="number" step="0.0001" class="form-control form-control-sm" value="1" /></td>
+        <td><input name="Lines[__i__].QuantityUnitOfMeasure" class="form-control form-control-sm" maxlength="20" value="EA" /></td>
+        <td><input name="Lines[__i__].UnitPriceAmount" type="number" step="0.01" class="form-control form-control-sm" value="0" /></td>
+        <td><input name="Lines[__i__].UnitPriceCurrencyCode" class="form-control form-control-sm" maxlength="3" value="USD" /></td>
+        <td><button type="button" class="btn btn-sm btn-outline-danger po-line-remove">&times;</button></td>
+    </tr>
+</template>
+
+<script>
+(function () {
+    var body = document.getElementById('po-lines-body');
+    var template = document.getElementById('po-line-template');
+    document.getElementById('po-line-add').addEventListener('click', function () {
+        var html = template.innerHTML.replace(/__i__/g, body.querySelectorAll('tr.po-line-row').length);
+        var temp = document.createElement('tbody');
+        temp.innerHTML = html;
+        body.appendChild(temp.firstElementChild);
+    });
+    body.addEventListener('click', function (e) {
+        if (e.target.classList.contains('po-line-remove')) {
+            var row = e.target.closest('tr');
+            row.parentNode.removeChild(row);
+            // renumber
+            body.querySelectorAll('tr.po-line-row').forEach(function (tr, idx) {
+                tr.querySelectorAll('input').forEach(function (input) {
+                    input.name = input.name.replace(/Lines\[\d+\]/, 'Lines[' + idx + ']');
+                });
+            });
+        }
+    });
+})();
+</script>

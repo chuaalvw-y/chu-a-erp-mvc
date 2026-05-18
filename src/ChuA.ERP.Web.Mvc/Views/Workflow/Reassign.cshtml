@@ -1,0 +1,41 @@
+@model ChuA.ERP.Web.Mvc.ViewModels.Workflow.ReassignFormViewModel
+@{
+    ViewData["Title"] = "Reassign workflow task";
+    var task = ViewData["Task"] as ApprovalRequestDto;
+}
+<h1 class="h3 mb-4">Reassign task</h1>
+
+@if (task is not null)
+{
+    <dl class="row">
+        <dt class="col-sm-3">Subject</dt><dd class="col-sm-9">@task.SubjectType <code>@task.SubjectId</code></dd>
+        <dt class="col-sm-3">Requested by</dt><dd class="col-sm-9">@task.RequestedBy</dd>
+        <dt class="col-sm-3">Current status</dt><dd class="col-sm-9">@Html.StatusBadge(task.Status)</dd>
+    </dl>
+}
+
+<form asp-action="Reassign" asp-route-id="@Model.Id" method="post" novalidate>
+    @Html.AntiForgeryToken()
+    <partial name="_ValidationSummary" />
+    <input type="hidden" asp-for="Id" />
+
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label asp-for="NewAssigneeId" class="form-label"></label>
+            <input asp-for="NewAssigneeId" class="form-control" placeholder="User GUID" />
+            <span asp-validation-for="NewAssigneeId" class="text-danger"></span>
+        </div>
+        <div class="col-md-12">
+            <label asp-for="Reason" class="form-label"></label>
+            <textarea asp-for="Reason" class="form-control" rows="3" maxlength="500"></textarea>
+            <span asp-validation-for="Reason" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <button type="submit" class="btn btn-primary">Reassign task</button>
+        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-link">Cancel</a>
+    </div>
+</form>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

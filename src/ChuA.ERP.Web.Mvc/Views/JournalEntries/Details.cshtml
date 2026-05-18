@@ -1,0 +1,48 @@
+@model JournalEntryDto
+@{
+    ViewData["Title"] = Model.EntryNumber;
+    var isDraft = string.Equals(Model.Status, "Draft", StringComparison.OrdinalIgnoreCase);
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Journal entry @Model.EntryNumber</h1>
+    <div>
+        @if (isDraft)
+        {
+            <a class="btn btn-outline-primary" asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
+            <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@Model.Id">Delete</a>
+        }
+    </div>
+</div>
+
+<dl class="row">
+    <dt class="col-sm-3">Entry id</dt><dd class="col-sm-9"><code>@Model.Id</code></dd>
+    <dt class="col-sm-3">Entry number</dt><dd class="col-sm-9">@Model.EntryNumber</dd>
+    <dt class="col-sm-3">Entry date</dt><dd class="col-sm-9">@Model.EntryDate.ToString("yyyy-MM-dd")</dd>
+    <dt class="col-sm-3">Fiscal period id</dt><dd class="col-sm-9"><code>@Model.FiscalPeriodId</code></dd>
+    <dt class="col-sm-3">Currency</dt><dd class="col-sm-9">@Model.CurrencyCode (rate @Model.ExchangeRate.ToString("N4"))</dd>
+    <dt class="col-sm-3">Total debit</dt><dd class="col-sm-9">@Model.TotalDebit.ToString("N2")</dd>
+    <dt class="col-sm-3">Total credit</dt><dd class="col-sm-9">@Model.TotalCredit.ToString("N2")</dd>
+    <dt class="col-sm-3">Status</dt><dd class="col-sm-9">@Html.StatusBadge(Model.Status)</dd>
+    @if (!string.IsNullOrWhiteSpace(Model.Memo))
+    {
+        <dt class="col-sm-3">Memo</dt><dd class="col-sm-9">@Model.Memo</dd>
+    }
+    @if (!string.IsNullOrWhiteSpace(Model.Reference))
+    {
+        <dt class="col-sm-3">Reference</dt><dd class="col-sm-9">@Model.Reference</dd>
+    }
+    @if (Model.ReversedByJournalEntryId is not null)
+    {
+        <dt class="col-sm-3">Reversed by</dt>
+        <dd class="col-sm-9"><a asp-action="Details" asp-route-id="@Model.ReversedByJournalEntryId"><code>@Model.ReversedByJournalEntryId</code></a></dd>
+    }
+</dl>
+
+<div class="d-flex gap-2 mb-4">
+    @if (isDraft)
+    {
+        <a class="btn btn-success btn-lg" asp-action="Post" asp-route-id="@Model.Id" asp-authorize-policy="JournalEntryPost">Post entry</a>
+    }
+</div>
+
+<a asp-action="Index" class="btn btn-link">&larr; Back to list</a>

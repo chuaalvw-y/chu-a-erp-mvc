@@ -1,0 +1,49 @@
+@model DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+    ViewData["Breadcrumbs"] = new[] { new Breadcrumb("Dashboard", null, true) };
+}
+<h1 class="h3 mb-4">Welcome, @Model.DisplayName</h1>
+
+@if (!Model.ApiReachable)
+{
+    <div class="alert alert-warning">Some API calls failed; tile values may be stale. Check <a asp-controller="Health" asp-action="Index">System Health</a>.</div>
+}
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <a class="text-decoration-none" asp-controller="Bills" asp-action="AwaitingApproval">
+            <div class="card text-bg-warning">
+                <div class="card-body">
+                    <h2 class="display-6">@Model.BillsAwaitingApproval</h2>
+                    <p class="card-text">Bills awaiting approval</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a class="text-decoration-none" asp-controller="Workflow" asp-action="Index">
+            <div class="card text-bg-info">
+                <div class="card-body">
+                    <h2 class="display-6">@Model.PendingWorkflowTasks</h2>
+                    <p class="card-text">Pending workflow tasks</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a class="text-decoration-none" asp-controller="Invoices" asp-action="Index">
+            <div class="card text-bg-primary">
+                <div class="card-body">
+                    <h2 class="display-6">@Model.OutstandingInvoices</h2>
+                    <p class="card-text">Outstanding invoices</p>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+@if (Model.CompanyId is { } cid)
+{
+    <p class="text-muted small mt-4">Active company: <code>@cid</code></p>
+}

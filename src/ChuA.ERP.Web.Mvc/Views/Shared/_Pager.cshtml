@@ -1,0 +1,27 @@
+@using ChuA.ERP.Web.Mvc.Contracts.Common
+@model object
+@{
+    var page = (dynamic)Model;
+    int current = page.PageNumber;
+    int total = page.TotalPages;
+    int size = page.PageSize;
+    string? search = ViewData["Search"] as string;
+    if (total <= 1) { return; }
+    string Url(int p) => $"?pageNumber={p}&pageSize={size}" + (string.IsNullOrEmpty(search) ? "" : $"&search={Uri.EscapeDataString(search)}");
+}
+<nav aria-label="pagination" class="mt-3">
+    <ul class="pagination">
+        <li class="page-item @(current <= 1 ? "disabled" : "")">
+            <a class="page-link" href="@Url(Math.Max(1, current - 1))">Previous</a>
+        </li>
+        @for (int p = Math.Max(1, current - 2); p <= Math.Min(total, current + 2); p++)
+        {
+            <li class="page-item @(p == current ? "active" : "")">
+                <a class="page-link" href="@Url(p)">@p</a>
+            </li>
+        }
+        <li class="page-item @(current >= total ? "disabled" : "")">
+            <a class="page-link" href="@Url(Math.Min(total, current + 1))">Next</a>
+        </li>
+    </ul>
+</nav>

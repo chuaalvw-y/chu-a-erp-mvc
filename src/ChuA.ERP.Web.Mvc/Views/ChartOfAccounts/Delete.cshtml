@@ -1,0 +1,21 @@
+@model ChartOfAccountDto
+@{
+    ViewData["Title"] = "Delete account";
+}
+<h1 class="h3 mb-4 text-danger">Delete account</h1>
+<div class="alert alert-danger">
+    <strong>This action cannot be undone.</strong> Confirm you want to delete <strong>@Model.Name</strong> (@Model.AccountCode).
+</div>
+
+<dl class="row">
+    <dt class="col-sm-3">Account id</dt><dd class="col-sm-9"><code>@Model.Id</code></dd>
+    <dt class="col-sm-3">Name</dt><dd class="col-sm-9">@Model.Name</dd>
+    <dt class="col-sm-3">Type</dt><dd class="col-sm-9">@Model.AccountType</dd>
+    <dt class="col-sm-3">Currency</dt><dd class="col-sm-9">@Model.CurrencyCode</dd>
+</dl>
+
+<form asp-action="Delete" asp-route-id="@Model.Id" method="post" data-confirm="Delete this account? This cannot be undone.">
+    @Html.AntiForgeryToken()
+    <button type="submit" class="btn btn-danger">Delete account</button>
+    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-link">Cancel</a>
+</form>

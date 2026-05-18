@@ -1,0 +1,150 @@
+@model ChuA.ERP.Web.Mvc.ViewModels.JournalEntries.JournalEntryFormViewModel
+<partial name="_ValidationSummary" />
+<div class="row g-3">
+    <div class="col-md-3">
+        <label asp-for="EntryNumber" class="form-label"></label>
+        <input asp-for="EntryNumber" class="form-control" />
+        <span asp-validation-for="EntryNumber" class="text-danger"></span>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="EntryDate" class="form-label"></label>
+        <input asp-for="EntryDate" type="date" class="form-control" />
+        <span asp-validation-for="EntryDate" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="FiscalPeriodId" class="form-label"></label>
+        <input asp-for="FiscalPeriodId" class="form-control" />
+        <span asp-validation-for="FiscalPeriodId" class="text-danger"></span>
+    </div>
+    <div class="col-md-2">
+        <label asp-for="CurrencyCode" class="form-label"></label>
+        <input asp-for="CurrencyCode" class="form-control" maxlength="3" />
+        <span asp-validation-for="CurrencyCode" class="text-danger"></span>
+    </div>
+    <div class="col-md-2">
+        <label asp-for="ExchangeRate" class="form-label"></label>
+        <input asp-for="ExchangeRate" type="number" step="0.0001" class="form-control" />
+        <span asp-validation-for="ExchangeRate" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="Reference" class="form-label"></label>
+        <input asp-for="Reference" class="form-control" />
+        <span asp-validation-for="Reference" class="text-danger"></span>
+    </div>
+    <div class="col-md-12">
+        <label asp-for="Memo" class="form-label"></label>
+        <input asp-for="Memo" class="form-control" />
+        <span asp-validation-for="Memo" class="text-danger"></span>
+    </div>
+</div>
+
+<h2 class="h5 mt-4">Lines</h2>
+<div class="table-responsive">
+    <table class="table table-sm align-middle" id="lines">
+        <thead>
+            <tr>
+                <th style="min-width:260px;">Account id</th>
+                <th style="width:140px;" class="text-end">Debit</th>
+                <th style="width:140px;" class="text-end">Credit</th>
+                <th>Description</th>
+                <th style="width:80px;"></th>
+            </tr>
+        </thead>
+        <tbody>
+        @for (int i = 0; i < Model.Lines.Count; i++)
+        {
+            <tr class="line-row">
+                <td>
+                    <input name="Lines[@i].AccountId" value="@Model.Lines[i].AccountId" class="form-control" />
+                </td>
+                <td>
+                    <input name="Lines[@i].Debit" value="@Model.Lines[i].Debit" type="number" step="0.01" class="form-control text-end debit" />
+                </td>
+                <td>
+                    <input name="Lines[@i].Credit" value="@Model.Lines[i].Credit" type="number" step="0.01" class="form-control text-end credit" />
+                </td>
+                <td>
+                    <input name="Lines[@i].Description" value="@Model.Lines[i].Description" class="form-control" />
+                </td>
+                <td class="text-end">
+                    <button type="button" class="btn btn-sm btn-outline-danger remove-line">Remove</button>
+                </td>
+            </tr>
+        }
+        </tbody>
+        <tfoot>
+            <tr>
+                <th class="text-end">Totals</th>
+                <th class="text-end" id="total-debit">@Model.TotalDebit.ToString("N2")</th>
+                <th class="text-end" id="total-credit">@Model.TotalCredit.ToString("N2")</th>
+                <th colspan="2" id="totals-warning"></th>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+<button type="button" class="btn btn-outline-secondary btn-sm" id="add-line">+ Add line</button>
+
+<input type="hidden" asp-for="Id" />
+
+<script>
+(function () {
+    var table = document.getElementById('lines');
+    var tbody = table.querySelector('tbody');
+    var totalDebitEl = document.getElementById('total-debit');
+    var totalCreditEl = document.getElementById('total-credit');
+    var warningEl = document.getElementById('totals-warning');
+
+    function renumber() {
+        var rows = tbody.querySelectorAll('tr.line-row');
+        rows.forEach(function (row, idx) {
+            row.querySelectorAll('input').forEach(function (input) {
+                var name = input.getAttribute('name');
+                if (!name) return;
+                input.setAttribute('name', name.replace(/Lines\[\d+\]/, 'Lines[' + idx + ']'));
+            });
+        });
+    }
+
+    function recompute() {
+        var debit = 0, credit = 0;
+        tbody.querySelectorAll('tr.line-row .debit').forEach(function (i) { debit += parseFloat(i.value) || 0; });
+        tbody.querySelectorAll('tr.line-row .credit').forEach(function (i) { credit += parseFloat(i.value) || 0; });
+        totalDebitEl.textContent = debit.toFixed(2);
+        totalCreditEl.textContent = credit.toFixed(2);
+        if (Math.abs(debit - credit) > 0.0001) {
+            warningEl.innerHTML = '<span class="text-danger">Out of balance: ' + (debit - credit).toFixed(2) + '</span>';
+        } else {
+            warningEl.textContent = '';
+        }
+    }
+
+    function wireRow(row) {
+        var btn = row.querySelector('.remove-line');
+        if (btn) btn.addEventListener('click', function () {
+            if (tbody.querySelectorAll('tr.line-row').length <= 2) return;
+            row.remove();
+            renumber();
+            recompute();
+        });
+        row.querySelectorAll('input.debit, input.credit').forEach(function (i) {
+            i.addEventListener('input', recompute);
+        });
+    }
+
+    tbody.querySelectorAll('tr.line-row').forEach(wireRow);
+    recompute();
+
+    document.getElementById('add-line').addEventListener('click', function () {
+        var rows = tbody.querySelectorAll('tr.line-row');
+        var last = rows[rows.length - 1];
+        var clone = last.cloneNode(true);
+        clone.querySelectorAll('input').forEach(function (input) {
+            input.value = (input.type === 'number') ? '0' : '';
+        });
+        tbody.appendChild(clone);
+        wireRow(clone);
+        renumber();
+        recompute();
+    });
+})();
+</script>

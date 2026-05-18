@@ -1,0 +1,47 @@
+@model ChuA.ERP.Web.Mvc.ViewModels.Workflow.SubmitApprovalFormViewModel
+@{
+    ViewData["Title"] = "Submit approval decision";
+    var task = ViewData["Task"] as ApprovalRequestDto;
+}
+<h1 class="h3 mb-4">Submit approval decision</h1>
+
+@if (task is not null)
+{
+    <dl class="row">
+        <dt class="col-sm-3">Subject</dt><dd class="col-sm-9">@task.SubjectType <code>@task.SubjectId</code></dd>
+        <dt class="col-sm-3">Requested by</dt><dd class="col-sm-9">@task.RequestedBy</dd>
+        <dt class="col-sm-3">Current status</dt><dd class="col-sm-9">@Html.StatusBadge(task.Status)</dd>
+    </dl>
+}
+
+<form asp-action="Submit" asp-route-id="@Model.Id" method="post" novalidate>
+    @Html.AntiForgeryToken()
+    <partial name="_ValidationSummary" />
+    <input type="hidden" asp-for="Id" />
+
+    <fieldset class="mb-3">
+        <legend class="form-label">Decision</legend>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" asp-for="Decision" id="decision-approve" value="Approve" />
+            <label class="form-check-label" for="decision-approve">Approve</label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" asp-for="Decision" id="decision-reject" value="Reject" />
+            <label class="form-check-label" for="decision-reject">Reject</label>
+        </div>
+        <span asp-validation-for="Decision" class="text-danger"></span>
+    </fieldset>
+
+    <div class="mb-3">
+        <label asp-for="Comment" class="form-label"></label>
+        <textarea asp-for="Comment" class="form-control" rows="4" maxlength="1000"></textarea>
+        <span asp-validation-for="Comment" class="text-danger"></span>
+    </div>
+
+    <div>
+        <button type="submit" class="btn btn-primary">Submit decision</button>
+        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-link">Cancel</a>
+    </div>
+</form>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

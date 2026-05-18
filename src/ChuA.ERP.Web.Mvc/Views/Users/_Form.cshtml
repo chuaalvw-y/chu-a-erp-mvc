@@ -1,0 +1,39 @@
+@model ChuA.ERP.Web.Mvc.ViewModels.Users.UserFormViewModel
+<partial name="_ValidationSummary" />
+<div class="row g-3">
+    <div class="col-md-4">
+        <label asp-for="UserName" class="form-label"></label>
+        <input asp-for="UserName" class="form-control" autocomplete="off" disabled="@Model.IsEdit" />
+        <span asp-validation-for="UserName" class="text-danger"></span>
+    </div>
+    <div class="col-md-8">
+        <label asp-for="Email" class="form-label"></label>
+        <input asp-for="Email" type="email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="FirstName" class="form-label"></label>
+        <input asp-for="FirstName" class="form-control" />
+        <span asp-validation-for="FirstName" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="LastName" class="form-label"></label>
+        <input asp-for="LastName" class="form-control" />
+        <span asp-validation-for="LastName" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="EmployeeId" class="form-label"></label>
+        <input asp-for="EmployeeId" class="form-control" />
+        <span asp-validation-for="EmployeeId" class="text-danger"></span>
+    </div>
+    @if (Model.IsEdit)
+    {
+        <div class="col-md-6 d-flex align-items-end">
+            <div class="form-check">
+                <input asp-for="TwoFactorEnabled" class="form-check-input" />
+                <label asp-for="TwoFactorEnabled" class="form-check-label"></label>
+            </div>
+        </div>
+    }
+</div>
+<input type="hidden" asp-for="Id" />

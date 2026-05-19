@@ -3,7 +3,13 @@
 <div class="row g-3">
     <div class="col-md-6">
         <label asp-for="CustomerId" class="form-label"></label>
-        <input asp-for="CustomerId" class="form-control" />
+        <select asp-for="CustomerId" class="form-select">
+            <option value="">Select customer</option>
+            @foreach (var customer in Model.Customers)
+            {
+                <option value="@customer.Id">@customer.CustomerCode - @customer.LegalName</option>
+            }
+        </select>
         <span asp-validation-for="CustomerId" class="text-danger"></span>
     </div>
     <div class="col-md-3">

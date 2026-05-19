@@ -94,7 +94,7 @@ public sealed class BillsController : Controller
 
     [HttpGet]
     [Authorize(Policy = AuthorizationPolicies.BillCreate)]
-    public IActionResult Create()
+    public async Task<IActionResult> Create(CancellationToken cancellationToken)
     {
         ViewData["Breadcrumbs"] = new[]
         {
@@ -102,7 +102,7 @@ public sealed class BillsController : Controller
             new Breadcrumb("Bills", Url.Action(nameof(Index))),
             new Breadcrumb("New bill", null, true)
         };
-        return View(new BillFormViewModel());
+        return View(await PopulateLookupsAsync(new BillFormViewModel(), cancellationToken).ConfigureAwait(false));
     }
 
     [HttpPost]
@@ -110,13 +110,13 @@ public sealed class BillsController : Controller
     [Authorize(Policy = AuthorizationPolicies.BillCreate)]
     public async Task<IActionResult> Create(BillFormViewModel model, CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid) return View(model);
+        if (!ModelState.IsValid) return View(await PopulateLookupsAsync(model, cancellationToken).ConfigureAwait(false));
 
         var result = await _bills.CreateAsync(model.ToCreateRequest(), cancellationToken).ConfigureAwait(false);
         if (result.IsFailure)
         {
             ModelState.AddResultErrors(result);
-            return View(model);
+            return View(await PopulateLookupsAsync(model, cancellationToken).ConfigureAwait(false));
         }
         TempData.AddToast($"Bill '{result.Value.BillNumber}' created.", ToastLevel.Success);
         return RedirectToAction(nameof(Details), new { id = result.Value.Id });
@@ -139,7 +139,7 @@ public sealed class BillsController : Controller
             new Breadcrumb(result.Value.BillNumber, Url.Action(nameof(Details), new { id })),
             new Breadcrumb("Edit", null, true)
         };
-        return View(BillFormViewModel.FromDto(result.Value));
+        return View(await PopulateLookupsAsync(BillFormViewModel.FromDto(result.Value), cancellationToken).ConfigureAwait(false));
     }
 
     [HttpPost]
@@ -147,13 +147,13 @@ public sealed class BillsController : Controller
     [Authorize(Policy = AuthorizationPolicies.BillUpdate)]
     public async Task<IActionResult> Edit(Guid id, BillFormViewModel model, CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid) return View(model);
+        if (!ModelState.IsValid) return View(await PopulateLookupsAsync(model, cancellationToken).ConfigureAwait(false));
 
         var result = await _bills.UpdateAsync(id, model.ToUpdateRequest(), cancellationToken).ConfigureAwait(false);
         if (result.IsFailure)
         {
             ModelState.AddResultErrors(result);
-            return View(model);
+            return View(await PopulateLookupsAsync(model, cancellationToken).ConfigureAwait(false));
         }
         TempData.AddToast("Bill updated.", ToastLevel.Success);
         return RedirectToAction(nameof(Details), new { id });
@@ -283,5 +283,11 @@ public sealed class BillsController : Controller
     {
         var result = await _vendors.ListAsync(pageSize: 200, sort: "legalName", cancellationToken: cancellationToken).ConfigureAwait(false);
         return result.IsSuccess ? result.Value.Items.ToArray() : Array.Empty<Contracts.Dtos.VendorDto>();
+    }
+
+    private async Task<BillFormViewModel> PopulateLookupsAsync(BillFormViewModel model, CancellationToken cancellationToken)
+    {
+        model.Vendors = await LoadVendorsAsync(cancellationToken).ConfigureAwait(false);
+        return model;
     }
 }

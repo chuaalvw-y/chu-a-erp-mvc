@@ -8,7 +8,18 @@ public sealed record PurchaseOrderDto(
     DateOnly OrderDate,
     string CurrencyCode,
     string Status,
-    MoneyDto TotalAmount);
+    MoneyDto TotalAmount,
+    DateOnly? ExpectedDeliveryDate = null,
+    IReadOnlyCollection<PurchaseOrderLineDto>? Lines = null);
+
+public sealed record PurchaseOrderLineDto(
+    Guid Id,
+    Guid ItemId,
+    string Description,
+    QuantityDto OrderedQuantity,
+    QuantityDto ReceivedQuantity,
+    MoneyDto UnitPrice,
+    MoneyDto LineTotal);
 
 public sealed record CreatePurchaseOrderLineDto(
     Guid ItemId,
@@ -21,11 +32,13 @@ public sealed record CreatePurchaseOrderRequest(
     string OrderNumber,
     DateOnly OrderDate,
     string CurrencyCode,
+    DateOnly? ExpectedDeliveryDate,
     IReadOnlyList<CreatePurchaseOrderLineDto> Lines);
 
 public sealed record UpdatePurchaseOrderRequest(
     string OrderNumber,
     DateOnly OrderDate,
+    DateOnly? ExpectedDeliveryDate,
     string CurrencyCode,
     IReadOnlyList<CreatePurchaseOrderLineDto> Lines);
 

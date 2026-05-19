@@ -11,7 +11,16 @@ public sealed record InvoiceDto(
     string Status,
     string PaymentStatus,
     MoneyDto TotalAmount,
-    MoneyDto OutstandingBalance);
+    MoneyDto OutstandingBalance,
+    IReadOnlyCollection<InvoiceLineDto>? Lines = null);
+
+public sealed record InvoiceLineDto(
+    Guid Id,
+    string Description,
+    QuantityDto Quantity,
+    MoneyDto UnitPrice,
+    MoneyDto LineTotal,
+    Guid? RevenueAccountId);
 
 public sealed record CreateInvoiceLineDto(
     string Description,

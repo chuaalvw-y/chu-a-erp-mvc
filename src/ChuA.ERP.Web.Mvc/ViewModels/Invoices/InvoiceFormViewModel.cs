@@ -31,12 +31,10 @@ public sealed class InvoiceFormViewModel
     [Display(Name = "Lines")]
     public List<InvoiceLineFormViewModel> Lines { get; set; } = new() { new InvoiceLineFormViewModel() };
 
+    public IReadOnlyList<CustomerDto> Customers { get; set; } = Array.Empty<CustomerDto>();
+
     public bool IsEdit => Id.HasValue;
 
-    /// <remarks>
-    /// Lines stay empty because the list endpoint <c>InvoiceDto</c> does not return lines.
-    /// Edit pages should supplement with a dedicated lines fetch if/when the API exposes one.
-    /// </remarks>
     public static InvoiceFormViewModel FromDto(InvoiceDto dto) => new()
     {
         Id = dto.Id,
@@ -45,7 +43,15 @@ public sealed class InvoiceFormViewModel
         InvoiceDate = dto.InvoiceDate,
         DueDate = dto.DueDate,
         CurrencyCode = dto.CurrencyCode,
-        Lines = new List<InvoiceLineFormViewModel>(),
+        Lines = dto.Lines?.Select(l => new InvoiceLineFormViewModel
+        {
+            Description = l.Description,
+            QuantityValue = l.Quantity.Value,
+            QuantityUnitOfMeasure = l.Quantity.UnitOfMeasure,
+            UnitPriceAmount = l.UnitPrice.Amount,
+            UnitPriceCurrencyCode = l.UnitPrice.CurrencyCode,
+            RevenueAccountId = l.RevenueAccountId,
+        }).ToList() ?? new List<InvoiceLineFormViewModel> { new() },
     };
 
     private IReadOnlyList<CreateInvoiceLineDto> ToLineDtos() =>

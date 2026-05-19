@@ -20,12 +20,19 @@ public sealed class SalesOrderFormViewModel
     [DataType(DataType.Date)]
     public DateOnly OrderDate { get; set; } = DateOnly.FromDateTime(DateTime.Today);
 
+    [Display(Name = "Requested ship")]
+    [DataType(DataType.Date)]
+    public DateOnly? RequestedShipDate { get; set; }
+
     [Required, StringLength(3, MinimumLength = 3)]
     [Display(Name = "Currency")]
     public string CurrencyCode { get; set; } = "USD";
 
     [Display(Name = "Lines")]
     public List<SalesOrderLineFormViewModel> Lines { get; set; } = new();
+
+    public IReadOnlyList<CustomerDto> Customers { get; set; } = Array.Empty<CustomerDto>();
+    public IReadOnlyList<ItemDto> Items { get; set; } = Array.Empty<ItemDto>();
 
     public bool IsEdit => Id.HasValue;
 
@@ -35,8 +42,17 @@ public sealed class SalesOrderFormViewModel
         CustomerId = dto.CustomerId,
         OrderNumber = dto.OrderNumber,
         OrderDate = dto.OrderDate,
+        RequestedShipDate = dto.RequestedShipDate,
         CurrencyCode = dto.CurrencyCode,
-        Lines = new List<SalesOrderLineFormViewModel>(),
+        Lines = dto.Lines?.Select(l => new SalesOrderLineFormViewModel
+        {
+            ItemId = l.ItemId,
+            Description = l.Description,
+            QuantityValue = l.OrderedQuantity.Value,
+            QuantityUnitOfMeasure = l.OrderedQuantity.UnitOfMeasure,
+            UnitPriceAmount = l.UnitPrice.Amount,
+            UnitPriceCurrencyCode = l.UnitPrice.CurrencyCode,
+        }).ToList() ?? new List<SalesOrderLineFormViewModel> { new() },
     };
 
     public CreateSalesOrderRequest ToCreateRequest() => new(
@@ -44,11 +60,13 @@ public sealed class SalesOrderFormViewModel
         OrderNumber,
         OrderDate,
         CurrencyCode,
+        RequestedShipDate,
         Lines.Select(BuildLine).ToList());
 
     public UpdateSalesOrderRequest ToUpdateRequest() => new(
         OrderNumber,
         OrderDate,
+        RequestedShipDate,
         CurrencyCode,
         Lines.Select(BuildLine).ToList());
 

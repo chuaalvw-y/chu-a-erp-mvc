@@ -71,7 +71,7 @@ public sealed class InvoicesController : Controller
 
     [HttpGet]
     [Authorize(Policy = AuthorizationPolicies.InvoiceCreate)]
-    public IActionResult Create()
+    public async Task<IActionResult> Create(CancellationToken cancellationToken)
     {
         ViewData["Breadcrumbs"] = new[]
         {
@@ -79,7 +79,7 @@ public sealed class InvoicesController : Controller
             new Breadcrumb("Invoices", Url.Action(nameof(Index))),
             new Breadcrumb("New invoice", null, true)
         };
-        return View(new InvoiceFormViewModel());
+        return View(await PopulateLookupsAsync(new InvoiceFormViewModel(), cancellationToken).ConfigureAwait(false));
     }
 
     [HttpPost]
@@ -87,13 +87,13 @@ public sealed class InvoicesController : Controller
     [Authorize(Policy = AuthorizationPolicies.InvoiceCreate)]
     public async Task<IActionResult> Create(InvoiceFormViewModel model, CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid) return View(model);
+        if (!ModelState.IsValid) return View(await PopulateLookupsAsync(model, cancellationToken).ConfigureAwait(false));
 
         var result = await _invoices.CreateAsync(model.ToCreateRequest(), cancellationToken).ConfigureAwait(false);
         if (result.IsFailure)
         {
             ModelState.AddResultErrors(result);
-            return View(model);
+            return View(await PopulateLookupsAsync(model, cancellationToken).ConfigureAwait(false));
         }
         TempData.AddToast($"Invoice '{result.Value.InvoiceNumber}' created.", ToastLevel.Success);
         return RedirectToAction(nameof(Details), new { id = result.Value.Id });
@@ -116,7 +116,7 @@ public sealed class InvoicesController : Controller
             new Breadcrumb(result.Value.InvoiceNumber, Url.Action(nameof(Details), new { id })),
             new Breadcrumb("Edit", null, true)
         };
-        return View(InvoiceFormViewModel.FromDto(result.Value));
+        return View(await PopulateLookupsAsync(InvoiceFormViewModel.FromDto(result.Value), cancellationToken).ConfigureAwait(false));
     }
 
     [HttpPost]
@@ -124,13 +124,13 @@ public sealed class InvoicesController : Controller
     [Authorize(Policy = AuthorizationPolicies.InvoiceUpdate)]
     public async Task<IActionResult> Edit(Guid id, InvoiceFormViewModel model, CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid) return View(model);
+        if (!ModelState.IsValid) return View(await PopulateLookupsAsync(model, cancellationToken).ConfigureAwait(false));
 
         var result = await _invoices.UpdateAsync(id, model.ToUpdateRequest(), cancellationToken).ConfigureAwait(false);
         if (result.IsFailure)
         {
             ModelState.AddResultErrors(result);
-            return View(model);
+            return View(await PopulateLookupsAsync(model, cancellationToken).ConfigureAwait(false));
         }
         TempData.AddToast("Invoice updated.", ToastLevel.Success);
         return RedirectToAction(nameof(Details), new { id });
@@ -225,5 +225,11 @@ public sealed class InvoicesController : Controller
     {
         var result = await _customers.ListAsync(pageSize: 200, sort: "legalName", cancellationToken: cancellationToken).ConfigureAwait(false);
         return result.IsSuccess ? result.Value.Items.ToArray() : Array.Empty<Contracts.Dtos.CustomerDto>();
+    }
+
+    private async Task<InvoiceFormViewModel> PopulateLookupsAsync(InvoiceFormViewModel model, CancellationToken cancellationToken)
+    {
+        model.Customers = await LoadCustomersAsync(cancellationToken).ConfigureAwait(false);
+        return model;
     }
 }

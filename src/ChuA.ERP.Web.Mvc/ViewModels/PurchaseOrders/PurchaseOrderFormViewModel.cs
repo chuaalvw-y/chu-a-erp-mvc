@@ -20,12 +20,19 @@ public sealed class PurchaseOrderFormViewModel
     [DataType(DataType.Date)]
     public DateOnly OrderDate { get; set; } = DateOnly.FromDateTime(DateTime.Today);
 
+    [Display(Name = "Expected delivery")]
+    [DataType(DataType.Date)]
+    public DateOnly? ExpectedDeliveryDate { get; set; }
+
     [Required, StringLength(3, MinimumLength = 3)]
     [Display(Name = "Currency")]
     public string CurrencyCode { get; set; } = "USD";
 
     [Display(Name = "Lines")]
     public List<PurchaseOrderLineFormViewModel> Lines { get; set; } = new();
+
+    public IReadOnlyList<VendorDto> Vendors { get; set; } = Array.Empty<VendorDto>();
+    public IReadOnlyList<ItemDto> Items { get; set; } = Array.Empty<ItemDto>();
 
     public bool IsEdit => Id.HasValue;
 
@@ -35,9 +42,17 @@ public sealed class PurchaseOrderFormViewModel
         VendorId = dto.VendorId,
         OrderNumber = dto.OrderNumber,
         OrderDate = dto.OrderDate,
+        ExpectedDeliveryDate = dto.ExpectedDeliveryDate,
         CurrencyCode = dto.CurrencyCode,
-        // Lines are not present on the list DTO — leave empty; UI will let user add new lines on edit.
-        Lines = new List<PurchaseOrderLineFormViewModel>(),
+        Lines = dto.Lines?.Select(l => new PurchaseOrderLineFormViewModel
+        {
+            ItemId = l.ItemId,
+            Description = l.Description,
+            QuantityValue = l.OrderedQuantity.Value,
+            QuantityUnitOfMeasure = l.OrderedQuantity.UnitOfMeasure,
+            UnitPriceAmount = l.UnitPrice.Amount,
+            UnitPriceCurrencyCode = l.UnitPrice.CurrencyCode,
+        }).ToList() ?? new List<PurchaseOrderLineFormViewModel> { new() },
     };
 
     public CreatePurchaseOrderRequest ToCreateRequest() => new(
@@ -45,11 +60,13 @@ public sealed class PurchaseOrderFormViewModel
         OrderNumber,
         OrderDate,
         CurrencyCode,
+        ExpectedDeliveryDate,
         Lines.Select(BuildLine).ToList());
 
     public UpdatePurchaseOrderRequest ToUpdateRequest() => new(
         OrderNumber,
         OrderDate,
+        ExpectedDeliveryDate,
         CurrencyCode,
         Lines.Select(BuildLine).ToList());
 

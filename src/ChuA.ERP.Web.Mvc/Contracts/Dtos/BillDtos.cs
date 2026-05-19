@@ -11,7 +11,16 @@ public sealed record BillDto(
     string Status,
     string PaymentStatus,
     MoneyDto TotalAmount,
-    MoneyDto OutstandingBalance);
+    MoneyDto OutstandingBalance,
+    IReadOnlyCollection<BillLineDto>? Lines = null);
+
+public sealed record BillLineDto(
+    Guid Id,
+    string Description,
+    QuantityDto Quantity,
+    MoneyDto UnitPrice,
+    MoneyDto LineTotal,
+    Guid? ExpenseAccountId);
 
 public sealed record CreateBillLineDto(
     string Description,

@@ -3,7 +3,13 @@
 <div class="row g-3">
     <div class="col-md-6">
         <label asp-for="CustomerId" class="form-label"></label>
-        <input asp-for="CustomerId" class="form-control" placeholder="Customer GUID" />
+        <select asp-for="CustomerId" class="form-select">
+            <option value="">Select customer</option>
+            @foreach (var customer in Model.Customers)
+            {
+                <option value="@customer.Id">@customer.CustomerCode - @customer.LegalName</option>
+            }
+        </select>
         <span asp-validation-for="CustomerId" class="text-danger"></span>
     </div>
     <div class="col-md-3">
@@ -15,6 +21,11 @@
         <label asp-for="OrderDate" class="form-label"></label>
         <input asp-for="OrderDate" type="date" class="form-control" />
         <span asp-validation-for="OrderDate" class="text-danger"></span>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="RequestedShipDate" class="form-label"></label>
+        <input asp-for="RequestedShipDate" type="date" class="form-control" />
+        <span asp-validation-for="RequestedShipDate" class="text-danger"></span>
     </div>
     <div class="col-md-3">
         <label asp-for="CurrencyCode" class="form-label"></label>
@@ -42,7 +53,15 @@
             @for (int i = 0; i < Model.Lines.Count; i++)
             {
                 <tr class="so-line-row">
-                    <td><input name="Lines[@i].ItemId" value="@Model.Lines[i].ItemId" class="form-control form-control-sm" /></td>
+                    <td>
+                        <select name="Lines[@i].ItemId" class="form-select form-select-sm">
+                            <option value="">Select item</option>
+                            @foreach (var item in Model.Items)
+                            {
+                                <option value="@item.Id" selected="@(item.Id == Model.Lines[i].ItemId)">@item.Sku - @item.Name</option>
+                            }
+                        </select>
+                    </td>
                     <td><input name="Lines[@i].Description" value="@Model.Lines[i].Description" class="form-control form-control-sm" /></td>
                     <td><input name="Lines[@i].QuantityValue" value="@Model.Lines[i].QuantityValue" type="number" step="0.0001" class="form-control form-control-sm" /></td>
                     <td><input name="Lines[@i].QuantityUnitOfMeasure" value="@Model.Lines[i].QuantityUnitOfMeasure" class="form-control form-control-sm" maxlength="20" /></td>
@@ -58,7 +77,15 @@
 
 <template id="so-line-template">
     <tr class="so-line-row">
-        <td><input name="Lines[__i__].ItemId" class="form-control form-control-sm" /></td>
+        <td>
+            <select name="Lines[__i__].ItemId" class="form-select form-select-sm">
+                <option value="">Select item</option>
+                @foreach (var item in Model.Items)
+                {
+                    <option value="@item.Id">@item.Sku - @item.Name</option>
+                }
+            </select>
+        </td>
         <td><input name="Lines[__i__].Description" class="form-control form-control-sm" /></td>
         <td><input name="Lines[__i__].QuantityValue" type="number" step="0.0001" class="form-control form-control-sm" value="1" /></td>
         <td><input name="Lines[__i__].QuantityUnitOfMeasure" class="form-control form-control-sm" maxlength="20" value="EA" /></td>
@@ -83,7 +110,7 @@
             var row = e.target.closest('tr');
             row.parentNode.removeChild(row);
             body.querySelectorAll('tr.so-line-row').forEach(function (tr, idx) {
-                tr.querySelectorAll('input').forEach(function (input) {
+                tr.querySelectorAll('input,select').forEach(function (input) {
                     input.name = input.name.replace(/Lines\[\d+\]/, 'Lines[' + idx + ']');
                 });
             });

@@ -15,11 +15,13 @@ public sealed class PurchaseOrdersController : Controller
 {
     private readonly IPurchaseOrdersApiClient _purchaseOrders;
     private readonly IVendorsApiClient _vendors;
+    private readonly IInventoryApiClient _inventory;
 
-    public PurchaseOrdersController(IPurchaseOrdersApiClient purchaseOrders, IVendorsApiClient vendors)
+    public PurchaseOrdersController(IPurchaseOrdersApiClient purchaseOrders, IVendorsApiClient vendors, IInventoryApiClient inventory)
     {
         _purchaseOrders = purchaseOrders;
         _vendors = vendors;
+        _inventory = inventory;
     }
 
     [HttpGet]
@@ -70,7 +72,7 @@ public sealed class PurchaseOrdersController : Controller
 
     [HttpGet]
     [Authorize(Policy = AuthorizationPolicies.PurchaseOrderCreate)]
-    public IActionResult Create()
+    public async Task<IActionResult> Create(CancellationToken cancellationToken)
     {
         ViewData["Breadcrumbs"] = new[]
         {
@@ -78,10 +80,10 @@ public sealed class PurchaseOrdersController : Controller
             new Breadcrumb("Purchase orders", Url.Action(nameof(Index))),
             new Breadcrumb("New purchase order", null, true)
         };
-        return View(new PurchaseOrderFormViewModel
+        return View(await PopulateLookupsAsync(new PurchaseOrderFormViewModel
         {
             Lines = new List<PurchaseOrderLineFormViewModel> { new() }
-        });
+        }, cancellationToken).ConfigureAwait(false));
     }
 
     [HttpPost]
@@ -89,13 +91,13 @@ public sealed class PurchaseOrdersController : Controller
     [Authorize(Policy = AuthorizationPolicies.PurchaseOrderCreate)]
     public async Task<IActionResult> Create(PurchaseOrderFormViewModel model, CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid) return View(model);
+        if (!ModelState.IsValid) return View(await PopulateLookupsAsync(model, cancellationToken).ConfigureAwait(false));
 
         var result = await _purchaseOrders.CreateAsync(model.ToCreateRequest(), cancellationToken).ConfigureAwait(false);
         if (result.IsFailure)
         {
             ModelState.AddResultErrors(result);
-            return View(model);
+            return View(await PopulateLookupsAsync(model, cancellationToken).ConfigureAwait(false));
         }
         TempData.AddToast($"Purchase order '{result.Value.OrderNumber}' created.", ToastLevel.Success);
         return RedirectToAction(nameof(Details), new { id = result.Value.Id });
@@ -118,7 +120,7 @@ public sealed class PurchaseOrdersController : Controller
             new Breadcrumb(result.Value.OrderNumber, Url.Action(nameof(Details), new { id })),
             new Breadcrumb("Edit", null, true)
         };
-        return View(PurchaseOrderFormViewModel.FromDto(result.Value));
+        return View(await PopulateLookupsAsync(PurchaseOrderFormViewModel.FromDto(result.Value), cancellationToken).ConfigureAwait(false));
     }
 
     [HttpPost]
@@ -126,13 +128,13 @@ public sealed class PurchaseOrdersController : Controller
     [Authorize(Policy = AuthorizationPolicies.PurchaseOrderUpdate)]
     public async Task<IActionResult> Edit(Guid id, PurchaseOrderFormViewModel model, CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid) return View(model);
+        if (!ModelState.IsValid) return View(await PopulateLookupsAsync(model, cancellationToken).ConfigureAwait(false));
 
         var result = await _purchaseOrders.UpdateAsync(id, model.ToUpdateRequest(), cancellationToken).ConfigureAwait(false);
         if (result.IsFailure)
         {
             ModelState.AddResultErrors(result);
-            return View(model);
+            return View(await PopulateLookupsAsync(model, cancellationToken).ConfigureAwait(false));
         }
         TempData.AddToast("Purchase order updated.", ToastLevel.Success);
         return RedirectToAction(nameof(Details), new { id });
@@ -258,5 +260,18 @@ public sealed class PurchaseOrdersController : Controller
     {
         var result = await _vendors.ListAsync(pageSize: 200, sort: "legalName", cancellationToken: cancellationToken).ConfigureAwait(false);
         return result.IsSuccess ? result.Value.Items.ToArray() : Array.Empty<Contracts.Dtos.VendorDto>();
+    }
+
+    private async Task<IReadOnlyList<Contracts.Dtos.ItemDto>> LoadItemsAsync(CancellationToken cancellationToken)
+    {
+        var result = await _inventory.ListAsync(pageSize: 200, sort: "sku", cancellationToken: cancellationToken).ConfigureAwait(false);
+        return result.IsSuccess ? result.Value.Items.ToArray() : Array.Empty<Contracts.Dtos.ItemDto>();
+    }
+
+    private async Task<PurchaseOrderFormViewModel> PopulateLookupsAsync(PurchaseOrderFormViewModel model, CancellationToken cancellationToken)
+    {
+        model.Vendors = await LoadVendorsAsync(cancellationToken).ConfigureAwait(false);
+        model.Items = await LoadItemsAsync(cancellationToken).ConfigureAwait(false);
+        return model;
     }
 }

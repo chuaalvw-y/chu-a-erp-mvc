@@ -22,13 +22,18 @@ public sealed class AuthorizePolicyTagHelper : TagHelper
     [HtmlAttributeName("asp-authorize-policy")]
     public string Policy { get; set; } = string.Empty;
 
-    public override void Process(TagHelperContext context, TagHelperOutput output)
+    public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
     {
         var policies = (Policy ?? string.Empty)
             .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         if (policies.Length == 0)
         {
             return;
+        }
+
+        if (!_currentUser.HasAnyPermission(policies))
+        {
+            await _currentUser.LoadProfileAsync().ConfigureAwait(false);
         }
 
         if (!_currentUser.HasAnyPermission(policies))

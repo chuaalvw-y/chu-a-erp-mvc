@@ -1,69 +1,179 @@
 @inject ICurrentUserService CurrentUser
+@{
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty;
+    var requestPath = Context.Request.Path.Value ?? string.Empty;
+
+    bool IsRoute(params string[] names) =>
+        names.Any(name =>
+            string.Equals(controller, name, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(requestPath, "/" + name, StringComparison.OrdinalIgnoreCase) ||
+            requestPath.StartsWith("/" + name + "/", StringComparison.OrdinalIgnoreCase));
+
+    string LinkClass(params string[] names) =>
+        IsRoute(names) ? "nav-link active" : "nav-link";
+
+    var isPurchasingRoute = IsRoute("Vendors", "PurchaseOrders", "Bills");
+    var isSalesRoute = IsRoute("Customers", "SalesOrders", "Invoices");
+    var isInventoryRoute = IsRoute("Inventory");
+    var isFinanceRoute = IsRoute("ChartOfAccounts", "JournalEntries");
+    var isWorkflowRoute = IsRoute("Workflow");
+    var isReportsRoute = IsRoute("Reports");
+}
 <nav class="erp-nav py-2" aria-label="Primary">
     <ul class="nav flex-column">
         <li class="nav-item">
-            <a class="nav-link" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+            <a class="@LinkClass("Dashboard")" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
         </li>
 
-        <li class="nav-section text-uppercase small text-muted px-3 pt-3">Purchasing</li>
-        <li class="nav-item" asp-authorize-policy="VendorRead">
-            <a class="nav-link" asp-controller="Vendors" asp-action="Index">Vendors</a>
+        <li class="nav-section px-3 pt-3">
+            <button class="btn btn-link nav-section-collapse-toggle text-uppercase small text-muted p-0"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#purchasingMenu"
+                    aria-expanded="@(isPurchasingRoute ? "true" : "false")"
+                    aria-controls="purchasingMenu">
+                Purchasing
+            </button>
         </li>
-        <li class="nav-item" asp-authorize-policy="PurchaseOrderRead">
-            <a class="nav-link" asp-controller="PurchaseOrders" asp-action="Index">Purchase Orders</a>
-        </li>
-        <li class="nav-item" asp-authorize-policy="BillRead">
-            <a class="nav-link" asp-controller="Bills" asp-action="Index">Bills</a>
-        </li>
-
-        <li class="nav-section text-uppercase small text-muted px-3 pt-3">Sales</li>
-        <li class="nav-item" asp-authorize-policy="CustomerRead">
-            <a class="nav-link" asp-controller="Customers" asp-action="Index">Customers</a>
-        </li>
-        <li class="nav-item" asp-authorize-policy="SalesOrderRead">
-            <a class="nav-link" asp-controller="SalesOrders" asp-action="Index">Sales Orders</a>
-        </li>
-        <li class="nav-item" asp-authorize-policy="InvoiceRead">
-            <a class="nav-link" asp-controller="Invoices" asp-action="Index">Invoices</a>
-        </li>
-
-        <li class="nav-section text-uppercase small text-muted px-3 pt-3">Inventory</li>
-        <li class="nav-item" asp-authorize-policy="InventoryRead">
-            <a class="nav-link" asp-controller="Inventory" asp-action="Index">Items</a>
-        </li>
-
-        <li class="nav-section text-uppercase small text-muted px-3 pt-3">Finance</li>
-        <li class="nav-item" asp-authorize-policy="ChartOfAccountRead">
-            <a class="nav-link" asp-controller="ChartOfAccounts" asp-action="Index">Chart of Accounts</a>
-        </li>
-        <li class="nav-item" asp-authorize-policy="JournalEntryRead">
-            <a class="nav-link" asp-controller="JournalEntries" asp-action="Index">Journal Entries</a>
+        <li class="nav-item">
+            <div id="purchasingMenu" class="collapse @(isPurchasingRoute ? "show" : string.Empty)">
+                <ul class="nav flex-column">
+                    <li class="nav-item" asp-authorize-policy="VendorRead">
+                        <a class="@LinkClass("Vendors")" asp-controller="Vendors" asp-action="Index">Vendors</a>
+                    </li>
+                    <li class="nav-item" asp-authorize-policy="PurchaseOrderRead">
+                        <a class="@LinkClass("PurchaseOrders")" asp-controller="PurchaseOrders" asp-action="Index">Purchase Orders</a>
+                    </li>
+                    <li class="nav-item" asp-authorize-policy="BillRead">
+                        <a class="@LinkClass("Bills")" asp-controller="Bills" asp-action="Index">Bills</a>
+                    </li>
+                </ul>
+            </div>
         </li>
 
-        <li class="nav-section text-uppercase small text-muted px-3 pt-3">Workflow</li>
-        <li class="nav-item" asp-authorize-policy="WorkflowRead">
-            <a class="nav-link" asp-controller="Workflow" asp-action="Index">Approvals</a>
+        <li class="nav-section px-3 pt-3">
+            <button class="btn btn-link nav-section-collapse-toggle text-uppercase small text-muted p-0"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#salesMenu"
+                    aria-expanded="@(isSalesRoute ? "true" : "false")"
+                    aria-controls="salesMenu">
+                Sales
+            </button>
+        </li>
+        <li class="nav-item">
+            <div id="salesMenu" class="collapse @(isSalesRoute ? "show" : string.Empty)">
+                <ul class="nav flex-column">
+                    <li class="nav-item" asp-authorize-policy="CustomerRead">
+                        <a class="@LinkClass("Customers")" asp-controller="Customers" asp-action="Index">Customers</a>
+                    </li>
+                    <li class="nav-item" asp-authorize-policy="SalesOrderRead">
+                        <a class="@LinkClass("SalesOrders")" asp-controller="SalesOrders" asp-action="Index">Sales Orders</a>
+                    </li>
+                    <li class="nav-item" asp-authorize-policy="InvoiceRead">
+                        <a class="@LinkClass("Invoices")" asp-controller="Invoices" asp-action="Index">Invoices</a>
+                    </li>
+                </ul>
+            </div>
         </li>
 
-        <li class="nav-section text-uppercase small text-muted px-3 pt-3">Reports</li>
-        <li class="nav-item" asp-authorize-policy="ReportRun">
-            <a class="nav-link" asp-controller="Reports" asp-action="Index">Reports</a>
+        <li class="nav-section px-3 pt-3">
+            <button class="btn btn-link nav-section-collapse-toggle text-uppercase small text-muted p-0"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#inventoryMenu"
+                    aria-expanded="@(isInventoryRoute ? "true" : "false")"
+                    aria-controls="inventoryMenu">
+                Inventory
+            </button>
+        </li>
+        <li class="nav-item">
+            <div id="inventoryMenu" class="collapse @(isInventoryRoute ? "show" : string.Empty)">
+                <ul class="nav flex-column">
+                    <li class="nav-item" asp-authorize-policy="InventoryRead">
+                        <a class="@LinkClass("Inventory")" asp-controller="Inventory" asp-action="Index">Items</a>
+                    </li>
+                </ul>
+            </div>
+        </li>
+
+        <li class="nav-section px-3 pt-3">
+            <button class="btn btn-link nav-section-collapse-toggle text-uppercase small text-muted p-0"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#financeMenu"
+                    aria-expanded="@(isFinanceRoute ? "true" : "false")"
+                    aria-controls="financeMenu">
+                Finance
+            </button>
+        </li>
+        <li class="nav-item">
+            <div id="financeMenu" class="collapse @(isFinanceRoute ? "show" : string.Empty)">
+                <ul class="nav flex-column">
+                    <li class="nav-item" asp-authorize-policy="ChartOfAccountRead">
+                        <a class="@LinkClass("ChartOfAccounts")" asp-controller="ChartOfAccounts" asp-action="Index">Chart of Accounts</a>
+                    </li>
+                    <li class="nav-item" asp-authorize-policy="JournalEntryRead">
+                        <a class="@LinkClass("JournalEntries")" asp-controller="JournalEntries" asp-action="Index">Journal Entries</a>
+                    </li>
+                </ul>
+            </div>
+        </li>
+
+        <li class="nav-section px-3 pt-3">
+            <button class="btn btn-link nav-section-collapse-toggle text-uppercase small text-muted p-0"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#workflowMenu"
+                    aria-expanded="@(isWorkflowRoute ? "true" : "false")"
+                    aria-controls="workflowMenu">
+                Workflow
+            </button>
+        </li>
+        <li class="nav-item">
+            <div id="workflowMenu" class="collapse @(isWorkflowRoute ? "show" : string.Empty)">
+                <ul class="nav flex-column">
+                    <li class="nav-item" asp-authorize-policy="WorkflowRead">
+                        <a class="@LinkClass("Workflow")" asp-controller="Workflow" asp-action="Index">Approvals</a>
+                    </li>
+                </ul>
+            </div>
+        </li>
+
+        <li class="nav-section px-3 pt-3">
+            <button class="btn btn-link nav-section-collapse-toggle text-uppercase small text-muted p-0"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#reportsMenu"
+                    aria-expanded="@(isReportsRoute ? "true" : "false")"
+                    aria-controls="reportsMenu">
+                Reports
+            </button>
+        </li>
+        <li class="nav-item">
+            <div id="reportsMenu" class="collapse @(isReportsRoute ? "show" : string.Empty)">
+                <ul class="nav flex-column">
+                    <li class="nav-item" asp-authorize-policy="ReportRun">
+                        <a class="@LinkClass("Reports")" asp-controller="Reports" asp-action="Index">Reports</a>
+                    </li>
+                </ul>
+            </div>
         </li>
 
         <li class="nav-section text-uppercase small text-muted px-3 pt-3" asp-authorize-role="SystemAdmin,CompanyAdmin">Administration</li>
         <li class="nav-item" asp-authorize-role="SystemAdmin">
-            <a class="nav-link" asp-controller="Companies" asp-action="Index">Companies</a>
+            <a class="@LinkClass("Companies")" asp-controller="Companies" asp-action="Index">Companies</a>
         </li>
         <li class="nav-item" asp-authorize-role="SystemAdmin,CompanyAdmin">
-            <a class="nav-link" asp-controller="Users" asp-action="Index">Users</a>
+            <a class="@LinkClass("Users")" asp-controller="Users" asp-action="Index">Users</a>
         </li>
         <li class="nav-item" asp-authorize-role="SystemAdmin,CompanyAdmin">
-            <a class="nav-link" asp-controller="Roles" asp-action="Index">Roles</a>
+            <a class="@LinkClass("Roles")" asp-controller="Roles" asp-action="Index">Roles</a>
         </li>
 
         <li class="nav-section text-uppercase small text-muted px-3 pt-3">System</li>
         <li class="nav-item">
-            <a class="nav-link" asp-controller="Health" asp-action="Index">System Health</a>
+            <a class="@LinkClass("Health")" asp-controller="Health" asp-action="Index">System Health</a>
         </li>
     </ul>
 </nav>

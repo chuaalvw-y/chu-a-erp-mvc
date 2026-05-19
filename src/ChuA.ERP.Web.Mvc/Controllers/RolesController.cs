@@ -20,9 +20,9 @@ public sealed class RolesController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index(string? search, int pageNumber = 1, int pageSize = 25, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Index(string? search, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default)
     {
-        var result = await _roles.ListAsync(search, cancellationToken).ConfigureAwait(false);
+        var result = await _roles.ListAsync(search, pageNumber, pageSize, sort, cancellationToken).ConfigureAwait(false);
         if (result.IsFailure)
         {
             ModelState.AddResultErrors(result);
@@ -37,7 +37,7 @@ public sealed class RolesController : Controller
         };
         return View(new RoleListViewModel
         {
-            Page = PagedResult<Contracts.Dtos.RoleDto>.FromCollection(result.Value, pageNumber, pageSize),
+            Page = result.Value,
             Search = search,
         });
     }

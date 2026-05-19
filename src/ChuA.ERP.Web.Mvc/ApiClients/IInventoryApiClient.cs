@@ -7,7 +7,7 @@ namespace ChuA.ERP.Web.Mvc.ApiClients;
 public interface IInventoryApiClient
 {
     /// <summary>Lists items, optionally filtered by free-text search.</summary>
-    Task<Result<IReadOnlyList<ItemDto>>> ListAsync(string? search = null, CancellationToken cancellationToken = default);
+    Task<Result<PagedResult<ItemDto>>> ListAsync(string? search = null, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default);
 
     /// <summary>Gets a single item by id.</summary>
     Task<Result<ItemDto>> GetAsync(Guid id, CancellationToken cancellationToken = default);

@@ -7,7 +7,7 @@ namespace ChuA.ERP.Web.Mvc.ApiClients;
 public interface IWorkflowApiClient
 {
     /// <summary>Lists workflow tasks, optionally filtered by status and subject type.</summary>
-    Task<Result<IReadOnlyList<ApprovalRequestDto>>> ListTasksAsync(string? status = null, string? subjectType = null, CancellationToken cancellationToken = default);
+    Task<Result<PagedResult<ApprovalRequestDto>>> ListTasksAsync(string? status = null, string? subjectType = null, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default);
 
     /// <summary>Gets a single workflow task by id.</summary>
     Task<Result<ApprovalRequestDto>> GetTaskAsync(Guid id, CancellationToken cancellationToken = default);

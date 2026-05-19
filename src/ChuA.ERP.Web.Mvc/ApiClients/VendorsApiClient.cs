@@ -17,8 +17,8 @@ public sealed class VendorsApiClient : ApiClientBase, IVendorsApiClient
     {
     }
 
-    public Task<Result<IReadOnlyList<VendorDto>>> ListAsync(string? search = null, CancellationToken cancellationToken = default) =>
-        SendAsync<IReadOnlyList<VendorDto>>(HttpMethod.Get, "v1/vendors" + QueryString(("search", search)), cancellationToken: cancellationToken);
+    public Task<Result<PagedResult<VendorDto>>> ListAsync(string? search = null, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default) =>
+        SendPagedAsync<VendorDto>("v1/vendors" + QueryString(("search", search), ("pageNumber", pageNumber), ("pageSize", pageSize), ("sort", sort)), pageNumber, pageSize, cancellationToken);
 
     public Task<Result<VendorDto>> GetAsync(Guid id, CancellationToken cancellationToken = default) =>
         SendAsync<VendorDto>(HttpMethod.Get, $"v1/vendors/{id}", cancellationToken: cancellationToken);

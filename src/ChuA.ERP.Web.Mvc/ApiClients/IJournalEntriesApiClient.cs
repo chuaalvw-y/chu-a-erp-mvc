@@ -7,7 +7,7 @@ namespace ChuA.ERP.Web.Mvc.ApiClients;
 public interface IJournalEntriesApiClient
 {
     /// <summary>Lists journal entries, optionally filtered by fiscal period and status.</summary>
-    Task<Result<IReadOnlyList<JournalEntryDto>>> ListAsync(Guid? fiscalPeriodId = null, string? status = null, CancellationToken cancellationToken = default);
+    Task<Result<PagedResult<JournalEntryDto>>> ListAsync(Guid? fiscalPeriodId = null, string? status = null, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default);
 
     /// <summary>Gets a single journal entry by id.</summary>
     Task<Result<JournalEntryDto>> GetAsync(Guid id, CancellationToken cancellationToken = default);

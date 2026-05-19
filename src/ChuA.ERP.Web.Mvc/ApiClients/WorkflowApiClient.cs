@@ -17,11 +17,12 @@ public sealed class WorkflowApiClient : ApiClientBase, IWorkflowApiClient
     {
     }
 
-    public Task<Result<IReadOnlyList<ApprovalRequestDto>>> ListTasksAsync(string? status = null, string? subjectType = null, CancellationToken cancellationToken = default) =>
-        SendAsync<IReadOnlyList<ApprovalRequestDto>>(
-            HttpMethod.Get,
-            "v1/workflow/tasks" + QueryString(("status", status), ("subjectType", subjectType)),
-            cancellationToken: cancellationToken);
+    public Task<Result<PagedResult<ApprovalRequestDto>>> ListTasksAsync(string? status = null, string? subjectType = null, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default) =>
+        SendPagedAsync<ApprovalRequestDto>(
+            "v1/workflow/tasks" + QueryString(("status", status), ("subjectType", subjectType), ("pageNumber", pageNumber), ("pageSize", pageSize), ("sort", sort)),
+            pageNumber,
+            pageSize,
+            cancellationToken);
 
     public Task<Result<ApprovalRequestDto>> GetTaskAsync(Guid id, CancellationToken cancellationToken = default) =>
         SendAsync<ApprovalRequestDto>(HttpMethod.Get, $"v1/workflow/tasks/{id}", cancellationToken: cancellationToken);

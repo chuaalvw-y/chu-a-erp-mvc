@@ -14,21 +14,23 @@ namespace ChuA.ERP.Web.Mvc.Controllers;
 public sealed class InvoicesController : Controller
 {
     private readonly IInvoicesApiClient _invoices;
+    private readonly ICustomersApiClient _customers;
 
-    public InvoicesController(IInvoicesApiClient invoices)
+    public InvoicesController(IInvoicesApiClient invoices, ICustomersApiClient customers)
     {
         _invoices = invoices;
+        _customers = customers;
     }
 
     [HttpGet]
     [Authorize(Policy = AuthorizationPolicies.InvoiceRead)]
-    public async Task<IActionResult> Index(Guid? customerId, string? status, string? paymentStatus, string? search, int pageNumber = 1, int pageSize = 25, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Index(Guid? customerId, string? status, string? paymentStatus, string? search, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default)
     {
-        var result = await _invoices.ListAsync(customerId, status, paymentStatus, search, cancellationToken).ConfigureAwait(false);
+        var result = await _invoices.ListAsync(customerId, status, paymentStatus, search, pageNumber, pageSize, sort, cancellationToken).ConfigureAwait(false);
         if (result.IsFailure)
         {
             ModelState.AddResultErrors(result);
-            return View(new InvoiceListViewModel { CustomerId = customerId, Status = status, PaymentStatus = paymentStatus, Search = search });
+            return View(new InvoiceListViewModel { CustomerId = customerId, Status = status, PaymentStatus = paymentStatus, Search = search, Customers = await LoadCustomersAsync(cancellationToken).ConfigureAwait(false) });
         }
 
         ViewData["Search"] = search;
@@ -39,11 +41,12 @@ public sealed class InvoicesController : Controller
         };
         return View(new InvoiceListViewModel
         {
-            Page = PagedResult<Contracts.Dtos.InvoiceDto>.FromCollection(result.Value, pageNumber, pageSize),
+            Page = result.Value,
             CustomerId = customerId,
             Status = status,
             PaymentStatus = paymentStatus,
             Search = search,
+            Customers = await LoadCustomersAsync(cancellationToken).ConfigureAwait(false),
         });
     }
 
@@ -97,7 +100,7 @@ public sealed class InvoicesController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.InvoiceCreate)]
+    [Authorize(Policy = AuthorizationPolicies.InvoiceUpdate)]
     public async Task<IActionResult> Edit(Guid id, CancellationToken cancellationToken)
     {
         var result = await _invoices.GetAsync(id, cancellationToken).ConfigureAwait(false);
@@ -118,7 +121,7 @@ public sealed class InvoicesController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Policy = AuthorizationPolicies.InvoiceCreate)]
+    [Authorize(Policy = AuthorizationPolicies.InvoiceUpdate)]
     public async Task<IActionResult> Edit(Guid id, InvoiceFormViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return View(model);
@@ -134,7 +137,7 @@ public sealed class InvoicesController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.InvoiceCreate)]
+    [Authorize(Policy = AuthorizationPolicies.InvoiceDelete)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
         var result = await _invoices.GetAsync(id, cancellationToken).ConfigureAwait(false);
@@ -155,7 +158,7 @@ public sealed class InvoicesController : Controller
 
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
-    [Authorize(Policy = AuthorizationPolicies.InvoiceCreate)]
+    [Authorize(Policy = AuthorizationPolicies.InvoiceDelete)]
     public async Task<IActionResult> DeleteConfirmed(Guid id, CancellationToken cancellationToken)
     {
         var result = await _invoices.DeleteAsync(id, cancellationToken).ConfigureAwait(false);
@@ -216,5 +219,11 @@ public sealed class InvoicesController : Controller
         }
         TempData.AddToast($"Payment applied to '{result.Value.InvoiceNumber}'.", ToastLevel.Success);
         return RedirectToAction(nameof(Details), new { id });
+    }
+
+    private async Task<IReadOnlyList<Contracts.Dtos.CustomerDto>> LoadCustomersAsync(CancellationToken cancellationToken)
+    {
+        var result = await _customers.ListAsync(pageSize: 200, sort: "legalName", cancellationToken: cancellationToken).ConfigureAwait(false);
+        return result.IsSuccess ? result.Value.Items.ToArray() : Array.Empty<Contracts.Dtos.CustomerDto>();
     }
 }

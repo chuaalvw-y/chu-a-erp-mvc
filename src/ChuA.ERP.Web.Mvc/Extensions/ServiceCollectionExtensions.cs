@@ -6,10 +6,16 @@ using ChuA.ERP.Web.Mvc.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Polly;
+using Polly.Extensions.Http;
 
 namespace ChuA.ERP.Web.Mvc.Extensions;
 
@@ -20,12 +26,17 @@ namespace ChuA.ERP.Web.Mvc.Extensions;
 public static class ServiceCollectionExtensions
 {
     /// <summary>Adds every MVC-layer dependency.</summary>
-    public static IServiceCollection AddChuAErpMvc(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddChuAErpMvc(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        IWebHostEnvironment? environment = null)
     {
+        environment ??= new ProductionEnvironment();
+
         services
-            .AddChuAOptions(configuration)
+            .AddChuAOptions(configuration, environment)
             .AddChuACoreServices()
-            .AddChuAAuthN(configuration)
+            .AddChuAAuthN(configuration, environment)
             .AddChuAAuthZ()
             .AddChuAApiClients(configuration);
 
@@ -41,11 +52,30 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    private static IServiceCollection AddChuAOptions(this IServiceCollection services, IConfiguration configuration)
+    private static IServiceCollection AddChuAOptions(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        IWebHostEnvironment environment)
     {
-        services.Configure<ApiOptions>(configuration.GetSection(ApiOptions.SectionName));
-        services.Configure<OidcOptions>(configuration.GetSection(OidcOptions.SectionName));
-        services.Configure<AppEnvironmentOptions>(configuration.GetSection(AppEnvironmentOptions.SectionName));
+        services.AddOptions<ApiOptions>()
+            .Bind(configuration.GetSection(ApiOptions.SectionName))
+            .Validate(options => Uri.TryCreate(options.BaseUrl, UriKind.Absolute, out _), "Api:BaseUrl must be an absolute URL.")
+            .Validate(options => options.TimeoutSeconds > 0, "Api:TimeoutSeconds must be greater than zero.")
+            .Validate(options => options.RetryCount >= 0, "Api:RetryCount cannot be negative.")
+            .Validate(options => environment.IsDevelopment() || !options.UseAuthBypass, "Api:UseAuthBypass must be false outside Development.")
+            .ValidateOnStart();
+
+        services.AddOptions<OidcOptions>()
+            .Bind(configuration.GetSection(OidcOptions.SectionName))
+            .Validate(options => environment.IsDevelopment() || options.Enabled, "Oidc:Enabled must be true outside Development.")
+            .Validate(options => environment.IsDevelopment() || !string.IsNullOrWhiteSpace(options.Authority), "Oidc:Authority is required outside Development.")
+            .Validate(options => environment.IsDevelopment() || !string.IsNullOrWhiteSpace(options.ClientId), "Oidc:ClientId is required outside Development.")
+            .Validate(options => environment.IsDevelopment() || !string.IsNullOrWhiteSpace(options.ClientSecret), "Oidc:ClientSecret is required outside Development.")
+            .ValidateOnStart();
+
+        services.AddOptions<AppEnvironmentOptions>()
+            .Bind(configuration.GetSection(AppEnvironmentOptions.SectionName));
+
         return services;
     }
 
@@ -56,10 +86,15 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<CorrelationIdActionFilter>();
         services.AddScoped<GlobalExceptionFilter>();
+        services.AddMemoryCache();
+        services.AddSingleton<ITicketStore, MemoryCacheTicketStore>();
         return services;
     }
 
-    private static IServiceCollection AddChuAAuthN(this IServiceCollection services, IConfiguration configuration)
+    private static IServiceCollection AddChuAAuthN(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        IWebHostEnvironment environment)
     {
         var oidc = configuration.GetSection(OidcOptions.SectionName).Get<OidcOptions>() ?? new OidcOptions();
 
@@ -79,10 +114,21 @@ public static class ServiceCollectionExtensions
             options.Cookie.Name = "ChuA.ERP.Auth";
             options.Cookie.HttpOnly = true;
             options.Cookie.SameSite = SameSiteMode.Lax;
-            options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+            options.Cookie.SecurePolicy = environment.IsDevelopment()
+                ? CookieSecurePolicy.SameAsRequest
+                : CookieSecurePolicy.Always;
             options.ExpireTimeSpan = TimeSpan.FromHours(8);
             options.SlidingExpiration = true;
         });
+
+        services.AddOptions<CookieAuthenticationOptions>(CookieAuthenticationDefaults.AuthenticationScheme)
+            .Configure<ITicketStore>((options, ticketStore) =>
+            {
+                if (!environment.IsDevelopment())
+                {
+                    options.SessionStore = ticketStore;
+                }
+            });
 
         if (oidc.Enabled)
         {
@@ -145,6 +191,7 @@ public static class ServiceCollectionExtensions
     private static IServiceCollection AddChuAApiClients(this IServiceCollection services, IConfiguration configuration)
     {
         var api = configuration.GetSection(ApiOptions.SectionName).Get<ApiOptions>() ?? new ApiOptions();
+        ValidateApiOptions(api);
         var baseAddress = new Uri(api.BaseUrl.TrimEnd('/') + "/api/");
 
         void Configure(HttpClient client)
@@ -153,22 +200,67 @@ public static class ServiceCollectionExtensions
             client.Timeout = TimeSpan.FromSeconds(api.TimeoutSeconds);
         }
 
-        services.AddHttpClient<IHealthApiClient, HealthApiClient>(Configure);
-        services.AddHttpClient<IUsersApiClient, UsersApiClient>(Configure);
-        services.AddHttpClient<IVendorsApiClient, VendorsApiClient>(Configure);
-        services.AddHttpClient<ICustomersApiClient, CustomersApiClient>(Configure);
-        services.AddHttpClient<IChartOfAccountsApiClient, ChartOfAccountsApiClient>(Configure);
-        services.AddHttpClient<IJournalEntriesApiClient, JournalEntriesApiClient>(Configure);
-        services.AddHttpClient<IBillsApiClient, BillsApiClient>(Configure);
-        services.AddHttpClient<IInvoicesApiClient, InvoicesApiClient>(Configure);
-        services.AddHttpClient<IPurchaseOrdersApiClient, PurchaseOrdersApiClient>(Configure);
-        services.AddHttpClient<IInventoryApiClient, InventoryApiClient>(Configure);
-        services.AddHttpClient<ISalesOrdersApiClient, SalesOrdersApiClient>(Configure);
-        services.AddHttpClient<IWorkflowApiClient, WorkflowApiClient>(Configure);
-        services.AddHttpClient<ICompaniesApiClient, CompaniesApiClient>(Configure);
-        services.AddHttpClient<IRolesApiClient, RolesApiClient>(Configure);
-        services.AddHttpClient<IReportsApiClient, ReportsApiClient>(Configure);
+        var retryPolicy = HttpPolicyExtensions
+            .HandleTransientHttpError()
+            .WaitAndRetryAsync(api.RetryCount, attempt => TimeSpan.FromMilliseconds(200 * Math.Pow(2, attempt - 1)));
+        var noRetryPolicy = Policy.NoOpAsync<HttpResponseMessage>();
+
+        IHttpClientBuilder AddApiClient<TClient, TImplementation>()
+            where TClient : class
+            where TImplementation : class, TClient =>
+            services.AddHttpClient<TClient, TImplementation>(Configure)
+                .AddPolicyHandler(request => IsSafeToRetry(request.Method) ? retryPolicy : noRetryPolicy);
+
+        AddApiClient<IHealthApiClient, HealthApiClient>();
+        AddApiClient<IUsersApiClient, UsersApiClient>();
+        AddApiClient<IVendorsApiClient, VendorsApiClient>();
+        AddApiClient<ICustomersApiClient, CustomersApiClient>();
+        AddApiClient<IChartOfAccountsApiClient, ChartOfAccountsApiClient>();
+        AddApiClient<IJournalEntriesApiClient, JournalEntriesApiClient>();
+        AddApiClient<IBillsApiClient, BillsApiClient>();
+        AddApiClient<IInvoicesApiClient, InvoicesApiClient>();
+        AddApiClient<IPurchaseOrdersApiClient, PurchaseOrdersApiClient>();
+        AddApiClient<IInventoryApiClient, InventoryApiClient>();
+        AddApiClient<ISalesOrdersApiClient, SalesOrdersApiClient>();
+        AddApiClient<IWorkflowApiClient, WorkflowApiClient>();
+        AddApiClient<ICompaniesApiClient, CompaniesApiClient>();
+        AddApiClient<IRolesApiClient, RolesApiClient>();
+        AddApiClient<IReportsApiClient, ReportsApiClient>();
 
         return services;
+    }
+
+    private static bool IsSafeToRetry(HttpMethod method) =>
+        method == HttpMethod.Get || method == HttpMethod.Head || method == HttpMethod.Options;
+
+    private static void ValidateApiOptions(ApiOptions api)
+    {
+        var failures = new List<string>();
+        if (!Uri.TryCreate(api.BaseUrl, UriKind.Absolute, out _))
+        {
+            failures.Add("Api:BaseUrl must be an absolute URL.");
+        }
+        if (api.TimeoutSeconds <= 0)
+        {
+            failures.Add("Api:TimeoutSeconds must be greater than zero.");
+        }
+        if (api.RetryCount < 0)
+        {
+            failures.Add("Api:RetryCount cannot be negative.");
+        }
+        if (failures.Count > 0)
+        {
+            throw new OptionsValidationException(ApiOptions.SectionName, typeof(ApiOptions), failures);
+        }
+    }
+
+    private sealed class ProductionEnvironment : IWebHostEnvironment
+    {
+        public string EnvironmentName { get; set; } = Environments.Production;
+        public string ApplicationName { get; set; } = "ChuA.ERP.Web.Mvc";
+        public string WebRootPath { get; set; } = string.Empty;
+        public IFileProvider WebRootFileProvider { get; set; } = new NullFileProvider();
+        public string ContentRootPath { get; set; } = AppContext.BaseDirectory;
+        public IFileProvider ContentRootFileProvider { get; set; } = new NullFileProvider();
     }
 }

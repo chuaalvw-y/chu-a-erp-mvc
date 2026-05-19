@@ -20,9 +20,9 @@ public sealed class CompaniesController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index(string? search, int pageNumber = 1, int pageSize = 25, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Index(string? search, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default)
     {
-        var result = await _companies.ListAsync(search, cancellationToken).ConfigureAwait(false);
+        var result = await _companies.ListAsync(search, pageNumber, pageSize, sort, cancellationToken).ConfigureAwait(false);
         if (result.IsFailure)
         {
             ModelState.AddResultErrors(result);
@@ -37,7 +37,7 @@ public sealed class CompaniesController : Controller
         };
         return View(new CompanyListViewModel
         {
-            Page = PagedResult<Contracts.Dtos.CompanyDto>.FromCollection(result.Value, pageNumber, pageSize),
+            Page = result.Value,
             Search = search,
         });
     }

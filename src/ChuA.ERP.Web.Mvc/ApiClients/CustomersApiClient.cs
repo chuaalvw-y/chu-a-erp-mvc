@@ -17,8 +17,8 @@ public sealed class CustomersApiClient : ApiClientBase, ICustomersApiClient
     {
     }
 
-    public Task<Result<IReadOnlyList<CustomerDto>>> ListAsync(string? search = null, CancellationToken cancellationToken = default) =>
-        SendAsync<IReadOnlyList<CustomerDto>>(HttpMethod.Get, "v1/customers" + QueryString(("search", search)), cancellationToken: cancellationToken);
+    public Task<Result<PagedResult<CustomerDto>>> ListAsync(string? search = null, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default) =>
+        SendPagedAsync<CustomerDto>("v1/customers" + QueryString(("search", search), ("pageNumber", pageNumber), ("pageSize", pageSize), ("sort", sort)), pageNumber, pageSize, cancellationToken);
 
     public Task<Result<CustomerDto>> GetAsync(Guid id, CancellationToken cancellationToken = default) =>
         SendAsync<CustomerDto>(HttpMethod.Get, $"v1/customers/{id}", cancellationToken: cancellationToken);

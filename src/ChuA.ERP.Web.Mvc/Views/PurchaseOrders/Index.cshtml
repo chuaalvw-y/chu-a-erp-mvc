@@ -2,12 +2,28 @@
 @{
     ViewData["Title"] = "Purchase orders";
 }
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h3 mb-0">Purchase orders</h1>
-    <a asp-action="Create" class="btn btn-primary" asp-authorize-policy="PurchaseOrderCreate">+ New purchase order</a>
-</div>
+<partial name="_PageHeader" model='@(new PageHeaderViewModel { Title = "Purchase orders", Actions = new[] { new PageHeaderActionViewModel { Text = "New purchase order", Url = Url.Action("Create")!, Policy = AuthorizationPolicies.PurchaseOrderCreate, IconCssClass = "bi bi-plus-lg" } } })' />
 
-<partial name="_SearchBox" model="Model.Search" />
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-4">
+        <input type="search" name="search" value="@Model.Search" class="form-control" placeholder="Search order number..." />
+    </div>
+    <div class="col-md-3">
+        <select name="vendorId" class="form-select" aria-label="Vendor">
+            <option value="">All vendors</option>
+            @foreach (var vendor in Model.Vendors)
+            {
+                <option value="@vendor.Id" selected="@(Model.VendorId == vendor.Id)">@vendor.VendorCode - @vendor.LegalName</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-3">
+        <input type="text" name="status" value="@Model.Status" class="form-control" placeholder="Status" />
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-outline-primary w-100">Filter</button>
+    </div>
+</form>
 
 @if (Model.Page.Items.Count == 0)
 {
@@ -25,14 +41,14 @@ else
             {
                 <tr>
                     <td><a asp-action="Details" asp-route-id="@po.Id">@po.OrderNumber</a></td>
-                    <td><code>@po.VendorId</code></td>
+                    <td>@(Model.Vendors.FirstOrDefault(v => v.Id == po.VendorId)?.LegalName ?? po.VendorId.ToString())</td>
                     <td>@po.OrderDate.ToString("yyyy-MM-dd")</td>
                     <td>@po.CurrencyCode</td>
                     <td>@Html.StatusBadge(po.Status)</td>
                     <td class="text-end">@Html.Money(po.TotalAmount)</td>
                     <td class="actions">
                         <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@po.Id">View</a>
-                        <a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-id="@po.Id" asp-authorize-policy="PurchaseOrderCreate">Edit</a>
+                        <a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-id="@po.Id" asp-authorize-policy="PurchaseOrderUpdate">Edit</a>
                     </td>
                 </tr>
             }

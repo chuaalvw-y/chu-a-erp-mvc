@@ -22,9 +22,9 @@ public sealed class InventoryController : Controller
 
     [HttpGet]
     [Authorize(Policy = AuthorizationPolicies.InventoryRead)]
-    public async Task<IActionResult> Index(string? search, int pageNumber = 1, int pageSize = 25, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Index(string? search, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default)
     {
-        var result = await _inventory.ListAsync(search, cancellationToken).ConfigureAwait(false);
+        var result = await _inventory.ListAsync(search, pageNumber, pageSize, sort, cancellationToken).ConfigureAwait(false);
         if (result.IsFailure)
         {
             ModelState.AddResultErrors(result);
@@ -39,7 +39,7 @@ public sealed class InventoryController : Controller
         };
         return View(new InventoryListViewModel
         {
-            Page = PagedResult<Contracts.Dtos.ItemDto>.FromCollection(result.Value, pageNumber, pageSize),
+            Page = result.Value,
             Search = search,
         });
     }
@@ -94,7 +94,7 @@ public sealed class InventoryController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.InventoryCreate)]
+    [Authorize(Policy = AuthorizationPolicies.InventoryUpdate)]
     public async Task<IActionResult> Edit(Guid id, CancellationToken cancellationToken)
     {
         var result = await _inventory.GetAsync(id, cancellationToken).ConfigureAwait(false);
@@ -115,7 +115,7 @@ public sealed class InventoryController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Policy = AuthorizationPolicies.InventoryCreate)]
+    [Authorize(Policy = AuthorizationPolicies.InventoryUpdate)]
     public async Task<IActionResult> Edit(Guid id, ItemFormViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return View(model);
@@ -131,7 +131,7 @@ public sealed class InventoryController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.InventoryCreate)]
+    [Authorize(Policy = AuthorizationPolicies.InventoryDelete)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
         var result = await _inventory.GetAsync(id, cancellationToken).ConfigureAwait(false);
@@ -152,7 +152,7 @@ public sealed class InventoryController : Controller
 
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
-    [Authorize(Policy = AuthorizationPolicies.InventoryCreate)]
+    [Authorize(Policy = AuthorizationPolicies.InventoryDelete)]
     public async Task<IActionResult> DeleteConfirmed(Guid id, CancellationToken cancellationToken)
     {
         var result = await _inventory.DeleteAsync(id, cancellationToken).ConfigureAwait(false);

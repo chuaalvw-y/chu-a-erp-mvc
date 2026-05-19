@@ -17,8 +17,8 @@ public sealed class RolesApiClient : ApiClientBase, IRolesApiClient
     {
     }
 
-    public Task<Result<IReadOnlyList<RoleDto>>> ListAsync(string? search = null, CancellationToken cancellationToken = default) =>
-        SendAsync<IReadOnlyList<RoleDto>>(HttpMethod.Get, "v1/roles" + QueryString(("search", search)), cancellationToken: cancellationToken);
+    public Task<Result<PagedResult<RoleDto>>> ListAsync(string? search = null, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default) =>
+        SendPagedAsync<RoleDto>("v1/roles" + QueryString(("search", search), ("pageNumber", pageNumber), ("pageSize", pageSize), ("sort", sort)), pageNumber, pageSize, cancellationToken);
 
     public Task<Result<RoleDto>> GetAsync(Guid id, CancellationToken cancellationToken = default) =>
         SendAsync<RoleDto>(HttpMethod.Get, $"v1/roles/{id}", cancellationToken: cancellationToken);

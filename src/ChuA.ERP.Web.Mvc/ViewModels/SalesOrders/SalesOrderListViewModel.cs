@@ -10,4 +10,5 @@ public sealed class SalesOrderListViewModel
     public Guid? CustomerId { get; set; }
     public string? Status { get; set; }
     public string? Search { get; set; }
+    public IReadOnlyList<CustomerDto> Customers { get; set; } = Array.Empty<CustomerDto>();
 }

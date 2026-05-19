@@ -20,8 +20,8 @@ public sealed class UsersApiClient : ApiClientBase, IUsersApiClient
     public Task<Result<CurrentUserDto>> GetMeAsync(CancellationToken cancellationToken = default) =>
         SendAsync<CurrentUserDto>(HttpMethod.Get, "v1/users/me", cancellationToken: cancellationToken);
 
-    public Task<Result<IReadOnlyList<UserDto>>> ListAsync(string? search = null, CancellationToken cancellationToken = default) =>
-        SendAsync<IReadOnlyList<UserDto>>(HttpMethod.Get, "v1/users" + QueryString(("search", search)), cancellationToken: cancellationToken);
+    public Task<Result<PagedResult<UserDto>>> ListAsync(string? search = null, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default) =>
+        SendPagedAsync<UserDto>("v1/users" + QueryString(("search", search), ("pageNumber", pageNumber), ("pageSize", pageSize), ("sort", sort)), pageNumber, pageSize, cancellationToken);
 
     public Task<Result<UserDto>> GetAsync(Guid id, CancellationToken cancellationToken = default) =>
         SendAsync<UserDto>(HttpMethod.Get, $"v1/users/{id}", cancellationToken: cancellationToken);

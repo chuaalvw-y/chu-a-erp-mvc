@@ -7,10 +7,10 @@ namespace ChuA.ERP.Web.Mvc.ApiClients;
 public interface IBillsApiClient
 {
     /// <summary>Lists bills, optionally filtered by vendor, status, payment status and search text.</summary>
-    Task<Result<IReadOnlyList<BillDto>>> ListAsync(Guid? vendorId = null, string? status = null, string? paymentStatus = null, string? search = null, CancellationToken cancellationToken = default);
+    Task<Result<PagedResult<BillDto>>> ListAsync(Guid? vendorId = null, string? status = null, string? paymentStatus = null, string? search = null, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default);
 
     /// <summary>Lists bills currently awaiting approval.</summary>
-    Task<Result<IReadOnlyList<BillDto>>> GetAwaitingApprovalAsync(CancellationToken cancellationToken = default);
+    Task<Result<PagedResult<BillDto>>> GetAwaitingApprovalAsync(int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default);
 
     /// <summary>Gets a single bill by id.</summary>
     Task<Result<BillDto>> GetAsync(Guid id, CancellationToken cancellationToken = default);

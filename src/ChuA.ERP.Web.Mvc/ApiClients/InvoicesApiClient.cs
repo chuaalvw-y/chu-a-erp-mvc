@@ -17,11 +17,12 @@ public sealed class InvoicesApiClient : ApiClientBase, IInvoicesApiClient
     {
     }
 
-    public Task<Result<IReadOnlyList<InvoiceDto>>> ListAsync(Guid? customerId = null, string? status = null, string? paymentStatus = null, string? search = null, CancellationToken cancellationToken = default) =>
-        SendAsync<IReadOnlyList<InvoiceDto>>(
-            HttpMethod.Get,
-            "v1/invoices" + QueryString(("customerId", customerId), ("status", status), ("paymentStatus", paymentStatus), ("search", search)),
-            cancellationToken: cancellationToken);
+    public Task<Result<PagedResult<InvoiceDto>>> ListAsync(Guid? customerId = null, string? status = null, string? paymentStatus = null, string? search = null, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default) =>
+        SendPagedAsync<InvoiceDto>(
+            "v1/invoices" + QueryString(("customerId", customerId), ("status", status), ("paymentStatus", paymentStatus), ("search", search), ("pageNumber", pageNumber), ("pageSize", pageSize), ("sort", sort)),
+            pageNumber,
+            pageSize,
+            cancellationToken);
 
     public Task<Result<InvoiceDto>> GetAsync(Guid id, CancellationToken cancellationToken = default) =>
         SendAsync<InvoiceDto>(HttpMethod.Get, $"v1/invoices/{id}", cancellationToken: cancellationToken);

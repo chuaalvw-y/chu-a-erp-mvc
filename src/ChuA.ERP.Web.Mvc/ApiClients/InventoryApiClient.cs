@@ -17,8 +17,8 @@ public sealed class InventoryApiClient : ApiClientBase, IInventoryApiClient
     {
     }
 
-    public Task<Result<IReadOnlyList<ItemDto>>> ListAsync(string? search = null, CancellationToken cancellationToken = default) =>
-        SendAsync<IReadOnlyList<ItemDto>>(HttpMethod.Get, "v1/inventory" + QueryString(("search", search)), cancellationToken: cancellationToken);
+    public Task<Result<PagedResult<ItemDto>>> ListAsync(string? search = null, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default) =>
+        SendPagedAsync<ItemDto>("v1/inventory" + QueryString(("search", search), ("pageNumber", pageNumber), ("pageSize", pageSize), ("sort", sort)), pageNumber, pageSize, cancellationToken);
 
     public Task<Result<ItemDto>> GetAsync(Guid id, CancellationToken cancellationToken = default) =>
         SendAsync<ItemDto>(HttpMethod.Get, $"v1/inventory/{id}", cancellationToken: cancellationToken);

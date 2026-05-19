@@ -14,21 +14,23 @@ namespace ChuA.ERP.Web.Mvc.Controllers;
 public sealed class SalesOrdersController : Controller
 {
     private readonly ISalesOrdersApiClient _salesOrders;
+    private readonly ICustomersApiClient _customers;
 
-    public SalesOrdersController(ISalesOrdersApiClient salesOrders)
+    public SalesOrdersController(ISalesOrdersApiClient salesOrders, ICustomersApiClient customers)
     {
         _salesOrders = salesOrders;
+        _customers = customers;
     }
 
     [HttpGet]
     [Authorize(Policy = AuthorizationPolicies.SalesOrderRead)]
-    public async Task<IActionResult> Index(Guid? customerId, string? status, string? search, int pageNumber = 1, int pageSize = 25, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Index(Guid? customerId, string? status, string? search, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default)
     {
-        var result = await _salesOrders.ListAsync(customerId, status, search, cancellationToken).ConfigureAwait(false);
+        var result = await _salesOrders.ListAsync(customerId, status, search, pageNumber, pageSize, sort, cancellationToken).ConfigureAwait(false);
         if (result.IsFailure)
         {
             ModelState.AddResultErrors(result);
-            return View(new SalesOrderListViewModel { CustomerId = customerId, Status = status, Search = search });
+            return View(new SalesOrderListViewModel { CustomerId = customerId, Status = status, Search = search, Customers = await LoadCustomersAsync(cancellationToken).ConfigureAwait(false) });
         }
 
         ViewData["Search"] = search;
@@ -39,10 +41,11 @@ public sealed class SalesOrdersController : Controller
         };
         return View(new SalesOrderListViewModel
         {
-            Page = PagedResult<Contracts.Dtos.SalesOrderDto>.FromCollection(result.Value, pageNumber, pageSize),
+            Page = result.Value,
             CustomerId = customerId,
             Status = status,
             Search = search,
+            Customers = await LoadCustomersAsync(cancellationToken).ConfigureAwait(false),
         });
     }
 
@@ -99,7 +102,7 @@ public sealed class SalesOrdersController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.SalesOrderCreate)]
+    [Authorize(Policy = AuthorizationPolicies.SalesOrderUpdate)]
     public async Task<IActionResult> Edit(Guid id, CancellationToken cancellationToken)
     {
         var result = await _salesOrders.GetAsync(id, cancellationToken).ConfigureAwait(false);
@@ -120,7 +123,7 @@ public sealed class SalesOrdersController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Policy = AuthorizationPolicies.SalesOrderCreate)]
+    [Authorize(Policy = AuthorizationPolicies.SalesOrderUpdate)]
     public async Task<IActionResult> Edit(Guid id, SalesOrderFormViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return View(model);
@@ -136,7 +139,7 @@ public sealed class SalesOrdersController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.SalesOrderCreate)]
+    [Authorize(Policy = AuthorizationPolicies.SalesOrderDelete)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
         var result = await _salesOrders.GetAsync(id, cancellationToken).ConfigureAwait(false);
@@ -157,7 +160,7 @@ public sealed class SalesOrdersController : Controller
 
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
-    [Authorize(Policy = AuthorizationPolicies.SalesOrderCreate)]
+    [Authorize(Policy = AuthorizationPolicies.SalesOrderDelete)]
     public async Task<IActionResult> DeleteConfirmed(Guid id, CancellationToken cancellationToken)
     {
         var result = await _salesOrders.DeleteAsync(id, cancellationToken).ConfigureAwait(false);
@@ -214,5 +217,11 @@ public sealed class SalesOrdersController : Controller
         }
         TempData.AddToast($"Shipment {result.Value} recorded.", ToastLevel.Success);
         return RedirectToAction(nameof(Details), new { id });
+    }
+
+    private async Task<IReadOnlyList<Contracts.Dtos.CustomerDto>> LoadCustomersAsync(CancellationToken cancellationToken)
+    {
+        var result = await _customers.ListAsync(pageSize: 200, sort: "legalName", cancellationToken: cancellationToken).ConfigureAwait(false);
+        return result.IsSuccess ? result.Value.Items.ToArray() : Array.Empty<Contracts.Dtos.CustomerDto>();
     }
 }

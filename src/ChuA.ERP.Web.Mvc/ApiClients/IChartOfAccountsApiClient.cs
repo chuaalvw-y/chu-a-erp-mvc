@@ -7,7 +7,7 @@ namespace ChuA.ERP.Web.Mvc.ApiClients;
 public interface IChartOfAccountsApiClient
 {
     /// <summary>Lists chart-of-accounts entries, optionally filtered by account type and search text.</summary>
-    Task<Result<IReadOnlyList<ChartOfAccountDto>>> ListAsync(string? accountType = null, string? search = null, CancellationToken cancellationToken = default);
+    Task<Result<PagedResult<ChartOfAccountDto>>> ListAsync(string? accountType = null, string? search = null, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default);
 
     /// <summary>Gets a single chart-of-account by id.</summary>
     Task<Result<ChartOfAccountDto>> GetAsync(Guid id, CancellationToken cancellationToken = default);

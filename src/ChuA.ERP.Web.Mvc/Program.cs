@@ -9,7 +9,7 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        builder.Services.AddChuAErpMvc(builder.Configuration);
+        builder.Services.AddChuAErpMvc(builder.Configuration, builder.Environment);
 
         var app = builder.Build();
 

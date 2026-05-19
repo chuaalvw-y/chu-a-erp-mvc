@@ -1,11 +1,22 @@
 namespace ChuA.ERP.Web.Mvc.Contracts.Common;
 
+/// <summary>Non-generic paging contract used by shared Razor UI.</summary>
+public interface IPagedResult
+{
+    int TotalCount { get; }
+    int PageNumber { get; }
+    int PageSize { get; }
+    int TotalPages { get; }
+    bool HasPreviousPage { get; }
+    bool HasNextPage { get; }
+}
+
 /// <summary>
 /// UI paging envelope. The API currently returns <c>IReadOnlyList&lt;T&gt;</c> from list
 /// endpoints; the MVC wraps responses in this type to support client-side pagination,
 /// search and sort. When the API gains server-side paging, the same shape will line up.
 /// </summary>
-public sealed record PagedResult<T>(IReadOnlyCollection<T> Items, int TotalCount, int PageNumber, int PageSize)
+public sealed record PagedResult<T>(IReadOnlyCollection<T> Items, int TotalCount, int PageNumber, int PageSize) : IPagedResult
 {
     public int TotalPages => PageSize <= 0 ? 0 : (int)Math.Ceiling(TotalCount / (double)PageSize);
     public bool HasPreviousPage => PageNumber > 1;

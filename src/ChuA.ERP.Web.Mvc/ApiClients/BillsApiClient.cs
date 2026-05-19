@@ -17,14 +17,15 @@ public sealed class BillsApiClient : ApiClientBase, IBillsApiClient
     {
     }
 
-    public Task<Result<IReadOnlyList<BillDto>>> ListAsync(Guid? vendorId = null, string? status = null, string? paymentStatus = null, string? search = null, CancellationToken cancellationToken = default) =>
-        SendAsync<IReadOnlyList<BillDto>>(
-            HttpMethod.Get,
-            "v1/bills" + QueryString(("vendorId", vendorId), ("status", status), ("paymentStatus", paymentStatus), ("search", search)),
-            cancellationToken: cancellationToken);
+    public Task<Result<PagedResult<BillDto>>> ListAsync(Guid? vendorId = null, string? status = null, string? paymentStatus = null, string? search = null, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default) =>
+        SendPagedAsync<BillDto>(
+            "v1/bills" + QueryString(("vendorId", vendorId), ("status", status), ("paymentStatus", paymentStatus), ("search", search), ("pageNumber", pageNumber), ("pageSize", pageSize), ("sort", sort)),
+            pageNumber,
+            pageSize,
+            cancellationToken);
 
-    public Task<Result<IReadOnlyList<BillDto>>> GetAwaitingApprovalAsync(CancellationToken cancellationToken = default) =>
-        SendAsync<IReadOnlyList<BillDto>>(HttpMethod.Get, "v1/bills/awaiting-approval", cancellationToken: cancellationToken);
+    public Task<Result<PagedResult<BillDto>>> GetAwaitingApprovalAsync(int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default) =>
+        SendPagedAsync<BillDto>("v1/bills/awaiting-approval" + QueryString(("pageNumber", pageNumber), ("pageSize", pageSize), ("sort", sort)), pageNumber, pageSize, cancellationToken);
 
     public Task<Result<BillDto>> GetAsync(Guid id, CancellationToken cancellationToken = default) =>
         SendAsync<BillDto>(HttpMethod.Get, $"v1/bills/{id}", cancellationToken: cancellationToken);

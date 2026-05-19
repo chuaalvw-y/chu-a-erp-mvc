@@ -21,9 +21,9 @@ public sealed class WorkflowController : Controller
 
     [HttpGet]
     [Authorize(Policy = AuthorizationPolicies.WorkflowRead)]
-    public async Task<IActionResult> Index(string? status, string? subjectType, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Index(string? status, string? subjectType, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default)
     {
-        var result = await _workflow.ListTasksAsync(status, subjectType, cancellationToken).ConfigureAwait(false);
+        var result = await _workflow.ListTasksAsync(status, subjectType, pageNumber, pageSize, sort, cancellationToken).ConfigureAwait(false);
         if (result.IsFailure)
         {
             ModelState.AddResultErrors(result);
@@ -106,7 +106,7 @@ public sealed class WorkflowController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.WorkflowRead)]
+    [Authorize(Policy = AuthorizationPolicies.WorkflowReassign)]
     public async Task<IActionResult> Reassign(Guid id, CancellationToken cancellationToken)
     {
         var result = await _workflow.GetTaskAsync(id, cancellationToken).ConfigureAwait(false);
@@ -128,7 +128,7 @@ public sealed class WorkflowController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Policy = AuthorizationPolicies.WorkflowRead)]
+    [Authorize(Policy = AuthorizationPolicies.WorkflowReassign)]
     public async Task<IActionResult> Reassign(Guid id, ReassignFormViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)

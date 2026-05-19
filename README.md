@@ -53,7 +53,7 @@ until you populate `Oidc:Authority` / `ClientId` / `ClientSecret` in configurati
 
 ### Development (default)
 
-`appsettings.json` ships with:
+`appsettings.Development.json` ships with:
 
 ```json
 "Api":  { "UseAuthBypass": true },
@@ -84,9 +84,9 @@ UI exercises every menu item.
    },
    "Api": { "UseAuthBypass": false }
    ```
-3. Restart. The `Sign in` link now redirects to your IdP; tokens are stored in the cookie
-   session (`SaveTokens = true`) and `CookieTokenAcquisitionService` will attach the
-   `access_token` to outbound API calls.
+3. Restart. The `Sign in` link now redirects to your IdP. OIDC tokens are saved in the
+   authentication ticket (`SaveTokens = true`); outside Development the cookie ticket is
+   stored server-side so tokens are not serialized into the browser cookie.
 
 ### Roles & permissions
 
@@ -104,8 +104,8 @@ permissions with claim-based permissions.
 | `Api:BaseUrl`       | `https://localhost:5001` | Root of the API host. `/api/` is appended automatically.                         |
 | `Api:Version`       | `v1`                     | Path segment used by API clients (`v1/vendors`, etc.).                           |
 | `Api:TimeoutSeconds`| `30`                     | `HttpClient.Timeout`.                                                            |
-| `Api:RetryCount`    | `3`                      | Placeholder for the Polly retry policy hook (not yet enabled).                   |
-| `Api:UseAuthBypass` | `true`                   | When true, no bearer token is sent. Set false in production.                     |
+| `Api:RetryCount`    | `3`                      | Safe-method retry count for transient HTTP failures.                             |
+| `Api:UseAuthBypass` | `false`                  | When true, no bearer token is sent. Allowed only in Development.                 |
 | `Api:DevelopmentBearerToken` | `null`          | Optional static token for quick local testing without OIDC.                      |
 
 Override per-environment via `appsettings.{Environment}.json`, environment variables
@@ -184,15 +184,16 @@ dotnet run --project src/ChuA.ERP.Web.Mvc
 ### Front-end assets
 
 The layout references Bootstrap 5, jQuery, and jquery-validation-unobtrusive from
-`wwwroot/lib/...`. For first-time setup you can either:
+`wwwroot/lib/...`. Install the LibMan CLI if needed, then restore from the MVC project root:
 
-- copy the libraries into `wwwroot/lib/bootstrap`, `wwwroot/lib/jquery`,
-  `wwwroot/lib/jquery-validation`, `wwwroot/lib/jquery-validation-unobtrusive`, OR
-- restore them via `libman` (`libman restore` in the MVC project root if you
-  add a `libman.json`).
+```bash
+cd src/ChuA.ERP.Web.Mvc
+libman restore
+```
 
 The build does not fail without these libraries, but the UI will be unstyled and client
-validation will fall back to server-side only.
+validation will fall back to server-side only. Bootstrap Icons are loaded from a local
+restore when present, otherwise from the jsDelivr CDN.
 
 ## How to run tests
 
@@ -200,7 +201,7 @@ validation will fall back to server-side only.
 dotnet test tests/ChuA.ERP.Web.Mvc.Tests/ChuA.ERP.Web.Mvc.Tests.csproj
 ```
 
-Or run the whole solution: `dotnet test ChuA.ERP.sln`.
+Or run the whole solution: `dotnet test ChuA.ERP.MVC.sln`.
 
 The test suite uses **xUnit + FluentAssertions + Moq**. HTTP-level API client tests use a
 small `TestHttpMessageHandler` so no live API is required.

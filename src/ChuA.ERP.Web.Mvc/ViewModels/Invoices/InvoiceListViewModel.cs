@@ -11,4 +11,5 @@ public sealed class InvoiceListViewModel
     public string? Status { get; set; }
     public string? PaymentStatus { get; set; }
     public string? Search { get; set; }
+    public IReadOnlyList<CustomerDto> Customers { get; set; } = Array.Empty<CustomerDto>();
 }

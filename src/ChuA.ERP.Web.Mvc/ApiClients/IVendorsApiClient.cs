@@ -6,7 +6,7 @@ namespace ChuA.ERP.Web.Mvc.ApiClients;
 /// <summary>Calls /api/v1/vendors.</summary>
 public interface IVendorsApiClient
 {
-    Task<Result<IReadOnlyList<VendorDto>>> ListAsync(string? search = null, CancellationToken cancellationToken = default);
+    Task<Result<PagedResult<VendorDto>>> ListAsync(string? search = null, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default);
     Task<Result<VendorDto>> GetAsync(Guid id, CancellationToken cancellationToken = default);
     Task<Result<VendorDto>> CreateAsync(CreateVendorRequest request, CancellationToken cancellationToken = default);
     Task<Result<VendorDto>> UpdateAsync(Guid id, UpdateVendorRequest request, CancellationToken cancellationToken = default);

@@ -7,7 +7,7 @@ namespace ChuA.ERP.Web.Mvc.ApiClients;
 public interface IRolesApiClient
 {
     /// <summary>Lists roles, optionally filtered by free-text search.</summary>
-    Task<Result<IReadOnlyList<RoleDto>>> ListAsync(string? search = null, CancellationToken cancellationToken = default);
+    Task<Result<PagedResult<RoleDto>>> ListAsync(string? search = null, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default);
 
     /// <summary>Gets a single role by id.</summary>
     Task<Result<RoleDto>> GetAsync(Guid id, CancellationToken cancellationToken = default);

@@ -17,11 +17,12 @@ public sealed class ChartOfAccountsApiClient : ApiClientBase, IChartOfAccountsAp
     {
     }
 
-    public Task<Result<IReadOnlyList<ChartOfAccountDto>>> ListAsync(string? accountType = null, string? search = null, CancellationToken cancellationToken = default) =>
-        SendAsync<IReadOnlyList<ChartOfAccountDto>>(
-            HttpMethod.Get,
-            "v1/chart-of-accounts" + QueryString(("accountType", accountType), ("search", search)),
-            cancellationToken: cancellationToken);
+    public Task<Result<PagedResult<ChartOfAccountDto>>> ListAsync(string? accountType = null, string? search = null, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default) =>
+        SendPagedAsync<ChartOfAccountDto>(
+            "v1/chart-of-accounts" + QueryString(("accountType", accountType), ("search", search), ("pageNumber", pageNumber), ("pageSize", pageSize), ("sort", sort)),
+            pageNumber,
+            pageSize,
+            cancellationToken);
 
     public Task<Result<ChartOfAccountDto>> GetAsync(Guid id, CancellationToken cancellationToken = default) =>
         SendAsync<ChartOfAccountDto>(HttpMethod.Get, $"v1/chart-of-accounts/{id}", cancellationToken: cancellationToken);

@@ -11,7 +11,6 @@ namespace ChuA.ERP.Web.Mvc.Controllers;
 
 /// <summary>UI for the Journal entries (general ledger) module.</summary>
 [Authorize]
-[Authorize(Policy = AuthorizationPolicies.JournalEntryRead)]
 public sealed class JournalEntriesController : Controller
 {
     private readonly IJournalEntriesApiClient _entries;
@@ -22,9 +21,10 @@ public sealed class JournalEntriesController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index(Guid? fiscalPeriodId, string? status, int pageNumber = 1, int pageSize = 25, CancellationToken cancellationToken = default)
+    [Authorize(Policy = AuthorizationPolicies.JournalEntryRead)]
+    public async Task<IActionResult> Index(Guid? fiscalPeriodId, string? status, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default)
     {
-        var result = await _entries.ListAsync(fiscalPeriodId, status, cancellationToken).ConfigureAwait(false);
+        var result = await _entries.ListAsync(fiscalPeriodId, status, pageNumber, pageSize, sort, cancellationToken).ConfigureAwait(false);
         if (result.IsFailure)
         {
             ModelState.AddResultErrors(result);
@@ -38,13 +38,14 @@ public sealed class JournalEntriesController : Controller
         };
         return View(new JournalEntryListViewModel
         {
-            Page = PagedResult<Contracts.Dtos.JournalEntryDto>.FromCollection(result.Value, pageNumber, pageSize),
+            Page = result.Value,
             FiscalPeriodId = fiscalPeriodId,
             Status = status,
         });
     }
 
     [HttpGet]
+    [Authorize(Policy = AuthorizationPolicies.JournalEntryRead)]
     public async Task<IActionResult> Details(Guid id, CancellationToken cancellationToken)
     {
         var result = await _entries.GetAsync(id, cancellationToken).ConfigureAwait(false);
@@ -63,6 +64,7 @@ public sealed class JournalEntriesController : Controller
     }
 
     [HttpGet]
+    [Authorize(Policy = AuthorizationPolicies.JournalEntryCreate)]
     public IActionResult Create()
     {
         ViewData["Breadcrumbs"] = new[]
@@ -76,6 +78,7 @@ public sealed class JournalEntriesController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Policy = AuthorizationPolicies.JournalEntryCreate)]
     public async Task<IActionResult> Create(JournalEntryFormViewModel model, bool postImmediately = false, CancellationToken cancellationToken = default)
     {
         if (!ModelState.IsValid) return View(model);
@@ -100,6 +103,7 @@ public sealed class JournalEntriesController : Controller
     }
 
     [HttpGet]
+    [Authorize(Policy = AuthorizationPolicies.JournalEntryUpdate)]
     public async Task<IActionResult> Edit(Guid id, CancellationToken cancellationToken)
     {
         var result = await _entries.GetAsync(id, cancellationToken).ConfigureAwait(false);
@@ -120,6 +124,7 @@ public sealed class JournalEntriesController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Policy = AuthorizationPolicies.JournalEntryUpdate)]
     public async Task<IActionResult> Edit(Guid id, JournalEntryFormViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return View(model);
@@ -135,6 +140,7 @@ public sealed class JournalEntriesController : Controller
     }
 
     [HttpGet]
+    [Authorize(Policy = AuthorizationPolicies.JournalEntryDelete)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
         var result = await _entries.GetAsync(id, cancellationToken).ConfigureAwait(false);
@@ -155,6 +161,7 @@ public sealed class JournalEntriesController : Controller
 
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
+    [Authorize(Policy = AuthorizationPolicies.JournalEntryDelete)]
     public async Task<IActionResult> DeleteConfirmed(Guid id, CancellationToken cancellationToken)
     {
         var result = await _entries.DeleteAsync(id, cancellationToken).ConfigureAwait(false);

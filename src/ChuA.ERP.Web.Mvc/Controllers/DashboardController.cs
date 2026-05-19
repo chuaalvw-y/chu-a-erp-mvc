@@ -32,17 +32,17 @@ public sealed class DashboardController : Controller
     {
         await _currentUser.LoadProfileAsync(cancellationToken).ConfigureAwait(false);
 
-        var billsAwaiting = await _bills.GetAwaitingApprovalAsync(cancellationToken).ConfigureAwait(false);
-        var workflowTasks = await _workflow.ListTasksAsync(status: "Pending", subjectType: null, cancellationToken).ConfigureAwait(false);
-        var invoices = await _invoices.ListAsync(customerId: null, status: null, paymentStatus: "Outstanding", search: null, cancellationToken).ConfigureAwait(false);
+        var billsAwaiting = await _bills.GetAwaitingApprovalAsync(pageNumber: 1, pageSize: 1, cancellationToken: cancellationToken).ConfigureAwait(false);
+        var workflowTasks = await _workflow.ListTasksAsync(status: "Pending", subjectType: null, pageNumber: 1, pageSize: 1, cancellationToken: cancellationToken).ConfigureAwait(false);
+        var invoices = await _invoices.ListAsync(customerId: null, status: null, paymentStatus: "Outstanding", search: null, pageNumber: 1, pageSize: 1, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         var vm = new DashboardViewModel
         {
             DisplayName = _currentUser.DisplayName,
             CompanyId = _currentUser.CompanyId,
-            BillsAwaitingApproval = billsAwaiting.IsSuccess ? billsAwaiting.Value.Count : 0,
-            PendingWorkflowTasks = workflowTasks.IsSuccess ? workflowTasks.Value.Count : 0,
-            OutstandingInvoices = invoices.IsSuccess ? invoices.Value.Count : 0,
+            BillsAwaitingApproval = billsAwaiting.IsSuccess ? billsAwaiting.Value.TotalCount : 0,
+            PendingWorkflowTasks = workflowTasks.IsSuccess ? workflowTasks.Value.TotalCount : 0,
+            OutstandingInvoices = invoices.IsSuccess ? invoices.Value.TotalCount : 0,
             ApiReachable = billsAwaiting.IsSuccess && workflowTasks.IsSuccess && invoices.IsSuccess,
         };
         return View(vm);

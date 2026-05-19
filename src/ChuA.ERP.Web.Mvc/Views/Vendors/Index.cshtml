@@ -2,10 +2,7 @@
 @{
     ViewData["Title"] = "Vendors";
 }
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h3 mb-0">Vendors</h1>
-    <a asp-action="Create" class="btn btn-primary" asp-authorize-policy="VendorCreate">+ New vendor</a>
-</div>
+<partial name="_PageHeader" model='@(new PageHeaderViewModel { Title = "Vendors", Actions = new[] { new PageHeaderActionViewModel { Text = "New vendor", Url = Url.Action("Create")!, Policy = AuthorizationPolicies.VendorCreate, IconCssClass = "bi bi-plus-lg" } } })' />
 
 <partial name="_SearchBox" model="Model.Search" />
 

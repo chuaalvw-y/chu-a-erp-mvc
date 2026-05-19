@@ -7,7 +7,7 @@ namespace ChuA.ERP.Web.Mvc.ApiClients;
 public interface IInvoicesApiClient
 {
     /// <summary>Lists invoices, optionally filtered by customer, status, payment status and search text.</summary>
-    Task<Result<IReadOnlyList<InvoiceDto>>> ListAsync(Guid? customerId = null, string? status = null, string? paymentStatus = null, string? search = null, CancellationToken cancellationToken = default);
+    Task<Result<PagedResult<InvoiceDto>>> ListAsync(Guid? customerId = null, string? status = null, string? paymentStatus = null, string? search = null, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default);
 
     /// <summary>Gets a single invoice by id.</summary>
     Task<Result<InvoiceDto>> GetAsync(Guid id, CancellationToken cancellationToken = default);

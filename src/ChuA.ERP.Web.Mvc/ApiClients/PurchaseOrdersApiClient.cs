@@ -17,11 +17,12 @@ public sealed class PurchaseOrdersApiClient : ApiClientBase, IPurchaseOrdersApiC
     {
     }
 
-    public Task<Result<IReadOnlyList<PurchaseOrderDto>>> ListAsync(Guid? vendorId = null, string? status = null, string? search = null, CancellationToken cancellationToken = default) =>
-        SendAsync<IReadOnlyList<PurchaseOrderDto>>(
-            HttpMethod.Get,
-            "v1/purchase-orders" + QueryString(("vendorId", vendorId), ("status", status), ("search", search)),
-            cancellationToken: cancellationToken);
+    public Task<Result<PagedResult<PurchaseOrderDto>>> ListAsync(Guid? vendorId = null, string? status = null, string? search = null, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default) =>
+        SendPagedAsync<PurchaseOrderDto>(
+            "v1/purchase-orders" + QueryString(("vendorId", vendorId), ("status", status), ("search", search), ("pageNumber", pageNumber), ("pageSize", pageSize), ("sort", sort)),
+            pageNumber,
+            pageSize,
+            cancellationToken);
 
     public Task<Result<PurchaseOrderDto>> GetAsync(Guid id, CancellationToken cancellationToken = default) =>
         SendAsync<PurchaseOrderDto>(HttpMethod.Get, $"v1/purchase-orders/{id}", cancellationToken: cancellationToken);

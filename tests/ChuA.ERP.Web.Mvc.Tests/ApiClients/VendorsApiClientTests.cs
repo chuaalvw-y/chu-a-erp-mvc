@@ -17,10 +17,10 @@ public class VendorsApiClientTests
         var result = await sut.ListAsync("acme");
 
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().ContainSingle(v => v.VendorCode == "V100");
+        result.Value.Items.Should().ContainSingle(v => v.VendorCode == "V100");
         handler.Requests.Should().ContainSingle();
         handler.Requests[0].Method.Should().Be(HttpMethod.Get);
-        handler.Requests[0].RequestUri!.PathAndQuery.Should().Be("/api/v1/vendors?search=acme");
+        handler.Requests[0].RequestUri!.PathAndQuery.Should().Be("/api/v1/vendors?search=acme&pageNumber=1&pageSize=25");
     }
 
     [Fact]

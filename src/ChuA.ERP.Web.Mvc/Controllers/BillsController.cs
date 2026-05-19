@@ -14,21 +14,23 @@ namespace ChuA.ERP.Web.Mvc.Controllers;
 public sealed class BillsController : Controller
 {
     private readonly IBillsApiClient _bills;
+    private readonly IVendorsApiClient _vendors;
 
-    public BillsController(IBillsApiClient bills)
+    public BillsController(IBillsApiClient bills, IVendorsApiClient vendors)
     {
         _bills = bills;
+        _vendors = vendors;
     }
 
     [HttpGet]
     [Authorize(Policy = AuthorizationPolicies.BillRead)]
-    public async Task<IActionResult> Index(Guid? vendorId, string? status, string? paymentStatus, string? search, int pageNumber = 1, int pageSize = 25, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Index(Guid? vendorId, string? status, string? paymentStatus, string? search, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default)
     {
-        var result = await _bills.ListAsync(vendorId, status, paymentStatus, search, cancellationToken).ConfigureAwait(false);
+        var result = await _bills.ListAsync(vendorId, status, paymentStatus, search, pageNumber, pageSize, sort, cancellationToken).ConfigureAwait(false);
         if (result.IsFailure)
         {
             ModelState.AddResultErrors(result);
-            return View(new BillListViewModel { VendorId = vendorId, Status = status, PaymentStatus = paymentStatus, Search = search });
+            return View(new BillListViewModel { VendorId = vendorId, Status = status, PaymentStatus = paymentStatus, Search = search, Vendors = await LoadVendorsAsync(cancellationToken).ConfigureAwait(false) });
         }
 
         ViewData["Search"] = search;
@@ -39,19 +41,20 @@ public sealed class BillsController : Controller
         };
         return View(new BillListViewModel
         {
-            Page = PagedResult<Contracts.Dtos.BillDto>.FromCollection(result.Value, pageNumber, pageSize),
+            Page = result.Value,
             VendorId = vendorId,
             Status = status,
             PaymentStatus = paymentStatus,
             Search = search,
+            Vendors = await LoadVendorsAsync(cancellationToken).ConfigureAwait(false),
         });
     }
 
     [HttpGet]
     [Authorize(Policy = AuthorizationPolicies.BillRead)]
-    public async Task<IActionResult> AwaitingApproval(int pageNumber = 1, int pageSize = 25, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> AwaitingApproval(int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default)
     {
-        var result = await _bills.GetAwaitingApprovalAsync(cancellationToken).ConfigureAwait(false);
+        var result = await _bills.GetAwaitingApprovalAsync(pageNumber, pageSize, sort, cancellationToken).ConfigureAwait(false);
         if (result.IsFailure)
         {
             ModelState.AddResultErrors(result);
@@ -66,7 +69,7 @@ public sealed class BillsController : Controller
         };
         return View(new BillListViewModel
         {
-            Page = PagedResult<Contracts.Dtos.BillDto>.FromCollection(result.Value, pageNumber, pageSize),
+            Page = result.Value,
         });
     }
 
@@ -120,7 +123,7 @@ public sealed class BillsController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.BillCreate)]
+    [Authorize(Policy = AuthorizationPolicies.BillUpdate)]
     public async Task<IActionResult> Edit(Guid id, CancellationToken cancellationToken)
     {
         var result = await _bills.GetAsync(id, cancellationToken).ConfigureAwait(false);
@@ -141,7 +144,7 @@ public sealed class BillsController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Policy = AuthorizationPolicies.BillCreate)]
+    [Authorize(Policy = AuthorizationPolicies.BillUpdate)]
     public async Task<IActionResult> Edit(Guid id, BillFormViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return View(model);
@@ -157,7 +160,7 @@ public sealed class BillsController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.BillCreate)]
+    [Authorize(Policy = AuthorizationPolicies.BillDelete)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
         var result = await _bills.GetAsync(id, cancellationToken).ConfigureAwait(false);
@@ -178,7 +181,7 @@ public sealed class BillsController : Controller
 
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
-    [Authorize(Policy = AuthorizationPolicies.BillCreate)]
+    [Authorize(Policy = AuthorizationPolicies.BillDelete)]
     public async Task<IActionResult> DeleteConfirmed(Guid id, CancellationToken cancellationToken)
     {
         var result = await _bills.DeleteAsync(id, cancellationToken).ConfigureAwait(false);
@@ -274,5 +277,11 @@ public sealed class BillsController : Controller
         }
         TempData.AddToast($"Payment recorded against '{result.Value.BillNumber}'.", ToastLevel.Success);
         return RedirectToAction(nameof(Details), new { id });
+    }
+
+    private async Task<IReadOnlyList<Contracts.Dtos.VendorDto>> LoadVendorsAsync(CancellationToken cancellationToken)
+    {
+        var result = await _vendors.ListAsync(pageSize: 200, sort: "legalName", cancellationToken: cancellationToken).ConfigureAwait(false);
+        return result.IsSuccess ? result.Value.Items.ToArray() : Array.Empty<Contracts.Dtos.VendorDto>();
     }
 }

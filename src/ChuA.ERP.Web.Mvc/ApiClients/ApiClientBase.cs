@@ -96,6 +96,59 @@ public abstract class ApiClientBase
         }
     }
 
+    /// <summary>
+    /// Sends a GET request for a list endpoint. The current API returns arrays, while the
+    /// server-side paging contract is expected to return <see cref="PagedResult{T}"/>.
+    /// This method accepts both shapes so the MVC can move toward API-side paging without
+    /// breaking against the existing API.
+    /// </summary>
+    protected async Task<Result<PagedResult<T>>> SendPagedAsync<T>(
+        string relativeUri,
+        int pageNumber,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        using var request = await BuildRequestAsync(HttpMethod.Get, relativeUri, body: null, cancellationToken).ConfigureAwait(false);
+        try
+        {
+            using var response = await Http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return Result<PagedResult<T>>.FromProblem(await ReadProblemAsync(response, cancellationToken).ConfigureAwait(false));
+            }
+
+            if (response.StatusCode == HttpStatusCode.NoContent || response.Content.Headers.ContentLength == 0)
+            {
+                return Result<PagedResult<T>>.Success(PagedResult<T>.Empty(pageSize));
+            }
+
+            var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return Result<PagedResult<T>>.Success(PagedResult<T>.Empty(pageSize));
+            }
+
+            return Result<PagedResult<T>>.Success(ParsePagedResponse<T>(json, pageNumber, pageSize));
+        }
+        catch (HttpRequestException ex)
+        {
+            Logger.LogWarning(ex, "HTTP failure calling GET {Uri}", relativeUri);
+            return Result<PagedResult<T>>.Failure(new Error("api.transport", ex.Message));
+        }
+        catch (TaskCanceledException ex)
+        {
+            Logger.LogWarning(ex, "Timeout calling GET {Uri}", relativeUri);
+            return Result<PagedResult<T>>.Failure(new Error("api.timeout", "The API call timed out."));
+        }
+        catch (JsonException ex)
+        {
+            Logger.LogError(ex, "JSON parse error calling GET {Uri}", relativeUri);
+            return Result<PagedResult<T>>.Failure(new Error("api.parse", "Could not parse API response."));
+        }
+    }
+
     /// <summary>Sends a request expecting no response body.</summary>
     protected async Task<Result> SendAsync(
         HttpMethod method,
@@ -214,5 +267,23 @@ public abstract class ApiClientBase
             uri = AppendQuery(uri, name, value);
         }
         return uri;
+    }
+
+    private static PagedResult<T> ParsePagedResponse<T>(string json, int pageNumber, int pageSize)
+    {
+        using var document = JsonDocument.Parse(json);
+        if (document.RootElement.ValueKind == JsonValueKind.Array)
+        {
+            var items = JsonSerializer.Deserialize<T[]>(json, JsonOptions) ?? Array.Empty<T>();
+            return PagedResult<T>.FromCollection(items, pageNumber, pageSize);
+        }
+
+        var page = JsonSerializer.Deserialize<PagedResult<T>>(json, JsonOptions);
+        if (page is null)
+        {
+            throw new JsonException("Paged response was empty.");
+        }
+
+        return page;
     }
 }

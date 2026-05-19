@@ -17,11 +17,12 @@ public sealed class JournalEntriesApiClient : ApiClientBase, IJournalEntriesApiC
     {
     }
 
-    public Task<Result<IReadOnlyList<JournalEntryDto>>> ListAsync(Guid? fiscalPeriodId = null, string? status = null, CancellationToken cancellationToken = default) =>
-        SendAsync<IReadOnlyList<JournalEntryDto>>(
-            HttpMethod.Get,
-            "v1/journal-entries" + QueryString(("fiscalPeriodId", fiscalPeriodId), ("status", status)),
-            cancellationToken: cancellationToken);
+    public Task<Result<PagedResult<JournalEntryDto>>> ListAsync(Guid? fiscalPeriodId = null, string? status = null, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default) =>
+        SendPagedAsync<JournalEntryDto>(
+            "v1/journal-entries" + QueryString(("fiscalPeriodId", fiscalPeriodId), ("status", status), ("pageNumber", pageNumber), ("pageSize", pageSize), ("sort", sort)),
+            pageNumber,
+            pageSize,
+            cancellationToken);
 
     public Task<Result<JournalEntryDto>> GetAsync(Guid id, CancellationToken cancellationToken = default) =>
         SendAsync<JournalEntryDto>(HttpMethod.Get, $"v1/journal-entries/{id}", cancellationToken: cancellationToken);

@@ -33,7 +33,7 @@
     </div>
 </form>
 
-@if (Model.Tasks.Count == 0)
+@if (Model.Tasks.Items.Count == 0)
 {
     @Html.EmptyState("No workflow tasks match your filters.")
 }
@@ -45,7 +45,7 @@ else
                 <th>Subject</th><th>Subject id</th><th>Requested by</th><th>Requested at</th><th>Required</th><th>Status</th><th class="actions">Actions</th>
             </tr></thead>
             <tbody>
-            @foreach (var t in Model.Tasks)
+            @foreach (var t in Model.Tasks.Items)
             {
                 <tr>
                     <td><a asp-action="Details" asp-route-id="@t.Id">@t.SubjectType</a></td>
@@ -62,4 +62,5 @@ else
             </tbody>
         </table>
     </div>
+    <partial name="_Pager" model="Model.Tasks" />
 }

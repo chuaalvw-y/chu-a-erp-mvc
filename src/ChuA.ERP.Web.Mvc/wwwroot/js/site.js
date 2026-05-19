@@ -5,7 +5,28 @@
         var toggle = document.getElementById('sidebarToggle');
         var sidebar = document.getElementById('sidebar');
         if (toggle && sidebar) {
-            toggle.addEventListener('click', function () { sidebar.classList.toggle('show'); });
+            var setSidebarVisible = function (visible) {
+                sidebar.classList.toggle('show', visible);
+                toggle.setAttribute('aria-expanded', visible ? 'true' : 'false');
+                if (visible) { sidebar.focus(); }
+            };
+
+            toggle.addEventListener('click', function () {
+                setSidebarVisible(!sidebar.classList.contains('show'));
+            });
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && sidebar.classList.contains('show')) {
+                    setSidebarVisible(false);
+                    toggle.focus();
+                }
+            });
+
+            document.addEventListener('click', function (e) {
+                if (!sidebar.classList.contains('show')) { return; }
+                if (sidebar.contains(e.target) || toggle.contains(e.target)) { return; }
+                setSidebarVisible(false);
+            });
         }
 
         // Auto-dismiss toasts after 5s

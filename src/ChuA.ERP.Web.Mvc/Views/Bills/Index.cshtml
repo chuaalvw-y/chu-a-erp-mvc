@@ -2,13 +2,15 @@
 @{
     ViewData["Title"] = "Bills";
 }
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h3 mb-0">Bills</h1>
-    <div>
-        <a asp-action="AwaitingApproval" class="btn btn-outline-info" asp-authorize-policy="BillRead">Awaiting approval</a>
-        <a asp-action="Create" class="btn btn-primary" asp-authorize-policy="BillCreate">+ New bill</a>
-    </div>
-</div>
+<partial name="_PageHeader" model='@(new PageHeaderViewModel
+{
+    Title = "Bills",
+    Actions = new[]
+    {
+        new PageHeaderActionViewModel { Text = "Awaiting approval", Url = Url.Action("AwaitingApproval")!, CssClass = "btn btn-outline-info", Policy = AuthorizationPolicies.BillRead, IconCssClass = "bi bi-inbox" },
+        new PageHeaderActionViewModel { Text = "New bill", Url = Url.Action("Create")!, Policy = AuthorizationPolicies.BillCreate, IconCssClass = "bi bi-plus-lg" }
+    }
+})' />
 
 <form method="get" class="row g-2 mb-3">
     <div class="col-md-3">
@@ -32,7 +34,13 @@
         </select>
     </div>
     <div class="col-md-3">
-        <input type="text" name="vendorId" value="@(Model.VendorId?.ToString())" class="form-control" placeholder="Vendor id (optional)" />
+        <select name="vendorId" class="form-select" aria-label="Vendor">
+            <option value="">All vendors</option>
+            @foreach (var vendor in Model.Vendors)
+            {
+                <option value="@vendor.Id" selected="@(Model.VendorId == vendor.Id)">@vendor.VendorCode - @vendor.LegalName</option>
+            }
+        </select>
     </div>
     <div class="col-md-2">
         <button type="submit" class="btn btn-outline-primary w-100">Filter</button>
@@ -63,7 +71,7 @@ else
                     <td>@Html.StatusBadge(b.PaymentStatus)</td>
                     <td class="actions">
                         <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@b.Id">View</a>
-                        <a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-id="@b.Id" asp-authorize-policy="BillCreate">Edit</a>
+                        <a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-id="@b.Id" asp-authorize-policy="BillUpdate">Edit</a>
                     </td>
                 </tr>
             }

@@ -7,7 +7,7 @@ namespace ChuA.ERP.Web.Mvc.ApiClients;
 public interface ISalesOrdersApiClient
 {
     /// <summary>Lists sales orders, optionally filtered by customer, status and search text.</summary>
-    Task<Result<IReadOnlyList<SalesOrderDto>>> ListAsync(Guid? customerId = null, string? status = null, string? search = null, CancellationToken cancellationToken = default);
+    Task<Result<PagedResult<SalesOrderDto>>> ListAsync(Guid? customerId = null, string? status = null, string? search = null, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default);
 
     /// <summary>Gets a single sales order by id.</summary>
     Task<Result<SalesOrderDto>> GetAsync(Guid id, CancellationToken cancellationToken = default);

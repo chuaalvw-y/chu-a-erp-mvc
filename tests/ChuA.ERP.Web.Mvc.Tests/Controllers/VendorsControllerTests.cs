@@ -32,11 +32,11 @@ public class VendorsControllerTests
     {
         var vendors = new Mock<IVendorsApiClient>();
         var data = Enumerable.Range(1, 30).Select(i => Sample($"V-{i}")).ToArray();
-        vendors.Setup(v => v.ListAsync(It.IsAny<string?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<IReadOnlyList<VendorDto>>.Success(data));
+        vendors.Setup(v => v.ListAsync(It.IsAny<string?>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<PagedResult<VendorDto>>.Success(PagedResult<VendorDto>.FromCollection(data, 2, 10)));
         var ctrl = BuildSut(vendors);
 
-        var result = await ctrl.Index(search: null, pageNumber: 2, pageSize: 10, CancellationToken.None);
+        var result = await ctrl.Index(search: null, pageNumber: 2, pageSize: 10, sort: null, CancellationToken.None);
 
         var view = result.Should().BeOfType<ViewResult>().Subject;
         var vm = view.Model.Should().BeOfType<VendorListViewModel>().Subject;
@@ -50,11 +50,11 @@ public class VendorsControllerTests
     public async Task Index_should_return_empty_view_with_modelstate_errors_on_failure()
     {
         var vendors = new Mock<IVendorsApiClient>();
-        vendors.Setup(v => v.ListAsync(It.IsAny<string?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<IReadOnlyList<VendorDto>>.Failure(new Error("api.error", "boom")));
+        vendors.Setup(v => v.ListAsync(It.IsAny<string?>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<PagedResult<VendorDto>>.Failure(new Error("api.error", "boom")));
         var ctrl = BuildSut(vendors);
 
-        var result = await ctrl.Index(search: null, pageNumber: 1, pageSize: 25, CancellationToken.None);
+        var result = await ctrl.Index(search: null, pageNumber: 1, pageSize: 25, sort: null, CancellationToken.None);
 
         result.Should().BeOfType<ViewResult>();
         ctrl.ModelState.IsValid.Should().BeFalse();

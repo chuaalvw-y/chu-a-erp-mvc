@@ -22,9 +22,9 @@ public sealed class ChartOfAccountsController : Controller
 
     [HttpGet]
     [Authorize(Policy = AuthorizationPolicies.ChartOfAccountRead)]
-    public async Task<IActionResult> Index(string? accountType, string? search, int pageNumber = 1, int pageSize = 25, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Index(string? accountType, string? search, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default)
     {
-        var result = await _coa.ListAsync(accountType, search, cancellationToken).ConfigureAwait(false);
+        var result = await _coa.ListAsync(accountType, search, pageNumber, pageSize, sort, cancellationToken).ConfigureAwait(false);
         if (result.IsFailure)
         {
             ModelState.AddResultErrors(result);
@@ -40,7 +40,7 @@ public sealed class ChartOfAccountsController : Controller
         };
         return View(new ChartOfAccountListViewModel
         {
-            Page = PagedResult<Contracts.Dtos.ChartOfAccountDto>.FromCollection(result.Value, pageNumber, pageSize),
+            Page = result.Value,
             Search = search,
             AccountType = accountType,
         });
@@ -96,7 +96,7 @@ public sealed class ChartOfAccountsController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.ChartOfAccountCreate)]
+    [Authorize(Policy = AuthorizationPolicies.ChartOfAccountUpdate)]
     public async Task<IActionResult> Edit(Guid id, CancellationToken cancellationToken)
     {
         var result = await _coa.GetAsync(id, cancellationToken).ConfigureAwait(false);
@@ -117,7 +117,7 @@ public sealed class ChartOfAccountsController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Policy = AuthorizationPolicies.ChartOfAccountCreate)]
+    [Authorize(Policy = AuthorizationPolicies.ChartOfAccountUpdate)]
     public async Task<IActionResult> Edit(Guid id, ChartOfAccountFormViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return View(model);
@@ -133,7 +133,7 @@ public sealed class ChartOfAccountsController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.ChartOfAccountCreate)]
+    [Authorize(Policy = AuthorizationPolicies.ChartOfAccountDelete)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
         var result = await _coa.GetAsync(id, cancellationToken).ConfigureAwait(false);
@@ -154,7 +154,7 @@ public sealed class ChartOfAccountsController : Controller
 
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
-    [Authorize(Policy = AuthorizationPolicies.ChartOfAccountCreate)]
+    [Authorize(Policy = AuthorizationPolicies.ChartOfAccountDelete)]
     public async Task<IActionResult> DeleteConfirmed(Guid id, CancellationToken cancellationToken)
     {
         var result = await _coa.DeleteAsync(id, cancellationToken).ConfigureAwait(false);

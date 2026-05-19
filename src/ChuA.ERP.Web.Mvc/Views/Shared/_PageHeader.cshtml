@@ -1,0 +1,33 @@
+@model ChuA.ERP.Web.Mvc.ViewModels.PageHeaderViewModel
+
+<div class="d-flex justify-content-between align-items-center gap-3 mb-3">
+    <h1 class="h3 mb-0">@Model.Title</h1>
+    @if (Model.Actions.Count > 0)
+    {
+        <div class="d-flex flex-wrap gap-2 justify-content-end">
+            @foreach (var action in Model.Actions)
+            {
+                if (action.Policy is null)
+                {
+                    <a href="@action.Url" class="@action.CssClass">
+                        @if (!string.IsNullOrWhiteSpace(action.IconCssClass))
+                        {
+                            <span class="@action.IconCssClass" aria-hidden="true"></span>
+                        }
+                        <span>@action.Text</span>
+                    </a>
+                }
+                else
+                {
+                    <a href="@action.Url" class="@action.CssClass" asp-authorize-policy="@action.Policy">
+                        @if (!string.IsNullOrWhiteSpace(action.IconCssClass))
+                        {
+                            <span class="@action.IconCssClass" aria-hidden="true"></span>
+                        }
+                        <span>@action.Text</span>
+                    </a>
+                }
+            }
+        </div>
+    }
+</div>

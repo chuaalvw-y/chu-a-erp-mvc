@@ -21,7 +21,7 @@ public sealed class ApiOptions
     public int RetryCount { get; set; } = 3;
 
     /// <summary>If true the MVC will use the API's AuthBypass scheme (no bearer token).</summary>
-    public bool UseAuthBypass { get; set; } = true;
+    public bool UseAuthBypass { get; set; } = false;
 
     /// <summary>Optional fixed bearer token to attach (development convenience).</summary>
     public string? DevelopmentBearerToken { get; set; }

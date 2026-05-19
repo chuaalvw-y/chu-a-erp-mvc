@@ -7,7 +7,7 @@ namespace ChuA.ERP.Web.Mvc.ApiClients;
 public interface ICompaniesApiClient
 {
     /// <summary>Lists companies, optionally filtered by free-text search.</summary>
-    Task<Result<IReadOnlyList<CompanyDto>>> ListAsync(string? search = null, CancellationToken cancellationToken = default);
+    Task<Result<PagedResult<CompanyDto>>> ListAsync(string? search = null, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default);
 
     /// <summary>Gets a single company by id.</summary>
     Task<Result<CompanyDto>> GetAsync(Guid id, CancellationToken cancellationToken = default);

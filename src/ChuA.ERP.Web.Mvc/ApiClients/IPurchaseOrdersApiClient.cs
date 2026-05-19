@@ -7,7 +7,7 @@ namespace ChuA.ERP.Web.Mvc.ApiClients;
 public interface IPurchaseOrdersApiClient
 {
     /// <summary>Lists purchase orders, optionally filtered by vendor, status and search text.</summary>
-    Task<Result<IReadOnlyList<PurchaseOrderDto>>> ListAsync(Guid? vendorId = null, string? status = null, string? search = null, CancellationToken cancellationToken = default);
+    Task<Result<PagedResult<PurchaseOrderDto>>> ListAsync(Guid? vendorId = null, string? status = null, string? search = null, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default);
 
     /// <summary>Gets a single purchase order by id.</summary>
     Task<Result<PurchaseOrderDto>> GetAsync(Guid id, CancellationToken cancellationToken = default);

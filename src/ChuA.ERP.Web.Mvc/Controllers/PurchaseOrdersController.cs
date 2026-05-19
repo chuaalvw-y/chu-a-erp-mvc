@@ -14,21 +14,23 @@ namespace ChuA.ERP.Web.Mvc.Controllers;
 public sealed class PurchaseOrdersController : Controller
 {
     private readonly IPurchaseOrdersApiClient _purchaseOrders;
+    private readonly IVendorsApiClient _vendors;
 
-    public PurchaseOrdersController(IPurchaseOrdersApiClient purchaseOrders)
+    public PurchaseOrdersController(IPurchaseOrdersApiClient purchaseOrders, IVendorsApiClient vendors)
     {
         _purchaseOrders = purchaseOrders;
+        _vendors = vendors;
     }
 
     [HttpGet]
     [Authorize(Policy = AuthorizationPolicies.PurchaseOrderRead)]
-    public async Task<IActionResult> Index(Guid? vendorId, string? status, string? search, int pageNumber = 1, int pageSize = 25, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Index(Guid? vendorId, string? status, string? search, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default)
     {
-        var result = await _purchaseOrders.ListAsync(vendorId, status, search, cancellationToken).ConfigureAwait(false);
+        var result = await _purchaseOrders.ListAsync(vendorId, status, search, pageNumber, pageSize, sort, cancellationToken).ConfigureAwait(false);
         if (result.IsFailure)
         {
             ModelState.AddResultErrors(result);
-            return View(new PurchaseOrderListViewModel { VendorId = vendorId, Status = status, Search = search });
+            return View(new PurchaseOrderListViewModel { VendorId = vendorId, Status = status, Search = search, Vendors = await LoadVendorsAsync(cancellationToken).ConfigureAwait(false) });
         }
 
         ViewData["Search"] = search;
@@ -39,10 +41,11 @@ public sealed class PurchaseOrdersController : Controller
         };
         return View(new PurchaseOrderListViewModel
         {
-            Page = PagedResult<Contracts.Dtos.PurchaseOrderDto>.FromCollection(result.Value, pageNumber, pageSize),
+            Page = result.Value,
             VendorId = vendorId,
             Status = status,
             Search = search,
+            Vendors = await LoadVendorsAsync(cancellationToken).ConfigureAwait(false),
         });
     }
 
@@ -99,7 +102,7 @@ public sealed class PurchaseOrdersController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.PurchaseOrderCreate)]
+    [Authorize(Policy = AuthorizationPolicies.PurchaseOrderUpdate)]
     public async Task<IActionResult> Edit(Guid id, CancellationToken cancellationToken)
     {
         var result = await _purchaseOrders.GetAsync(id, cancellationToken).ConfigureAwait(false);
@@ -120,7 +123,7 @@ public sealed class PurchaseOrdersController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Policy = AuthorizationPolicies.PurchaseOrderCreate)]
+    [Authorize(Policy = AuthorizationPolicies.PurchaseOrderUpdate)]
     public async Task<IActionResult> Edit(Guid id, PurchaseOrderFormViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return View(model);
@@ -136,7 +139,7 @@ public sealed class PurchaseOrdersController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.PurchaseOrderCreate)]
+    [Authorize(Policy = AuthorizationPolicies.PurchaseOrderDelete)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
         var result = await _purchaseOrders.GetAsync(id, cancellationToken).ConfigureAwait(false);
@@ -157,7 +160,7 @@ public sealed class PurchaseOrdersController : Controller
 
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
-    [Authorize(Policy = AuthorizationPolicies.PurchaseOrderCreate)]
+    [Authorize(Policy = AuthorizationPolicies.PurchaseOrderDelete)]
     public async Task<IActionResult> DeleteConfirmed(Guid id, CancellationToken cancellationToken)
     {
         var result = await _purchaseOrders.DeleteAsync(id, cancellationToken).ConfigureAwait(false);
@@ -249,5 +252,11 @@ public sealed class PurchaseOrdersController : Controller
         }
         TempData.AddToast($"Goods receipt {result.Value} recorded.", ToastLevel.Success);
         return RedirectToAction(nameof(Details), new { id });
+    }
+
+    private async Task<IReadOnlyList<Contracts.Dtos.VendorDto>> LoadVendorsAsync(CancellationToken cancellationToken)
+    {
+        var result = await _vendors.ListAsync(pageSize: 200, sort: "legalName", cancellationToken: cancellationToken).ConfigureAwait(false);
+        return result.IsSuccess ? result.Value.Items.ToArray() : Array.Empty<Contracts.Dtos.VendorDto>();
     }
 }

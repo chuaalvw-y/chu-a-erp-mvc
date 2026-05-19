@@ -10,4 +10,5 @@ public sealed class PurchaseOrderListViewModel
     public Guid? VendorId { get; set; }
     public string? Status { get; set; }
     public string? Search { get; set; }
+    public IReadOnlyList<VendorDto> Vendors { get; set; } = Array.Empty<VendorDto>();
 }

@@ -22,9 +22,9 @@ public sealed class CustomersController : Controller
 
     [HttpGet]
     [Authorize(Policy = AuthorizationPolicies.CustomerRead)]
-    public async Task<IActionResult> Index(string? search, int pageNumber = 1, int pageSize = 25, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Index(string? search, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default)
     {
-        var result = await _customers.ListAsync(search, cancellationToken).ConfigureAwait(false);
+        var result = await _customers.ListAsync(search, pageNumber, pageSize, sort, cancellationToken).ConfigureAwait(false);
         if (result.IsFailure)
         {
             ModelState.AddResultErrors(result);
@@ -39,7 +39,7 @@ public sealed class CustomersController : Controller
         };
         return View(new CustomerListViewModel
         {
-            Page = PagedResult<Contracts.Dtos.CustomerDto>.FromCollection(result.Value, pageNumber, pageSize),
+            Page = result.Value,
             Search = search,
         });
     }
@@ -131,7 +131,7 @@ public sealed class CustomersController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.CustomerUpdate)]
+    [Authorize(Policy = AuthorizationPolicies.CustomerDelete)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
         var result = await _customers.GetAsync(id, cancellationToken).ConfigureAwait(false);
@@ -152,7 +152,7 @@ public sealed class CustomersController : Controller
 
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
-    [Authorize(Policy = AuthorizationPolicies.CustomerCreate)]
+    [Authorize(Policy = AuthorizationPolicies.CustomerDelete)]
     public async Task<IActionResult> DeleteConfirmed(Guid id, CancellationToken cancellationToken)
     {
         var result = await _customers.DeleteAsync(id, cancellationToken).ConfigureAwait(false);

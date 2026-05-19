@@ -15,6 +15,6 @@
 
 <form asp-action="Delete" asp-route-id="@Model.Id" method="post" data-confirm="Delete this vendor? This cannot be undone.">
     @Html.AntiForgeryToken()
-    <button type="submit" class="btn btn-danger">Delete vendor</button>
+    <button type="submit" class="btn btn-danger" asp-loading-text="Deleting...">Delete vendor</button>
     <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-link">Cancel</a>
 </form>

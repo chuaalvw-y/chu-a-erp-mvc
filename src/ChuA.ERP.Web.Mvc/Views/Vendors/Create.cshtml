@@ -7,7 +7,7 @@
     @Html.AntiForgeryToken()
     <partial name="_Form" model="Model" />
     <div class="mt-3">
-        <button type="submit" class="btn btn-primary">Create vendor</button>
+        <button type="submit" class="btn btn-primary" asp-loading-text="Saving...">Create vendor</button>
         <a asp-action="Index" class="btn btn-link">Cancel</a>
     </div>
 </form>

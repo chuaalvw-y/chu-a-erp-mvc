@@ -1,0 +1,37 @@
+@*
+    Renders the singleton full-page loading overlay used by ChuALoading.fullPage.
+    Included once by _Layout.cshtml; toggled entirely from JavaScript so server-
+    side code never needs to deal with it.
+
+    The markup is always present in the DOM (hidden) so toggling is just a class
+    flip — no insertion latency on first show, which matters for the "user just
+    clicked Post on a journal entry" case.
+*@
+<div id="chua-fullpage-loading"
+     class="chua-fullpage"
+     role="alertdialog"
+     aria-modal="true"
+     aria-labelledby="chua-fullpage-text"
+     aria-busy="false"
+     hidden>
+    <div class="chua-fullpage__card">
+        <div class="spinner-border text-primary chua-fullpage__spinner" role="status" aria-hidden="true"></div>
+        <p id="chua-fullpage-text" class="chua-fullpage__text">Please wait...</p>
+
+        <div class="chua-fullpage__progress"
+             role="progressbar"
+             aria-valuemin="0"
+             aria-valuemax="100"
+             aria-valuenow="0"
+             hidden>
+            <div class="chua-fullpage__progress-bar"></div>
+        </div>
+        <div class="chua-fullpage__progress-label" aria-hidden="true"></div>
+
+        <button type="button"
+                class="btn btn-outline-secondary btn-sm chua-fullpage__cancel"
+                hidden>
+            Cancel
+        </button>
+    </div>
+</div>

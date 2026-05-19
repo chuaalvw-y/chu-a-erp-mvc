@@ -1,5 +1,11 @@
 @model string
+@*
+    Read-only search: the form auto-submits to the same page. Per the enterprise UX
+    standards, read-only operations show a spinner on the trigger button rather than
+    blocking the page. ChuALoading.js auto-wires every form's submit button, and the
+    asp-loading-text below customises the label.
+*@
 <form method="get" class="d-flex mb-3" role="search">
     <input type="search" name="search" value="@Model" class="form-control me-2" placeholder="Search..." aria-label="Search" />
-    <button type="submit" class="btn btn-outline-primary">Search</button>
+    <button type="submit" class="btn btn-outline-primary" asp-loading-text="Searching...">Search</button>
 </form>

@@ -1,0 +1,141 @@
+/*
+ * ChuA Loading styles — Bootstrap 5 compatible.
+ * Drop-in: no JS configuration required. Mirrors Bootstrap spinner-border / progress / btn idioms.
+ */
+
+/* --- Button --- */
+
+.chua-btn-loading {
+    cursor: progress;
+    /* Disabled buttons get default browser styling already; we add a subtle dim so the spinner stands out. */
+    opacity: .85;
+}
+.chua-btn-loading .spinner-border-sm {
+    vertical-align: -0.125em;
+}
+
+/* --- Section overlay --- */
+
+.chua-loading-host {
+    position: relative;
+}
+
+.chua-loading-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.75);
+    z-index: 1040;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: inherit;
+    /* Block pointer events on whatever sits underneath. */
+    pointer-events: all;
+}
+
+.chua-loading-overlay[hidden] {
+    display: none !important;
+}
+
+.chua-loading-overlay__inner {
+    text-align: center;
+    color: #212529;
+}
+
+.chua-loading-overlay__inner .spinner-border {
+    width: 2.25rem;
+    height: 2.25rem;
+}
+
+.chua-loading-overlay__text {
+    margin: 0.75rem 0 0;
+    font-size: 0.95rem;
+    color: #495057;
+}
+
+/* --- Full-page overlay --- */
+
+.chua-fullpage {
+    position: fixed;
+    inset: 0;
+    background: rgba(33, 37, 41, 0.55);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.chua-fullpage[hidden] {
+    display: none !important;
+}
+
+.chua-fullpage__card {
+    background: #fff;
+    border-radius: 0.5rem;
+    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.225);
+    padding: 1.5rem 2rem;
+    min-width: 320px;
+    max-width: 480px;
+    width: 100%;
+    text-align: center;
+}
+
+.chua-fullpage__spinner {
+    width: 3rem;
+    height: 3rem;
+}
+
+.chua-fullpage__text {
+    margin: 1rem 0 0;
+    font-size: 1rem;
+    color: #212529;
+}
+
+.chua-fullpage__progress {
+    margin-top: 1rem;
+    height: 1.25rem;
+    background-color: #e9ecef;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.chua-fullpage__progress[hidden] {
+    display: none !important;
+}
+
+.chua-fullpage__progress-bar {
+    height: 100%;
+    background-color: #0d6efd;
+    transition: width 0.2s ease;
+    width: 0%;
+}
+
+.chua-fullpage__progress-label {
+    margin-top: 0.25rem;
+    font-size: 0.8rem;
+    color: #6c757d;
+    font-weight: 600;
+}
+
+.chua-fullpage__cancel {
+    margin-top: 1rem;
+}
+
+.chua-fullpage__cancel[hidden] {
+    display: none !important;
+}
+
+/* Disable body scroll while full-page overlay is up. */
+html.chua-no-scroll, html.chua-no-scroll > body {
+    overflow: hidden;
+}
+
+/* Reduced-motion: hint the spinner is still spinning, but skip the animation for users who prefer reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+    .chua-btn-loading .spinner-border,
+    .chua-loading-overlay .spinner-border,
+    .chua-fullpage .spinner-border {
+        animation-duration: 2s; /* slower spin instead of removal so progress is still visible */
+    }
+}

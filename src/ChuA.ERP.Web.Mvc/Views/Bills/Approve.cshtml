@@ -18,6 +18,6 @@
 
 <form asp-action="Approve" asp-route-id="@Model.Id" method="post" data-confirm="Approve this bill?">
     @Html.AntiForgeryToken()
-    <button type="submit" class="btn btn-success">Confirm approval</button>
+    <button type="submit" class="btn btn-success" asp-loading-text="Approving...">Confirm approval</button>
     <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-link">Cancel</a>
 </form>

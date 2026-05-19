@@ -215,6 +215,29 @@ Coverage at a glance:
 - `ViewModels` — DataAnnotations validation + DTO round-trip mapping
 - `Controllers` — controller action smoke tests (success/failure branches, redirects)
 - `Extensions` — toast queue + AddResultErrors
+- `TagHelpers/LoadingButtonTagHelperTests.cs`, `LoadingFormTagHelperTests.cs`,
+  `LoadingOverlayTagHelperTests.cs` — loading component attribute emission +
+  HTML encoding
+
+## Loading & progress component
+
+A reusable loading/progress UX component is wired into `_Layout.cshtml` and
+applies automatically to every form. See [`docs/loading.md`](docs/loading.md)
+for the full reference, including the four loading modes (button / section /
+full-page / search), the JS API, and the tag helpers.
+
+Highlights:
+- Auto-disables the triggering submit button on every form, preventing
+  duplicate writes for Create, Update, Delete, Approve, Reject, Post, Submit
+  and Import.
+- `<button asp-loading-text="Saving...">` swaps the label and shows a spinner.
+- `<loading-overlay id="post-section">` + `<form asp-loading-section="#post-section">`
+  covers a panel with a blocking overlay for critical financial commits.
+- `ChuALoading.fullPage.show({ percent, cancellable, onCancel })` for
+  long-running imports/reports.
+- Accessible: `aria-busy`, `aria-disabled`, `role="status"`, `role="progressbar"`,
+  `role="alertdialog"` + `aria-modal` on the full-page overlay, reduced-motion
+  aware.
 
 ## What this layer **does not** do
 

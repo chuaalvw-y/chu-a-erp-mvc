@@ -247,4 +247,23 @@ public sealed class InventoryController : Controller
             Item = itemResult.Value,
         });
     }
+
+    /// <summary>
+    /// UI-only demo of the full-page loading overlay (progress + cancel). The
+    /// import endpoint is not implemented server-side yet; this view shows what
+    /// the long-running-job UX looks like by simulating progress in the browser.
+    /// Wire it to a real chunked import (SSE/WebSocket) when available.
+    /// </summary>
+    [HttpGet]
+    [Authorize(Policy = AuthorizationPolicies.InventoryCreate)]
+    public IActionResult ImportDemo()
+    {
+        ViewData["Breadcrumbs"] = new[]
+        {
+            new Breadcrumb("Dashboard", Url.Action("Index", "Dashboard")),
+            new Breadcrumb("Inventory", Url.Action(nameof(Index))),
+            new Breadcrumb("Import items", null, true)
+        };
+        return View();
+    }
 }

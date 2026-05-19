@@ -2,22 +2,36 @@
 @{
     ViewData["Title"] = "Post journal entry";
 }
+@*
+    Critical financial operation: per the enterprise UX standards we cover the
+    affected section (summary + form) with a blocking overlay during submit so
+    no other control is reachable while the post is in flight. ChuALoading.js
+    sees `data-loading-section="#post-section"` on the form and reveals the
+    overlay automatically.
+*@
 <h1 class="h3 mb-4 text-success">Post journal entry</h1>
 <div class="alert alert-info">
     Confirm you want to post journal entry <strong>@Model.EntryNumber</strong>. Once posted the entry cannot be edited.
 </div>
 
-<dl class="row">
-    <dt class="col-sm-3">Entry id</dt><dd class="col-sm-9"><code>@Model.Id</code></dd>
-    <dt class="col-sm-3">Entry number</dt><dd class="col-sm-9">@Model.EntryNumber</dd>
-    <dt class="col-sm-3">Entry date</dt><dd class="col-sm-9">@Model.EntryDate.ToString("yyyy-MM-dd")</dd>
-    <dt class="col-sm-3">Total debit</dt><dd class="col-sm-9">@Model.TotalDebit.ToString("N2")</dd>
-    <dt class="col-sm-3">Total credit</dt><dd class="col-sm-9">@Model.TotalCredit.ToString("N2")</dd>
-    <dt class="col-sm-3">Status</dt><dd class="col-sm-9">@Html.StatusBadge(Model.Status)</dd>
-</dl>
+<loading-overlay id="post-section" message="Posting journal entry..." class="card p-4">
+    <dl class="row">
+        <dt class="col-sm-3">Entry id</dt><dd class="col-sm-9"><code>@Model.Id</code></dd>
+        <dt class="col-sm-3">Entry number</dt><dd class="col-sm-9">@Model.EntryNumber</dd>
+        <dt class="col-sm-3">Entry date</dt><dd class="col-sm-9">@Model.EntryDate.ToString("yyyy-MM-dd")</dd>
+        <dt class="col-sm-3">Total debit</dt><dd class="col-sm-9">@Model.TotalDebit.ToString("N2")</dd>
+        <dt class="col-sm-3">Total credit</dt><dd class="col-sm-9">@Model.TotalCredit.ToString("N2")</dd>
+        <dt class="col-sm-3">Status</dt><dd class="col-sm-9">@Html.StatusBadge(Model.Status)</dd>
+    </dl>
 
-<form asp-action="Post" asp-route-id="@Model.Id" method="post" data-confirm="Post this journal entry?">
-    @Html.AntiForgeryToken()
-    <button type="submit" class="btn btn-success">Confirm post</button>
-    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-link">Cancel</a>
-</form>
+    <form asp-action="Post"
+          asp-route-id="@Model.Id"
+          method="post"
+          data-confirm="Post this journal entry?"
+          asp-loading-section="#post-section"
+          asp-loading-section-message="Posting journal entry...">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn btn-success" asp-loading-text="Posting...">Confirm post</button>
+        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-link">Cancel</a>
+    </form>
+</loading-overlay>

@@ -1,3 +1,8 @@
+// Copyright (c) 2026 Alvin Wilsen Chan Chua
+// GitHub: chuaalvw-y
+// Licensed under the Alvin Wilsen Chan Chua Proprietary Use-Only License.
+// See LICENSE.txt in the project root for full license information.
+
 using ChuA.ERP.Web.Mvc.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;

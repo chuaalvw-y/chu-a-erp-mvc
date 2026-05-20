@@ -245,3 +245,14 @@ Highlights:
 - No domain rules or financial calculations
 - No API controllers (the API repo owns those)
 - No re-implementation of Phases 1–4 services
+
+## License
+
+Copyright (c) 2026 Alvin Wilsen Chan Chua.
+GitHub: chuaalvw-y
+
+This project is licensed under the Alvin Wilsen Chan Chua Proprietary Use-Only License.
+
+You may use this software for personal, educational, or internal evaluation purposes only. You may not modify, sell, sublicense, redistribute, publish, or include this software in a commercial product or service without prior written permission.
+
+See [LICENSE.txt](LICENSE.txt) for full license details.

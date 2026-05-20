@@ -1,0 +1,61 @@
+@model ChuA.ERP.Web.Mvc.ViewModels.Workflow.AddWorkflowStepFormViewModel
+@{ ViewData["Title"] = "Add step"; }
+<h1 class="h3 mb-4">Add step</h1>
+
+<form asp-action="AddStep" asp-route-id="@Model.DefinitionId" method="post" novalidate>
+    @Html.AntiForgeryToken()
+    <partial name="_ValidationSummary" />
+    <input type="hidden" asp-for="DefinitionId" />
+
+    <div class="row g-3">
+        <div class="col-md-2">
+            <label asp-for="StepNumber" class="form-label"></label>
+            <input asp-for="StepNumber" class="form-control" />
+            <span asp-validation-for="StepNumber" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="Name" class="form-label"></label>
+            <input asp-for="Name" class="form-control" placeholder="e.g. Manager approval" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="ApprovalMode" class="form-label"></label>
+            <select asp-for="ApprovalMode" class="form-select">
+                <option value="Single">Single — first approval wins</option>
+                <option value="AllRequired">AllRequired — every approver must approve</option>
+                <option value="NOfM">NOfM — N of M approvers required</option>
+            </select>
+            <span asp-validation-for="ApprovalMode" class="text-danger"></span>
+        </div>
+        <div class="col-md-3">
+            <label asp-for="RequiredCount" class="form-label"></label>
+            <input asp-for="RequiredCount" class="form-control" />
+            <small class="text-muted">Only used with NOfM.</small>
+            <span asp-validation-for="RequiredCount" class="text-danger"></span>
+        </div>
+        <div class="col-md-3">
+            <label asp-for="TimeoutHours" class="form-label"></label>
+            <input asp-for="TimeoutHours" class="form-control" />
+            <span asp-validation-for="TimeoutHours" class="text-danger"></span>
+        </div>
+        <div class="col-md-3">
+            <label asp-for="EscalationStepNumber" class="form-label"></label>
+            <input asp-for="EscalationStepNumber" class="form-control" />
+            <span asp-validation-for="EscalationStepNumber" class="text-danger"></span>
+        </div>
+        <div class="col-md-12">
+            <label asp-for="ConditionExpression" class="form-label"></label>
+            <textarea asp-for="ConditionExpression" class="form-control" rows="2" maxlength="2000"
+                      placeholder="e.g. amount &gt; 10000 AND department == &quot;IT&quot;"></textarea>
+            <small class="text-muted">Leave blank to always run this step.</small>
+            <span asp-validation-for="ConditionExpression" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <button type="submit" class="btn btn-primary">Add step</button>
+        <a asp-action="Details" asp-route-id="@Model.DefinitionId" class="btn btn-link">Cancel</a>
+    </div>
+</form>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

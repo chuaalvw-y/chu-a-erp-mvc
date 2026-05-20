@@ -78,6 +78,18 @@ public static class AuthorizationPolicies
     public const string WorkflowApprovalDelegate = nameof(WorkflowApprovalDelegate);
     public const string WorkflowApprovalReassign = nameof(WorkflowApprovalReassign);
 
+    // Workflow engine admin (slice B)
+    public const string WorkflowDefinitionCreate = nameof(WorkflowDefinitionCreate);
+    public const string WorkflowDefinitionUpdate = nameof(WorkflowDefinitionUpdate);
+    public const string WorkflowDefinitionPublish = nameof(WorkflowDefinitionPublish);
+    public const string WorkflowDefinitionRetire = nameof(WorkflowDefinitionRetire);
+    public const string WorkflowConfigManage = nameof(WorkflowConfigManage);
+    public const string WorkflowInstanceRead = nameof(WorkflowInstanceRead);
+    public const string WorkflowInstanceCancel = nameof(WorkflowInstanceCancel);
+
+    // Business rules (slice C — read-only V1)
+    public const string BusinessRuleRead = nameof(BusinessRuleRead);
+
     // Reports
     public const string ReportRun = nameof(ReportRun);
 
@@ -95,6 +107,9 @@ public static class AuthorizationPolicies
         InventoryRead, InventoryCreate, InventoryUpdate, InventoryDelete, InventoryAdjust,
         SalesOrderRead, SalesOrderCreate, SalesOrderUpdate, SalesOrderDelete, SalesOrderShip,
         WorkflowRead, WorkflowApprovalDecide, WorkflowApprovalDelegate, WorkflowApprovalReassign,
+        WorkflowDefinitionCreate, WorkflowDefinitionUpdate, WorkflowDefinitionPublish, WorkflowDefinitionRetire,
+        WorkflowConfigManage, WorkflowInstanceRead, WorkflowInstanceCancel,
+        BusinessRuleRead,
         ReportRun
     };
 }

@@ -1,0 +1,51 @@
+@model ChuA.ERP.Web.Mvc.ViewModels.BusinessRules.BusinessRuleListViewModel
+@{ ViewData["Title"] = "Business rules"; }
+<h1 class="h3 mb-3">Business rules</h1>
+<p class="text-muted">Configured rules (read-only). The evaluation engine that fires actions on these rules ships in a later phase.</p>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-4">
+        <label class="form-label" for="targetEntity">Target entity</label>
+        <input id="targetEntity" name="targetEntity" value="@Model.TargetEntity" class="form-control" placeholder="e.g. Invoice" />
+    </div>
+    <div class="col-md-3">
+        <label class="form-label" for="triggerEvent">Trigger event</label>
+        <input id="triggerEvent" name="triggerEvent" value="@Model.TriggerEvent" class="form-control" placeholder="e.g. OnApprove" />
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+        <button type="submit" class="btn btn-outline-primary">Filter</button>
+    </div>
+</form>
+
+@if (Model.Rules.Count == 0)
+{
+    @Html.EmptyState("No business rules configured for the current filter.")
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead><tr>
+                <th>Code</th><th>Name</th><th>Target</th><th>Trigger</th><th>Priority</th><th>Stop on match</th><th>Conditions</th><th>Actions</th><th class="actions"></th>
+            </tr></thead>
+            <tbody>
+            @foreach (var r in Model.Rules)
+            {
+                <tr>
+                    <td><a asp-action="Details" asp-route-id="@r.Id">@r.Code</a></td>
+                    <td>@r.Name</td>
+                    <td>@r.TargetEntity</td>
+                    <td>@r.TriggerEvent</td>
+                    <td>@r.Priority</td>
+                    <td>@(r.StopOnMatch ? "Yes" : "No")</td>
+                    <td>@r.Conditions.Count</td>
+                    <td>@r.Actions.Count</td>
+                    <td class="actions">
+                        <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@r.Id">View</a>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}

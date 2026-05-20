@@ -39,3 +39,100 @@ public sealed record WorkflowReassignRequest(
     Guid InstanceId,
     Guid ToUserId,
     string Reason);
+
+// ---- WorkflowDefinitions admin (B) ---------------------------------------
+
+public sealed record ApproverAssignmentDto(string AssigneeType, Guid AssigneeId);
+
+public sealed record WorkflowStepDto(
+    Guid Id,
+    short StepNumber,
+    string Name,
+    string ApprovalMode,
+    int? RequiredCount,
+    string? ConditionExpression,
+    int? TimeoutHours,
+    short? EscalationStepNumber,
+    IReadOnlyCollection<ApproverAssignmentDto> Approvers);
+
+public sealed record WorkflowDefinitionDto(
+    Guid Id,
+    Guid? CompanyId,
+    string Code,
+    string Name,
+    string? Description,
+    string TargetEntityType,
+    int Version,
+    string Status,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset? PublishedAt,
+    DateTimeOffset? RetiredAt,
+    IReadOnlyCollection<WorkflowStepDto> Steps);
+
+public sealed record CreateWorkflowDefinitionRequest(
+    string Code,
+    string Name,
+    string TargetEntityType,
+    string? Description = null,
+    int Version = 1,
+    bool SystemWide = false);
+
+public sealed record AddWorkflowStepRequest(
+    short StepNumber,
+    string Name,
+    string ApprovalMode,
+    int? RequiredCount = null,
+    string? ConditionExpression = null,
+    int? TimeoutHours = null,
+    short? EscalationStepNumber = null);
+
+public sealed record UpdateWorkflowStepRequest(
+    string Name,
+    string ApprovalMode,
+    int? RequiredCount = null,
+    string? ConditionExpression = null,
+    int? TimeoutHours = null,
+    short? EscalationStepNumber = null);
+
+public sealed record AddWorkflowApproverRequest(
+    string AssigneeType,
+    Guid AssigneeId);
+
+// ---- WorkflowConfigurations admin (B) -----------------------------------
+
+public sealed record WorkflowConfigurationDto(
+    Guid Id,
+    Guid CompanyId,
+    string TargetEntityType,
+    string WorkflowCode,
+    int? PinnedVersion,
+    bool IsActive);
+
+public sealed record ConfigureWorkflowRequest(
+    string TargetEntityType,
+    string WorkflowCode,
+    int? PinnedVersion = null);
+
+public sealed record ChangeWorkflowConfigurationRequest(
+    string WorkflowCode,
+    int? PinnedVersion = null);
+
+// ---- WorkflowInstances admin (B) ----------------------------------------
+
+public sealed record WorkflowInstanceDto(
+    Guid Id,
+    Guid CompanyId,
+    Guid WorkflowDefinitionId,
+    int DefinitionVersionPinned,
+    string TargetEntityType,
+    Guid TargetEntityId,
+    string Status,
+    short CurrentStepNumber,
+    string? Context,
+    DateTimeOffset StartedAt,
+    DateTimeOffset? CompletedAt,
+    string InitiatedBy,
+    string? CancellationReason,
+    IReadOnlyCollection<WorkflowApprovalDto> Approvals);
+
+public sealed record CancelWorkflowInstanceRequest(string Reason);

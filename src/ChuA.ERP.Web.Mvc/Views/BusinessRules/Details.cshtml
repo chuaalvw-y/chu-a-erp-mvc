@@ -1,0 +1,63 @@
+@model BusinessRuleDto
+@{ ViewData["Title"] = $"Business rule — {Model.Code}"; }
+<h1 class="h3 mb-3">@Model.Code <small class="text-muted">@Model.Name</small></h1>
+
+<dl class="row">
+    <dt class="col-sm-3">Description</dt><dd class="col-sm-9">@(string.IsNullOrEmpty(Model.Description) ? "—" : Model.Description)</dd>
+    <dt class="col-sm-3">Target entity</dt><dd class="col-sm-9">@Model.TargetEntity</dd>
+    <dt class="col-sm-3">Trigger event</dt><dd class="col-sm-9">@Model.TriggerEvent</dd>
+    <dt class="col-sm-3">Priority</dt><dd class="col-sm-9">@Model.Priority</dd>
+    <dt class="col-sm-3">Stop on match</dt><dd class="col-sm-9">@(Model.StopOnMatch ? "Yes" : "No")</dd>
+</dl>
+
+<h2 class="h5 mt-4 mb-2">Conditions (@Model.Conditions.Count)</h2>
+@if (Model.Conditions.Count == 0)
+{
+    <p class="text-muted">No conditions — rule matches unconditionally.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-sm table-striped">
+            <thead><tr><th>Seq</th><th>Field</th><th>Operator</th><th>Value</th><th>Connector</th></tr></thead>
+            <tbody>
+            @foreach (var c in Model.Conditions.OrderBy(c => c.Sequence))
+            {
+                <tr>
+                    <td>@c.Sequence</td>
+                    <td><code>@c.FieldPath</code></td>
+                    <td>@c.Operator</td>
+                    <td>@(c.Value ?? "—")</td>
+                    <td>@c.LogicalConnector</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+
+<h2 class="h5 mt-4 mb-2">Actions (@Model.Actions.Count)</h2>
+@if (Model.Actions.Count == 0)
+{
+    <p class="text-muted">No actions configured.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-sm table-striped">
+            <thead><tr><th>Seq</th><th>Action type</th><th>Parameters</th></tr></thead>
+            <tbody>
+            @foreach (var a in Model.Actions.OrderBy(a => a.Sequence))
+            {
+                <tr>
+                    <td>@a.Sequence</td>
+                    <td>@a.ActionType</td>
+                    <td><pre class="small mb-0">@(a.Parameters ?? string.Empty)</pre></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+
+<a asp-action="Index" class="btn btn-link mt-3">&larr; Back to list</a>

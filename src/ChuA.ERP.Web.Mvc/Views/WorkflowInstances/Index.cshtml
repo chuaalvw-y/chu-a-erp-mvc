@@ -1,0 +1,67 @@
+@model ChuA.ERP.Web.Mvc.ViewModels.Workflow.WorkflowInstanceListViewModel
+@{
+    ViewData["Title"] = "Workflow instances";
+    var statuses = new[] { "", "Pending", "InProgress", "Approved", "Rejected", "Cancelled", "Expired" };
+}
+<h1 class="h3 mb-3">Workflow instances</h1>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-3">
+        <label class="form-label" for="status">Status</label>
+        <select id="status" name="status" class="form-select">
+            @foreach (var s in statuses)
+            {
+                if (string.Equals(s, Model.Status, StringComparison.OrdinalIgnoreCase))
+                {
+                    <option value="@s" selected>@(string.IsNullOrEmpty(s) ? "All" : s)</option>
+                }
+                else
+                {
+                    <option value="@s">@(string.IsNullOrEmpty(s) ? "All" : s)</option>
+                }
+            }
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label" for="targetEntityType">Target entity</label>
+        <input id="targetEntityType" name="targetEntityType" value="@Model.TargetEntityType" class="form-control" placeholder="e.g. Bill" />
+    </div>
+    <div class="col-md-3">
+        <label class="form-label" for="targetEntityId">Target entity id</label>
+        <input id="targetEntityId" name="targetEntityId" value="@Model.TargetEntityId" class="form-control" placeholder="GUID" />
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+        <button type="submit" class="btn btn-outline-primary">Filter</button>
+    </div>
+</form>
+
+@if (Model.Instances.Count == 0)
+{
+    @Html.EmptyState("No workflow instances match your filters.")
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead><tr>
+                <th>Instance</th><th>Target</th><th>Status</th><th>Current step</th><th>Started</th><th>Completed</th><th class="actions">Actions</th>
+            </tr></thead>
+            <tbody>
+            @foreach (var i in Model.Instances)
+            {
+                <tr>
+                    <td><a asp-action="Details" asp-route-id="@i.Id"><code>@i.Id.ToString()[..8]</code></a></td>
+                    <td>@i.TargetEntityType <code>@i.TargetEntityId.ToString()[..8]</code></td>
+                    <td>@Html.StatusBadge(i.Status)</td>
+                    <td>@i.CurrentStepNumber</td>
+                    <td>@i.StartedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@(i.CompletedAt?.ToString("yyyy-MM-dd HH:mm") ?? "—")</td>
+                    <td class="actions">
+                        <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@i.Id">View</a>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}

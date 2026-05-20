@@ -1,0 +1,63 @@
+@model WorkflowInstanceDto
+@{
+    ViewData["Title"] = $"Instance — {Model.TargetEntityType}";
+    var isRunning = string.Equals(Model.Status, "InProgress", StringComparison.OrdinalIgnoreCase)
+                 || string.Equals(Model.Status, "Pending", StringComparison.OrdinalIgnoreCase);
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">@Model.TargetEntityType <small class="text-muted">@Model.TargetEntityId.ToString()[..8]</small> @Html.StatusBadge(Model.Status)</h1>
+    @if (isRunning)
+    {
+        <a class="btn btn-outline-danger" asp-action="Cancel" asp-route-id="@Model.Id" asp-authorize-policy="WorkflowInstanceCancel">Cancel</a>
+    }
+</div>
+
+<dl class="row">
+    <dt class="col-sm-3">Instance id</dt><dd class="col-sm-9"><code>@Model.Id</code></dd>
+    <dt class="col-sm-3">Definition</dt><dd class="col-sm-9"><code>@Model.WorkflowDefinitionId</code> (v@Model.DefinitionVersionPinned)</dd>
+    <dt class="col-sm-3">Target</dt><dd class="col-sm-9">@Model.TargetEntityType <code>@Model.TargetEntityId</code></dd>
+    <dt class="col-sm-3">Initiated by</dt><dd class="col-sm-9">@Model.InitiatedBy</dd>
+    <dt class="col-sm-3">Started</dt><dd class="col-sm-9">@Model.StartedAt.ToString("yyyy-MM-dd HH:mm:ss zzz")</dd>
+    <dt class="col-sm-3">Completed</dt><dd class="col-sm-9">@(Model.CompletedAt?.ToString("yyyy-MM-dd HH:mm:ss zzz") ?? "—")</dd>
+    <dt class="col-sm-3">Current step</dt><dd class="col-sm-9">@Model.CurrentStepNumber</dd>
+    @if (!string.IsNullOrEmpty(Model.CancellationReason))
+    {
+        <dt class="col-sm-3">Cancelled because</dt><dd class="col-sm-9">@Model.CancellationReason</dd>
+    }
+    @if (!string.IsNullOrEmpty(Model.Context))
+    {
+        <dt class="col-sm-3">Context snapshot</dt><dd class="col-sm-9"><pre class="small mb-0">@Model.Context</pre></dd>
+    }
+</dl>
+
+<h2 class="h5 mt-4 mb-2">Approval history (@Model.Approvals.Count)</h2>
+@if (Model.Approvals.Count == 0)
+{
+    @Html.EmptyState("No approval records yet.")
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-sm table-striped">
+            <thead><tr>
+                <th>Step</th><th>Assigned to</th><th>Decision</th><th>Assigned at</th><th>Due at</th><th>Decided at</th><th>Comments</th>
+            </tr></thead>
+            <tbody>
+            @foreach (var a in Model.Approvals.OrderBy(a => a.StepNumber).ThenBy(a => a.AssignedAt))
+            {
+                <tr>
+                    <td>@a.StepNumber</td>
+                    <td><code>@a.AssignedUserId</code></td>
+                    <td>@Html.StatusBadge(a.Decision)</td>
+                    <td>@a.AssignedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@(a.DueAt?.ToString("yyyy-MM-dd HH:mm") ?? "—")</td>
+                    <td>@(a.DecidedAt?.ToString("yyyy-MM-dd HH:mm") ?? "—")</td>
+                    <td>@a.Comments</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+
+<a asp-action="Index" class="btn btn-link mt-3">&larr; Back to list</a>

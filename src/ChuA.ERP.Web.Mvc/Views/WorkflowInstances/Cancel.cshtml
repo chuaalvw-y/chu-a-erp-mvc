@@ -1,0 +1,24 @@
+@model ChuA.ERP.Web.Mvc.ViewModels.Workflow.CancelWorkflowInstanceFormViewModel
+@{ ViewData["Title"] = "Cancel workflow instance"; }
+<h1 class="h3 mb-4">Cancel workflow instance</h1>
+
+<p class="text-muted">Cancelling notifies the source document — it will return to <code>Draft</code> status if it's still in <code>PendingApproval</code>.</p>
+
+<form asp-action="Cancel" asp-route-id="@Model.Id" method="post" novalidate>
+    @Html.AntiForgeryToken()
+    <partial name="_ValidationSummary" />
+    <input type="hidden" asp-for="Id" />
+
+    <div class="mb-3">
+        <label asp-for="Reason" class="form-label"></label>
+        <textarea asp-for="Reason" class="form-control" rows="3" maxlength="1000"></textarea>
+        <span asp-validation-for="Reason" class="text-danger"></span>
+    </div>
+
+    <div>
+        <button type="submit" class="btn btn-danger">Cancel instance</button>
+        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-link">Back</a>
+    </div>
+</form>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

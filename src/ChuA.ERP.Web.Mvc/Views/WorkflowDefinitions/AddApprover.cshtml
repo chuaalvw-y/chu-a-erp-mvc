@@ -1,0 +1,36 @@
+@model ChuA.ERP.Web.Mvc.ViewModels.Workflow.AddWorkflowApproverFormViewModel
+@{ ViewData["Title"] = $"Add approver — step {Model.StepNumber}"; }
+<h1 class="h3 mb-4">Add approver to step @Model.StepNumber</h1>
+
+<form asp-action="AddApprover" asp-route-id="@Model.DefinitionId" asp-route-stepNumber="@Model.StepNumber" method="post" novalidate>
+    @Html.AntiForgeryToken()
+    <partial name="_ValidationSummary" />
+    <input type="hidden" asp-for="DefinitionId" />
+    <input type="hidden" asp-for="StepNumber" />
+
+    <div class="row g-3">
+        <div class="col-md-4">
+            <label asp-for="AssigneeType" class="form-label"></label>
+            <select asp-for="AssigneeType" class="form-select">
+                <option value="Role">Role</option>
+                <option value="User">User</option>
+                <option value="Department">Department</option>
+                <option value="CostCenter">CostCenter</option>
+            </select>
+            <span asp-validation-for="AssigneeType" class="text-danger"></span>
+        </div>
+        <div class="col-md-8">
+            <label asp-for="AssigneeId" class="form-label"></label>
+            <input asp-for="AssigneeId" class="form-control" placeholder="GUID" />
+            <small class="text-muted">For Role/Department/CostCenter assignments, paste the id of the row in the matching admin table.</small>
+            <span asp-validation-for="AssigneeId" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <button type="submit" class="btn btn-primary">Add approver</button>
+        <a asp-action="Details" asp-route-id="@Model.DefinitionId" class="btn btn-link">Cancel</a>
+    </div>
+</form>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

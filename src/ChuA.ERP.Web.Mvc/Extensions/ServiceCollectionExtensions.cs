@@ -223,6 +223,10 @@ public static class ServiceCollectionExtensions
         AddApiClient<IInventoryApiClient, InventoryApiClient>();
         AddApiClient<ISalesOrdersApiClient, SalesOrdersApiClient>();
         AddApiClient<IWorkflowApiClient, WorkflowApiClient>();
+        AddApiClient<IWorkflowDefinitionsApiClient, WorkflowDefinitionsApiClient>();
+        AddApiClient<IWorkflowConfigurationsApiClient, WorkflowConfigurationsApiClient>();
+        AddApiClient<IWorkflowInstancesApiClient, WorkflowInstancesApiClient>();
+        AddApiClient<IBusinessRulesApiClient, BusinessRulesApiClient>();
         AddApiClient<ICompaniesApiClient, CompaniesApiClient>();
         AddApiClient<IRolesApiClient, RolesApiClient>();
         AddApiClient<IReportsApiClient, ReportsApiClient>();

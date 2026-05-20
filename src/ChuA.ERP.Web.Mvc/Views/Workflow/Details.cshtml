@@ -1,24 +1,33 @@
-@model ApprovalRequestDto
+@model WorkflowApprovalDto
 @{
-    ViewData["Title"] = $"Workflow task — {Model.SubjectType}";
+    ViewData["Title"] = $"Workflow approval — step {Model.StepNumber}";
 }
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h3 mb-0">@Model.SubjectType approval @Html.StatusBadge(Model.Status)</h1>
+    <h1 class="h3 mb-0">Approval step @Model.StepNumber @Html.StatusBadge(Model.Decision)</h1>
     <div>
-        <a class="btn btn-outline-success" asp-action="Submit" asp-route-id="@Model.Id" asp-authorize-policy="WorkflowApprovalSubmit">Approve / Reject</a>
-        <a class="btn btn-outline-primary" asp-action="Reassign" asp-route-id="@Model.Id" asp-authorize-policy="WorkflowReassign">Reassign</a>
+        <a class="btn btn-outline-success" asp-action="Submit" asp-route-id="@Model.Id" asp-authorize-policy="WorkflowApprovalDecide">Approve / Reject</a>
+        <a class="btn btn-outline-primary" asp-action="Reassign" asp-route-id="@Model.Id" asp-authorize-policy="WorkflowApprovalReassign">Reassign</a>
     </div>
 </div>
 
 <dl class="row">
-    <dt class="col-sm-3">Request id</dt><dd class="col-sm-9"><code>@Model.Id</code></dd>
-    <dt class="col-sm-3">Company id</dt><dd class="col-sm-9"><code>@Model.CompanyId</code></dd>
-    <dt class="col-sm-3">Subject type</dt><dd class="col-sm-9">@Model.SubjectType</dd>
-    <dt class="col-sm-3">Subject id</dt><dd class="col-sm-9"><code>@Model.SubjectId</code></dd>
-    <dt class="col-sm-3">Requested by</dt><dd class="col-sm-9">@Model.RequestedBy</dd>
-    <dt class="col-sm-3">Requested at</dt><dd class="col-sm-9">@Model.RequestedAt.ToString("yyyy-MM-dd HH:mm:ss zzz")</dd>
-    <dt class="col-sm-3">Required approvals</dt><dd class="col-sm-9">@Model.RequiredApprovals</dd>
-    <dt class="col-sm-3">Status</dt><dd class="col-sm-9">@Html.StatusBadge(Model.Status)</dd>
+    <dt class="col-sm-3">Approval id</dt><dd class="col-sm-9"><code>@Model.Id</code></dd>
+    <dt class="col-sm-3">Workflow instance</dt><dd class="col-sm-9"><code>@Model.WorkflowInstanceId</code></dd>
+    <dt class="col-sm-3">Step number</dt><dd class="col-sm-9">@Model.StepNumber</dd>
+    <dt class="col-sm-3">Assigned to</dt><dd class="col-sm-9"><code>@Model.AssignedUserId</code></dd>
+    <dt class="col-sm-3">Assigned at</dt><dd class="col-sm-9">@Model.AssignedAt.ToString("yyyy-MM-dd HH:mm:ss zzz")</dd>
+    <dt class="col-sm-3">Due at</dt><dd class="col-sm-9">@(Model.DueAt?.ToString("yyyy-MM-dd HH:mm:ss zzz") ?? "—")</dd>
+    <dt class="col-sm-3">Decided at</dt><dd class="col-sm-9">@(Model.DecidedAt?.ToString("yyyy-MM-dd HH:mm:ss zzz") ?? "—")</dd>
+    <dt class="col-sm-3">Decision</dt><dd class="col-sm-9">@Html.StatusBadge(Model.Decision)</dd>
+    <dt class="col-sm-3">Comments</dt><dd class="col-sm-9">@(string.IsNullOrEmpty(Model.Comments) ? "—" : Model.Comments)</dd>
+    @if (Model.DelegatedToUserId is { } dt)
+    {
+        <dt class="col-sm-3">Delegated to</dt><dd class="col-sm-9"><code>@dt</code></dd>
+    }
+    @if (Model.EscalatedFromUserId is { } esc)
+    {
+        <dt class="col-sm-3">Escalated from</dt><dd class="col-sm-9"><code>@esc</code></dd>
+    }
 </dl>
 
 <a asp-action="Index" class="btn btn-link">&larr; Back to list</a>

@@ -72,10 +72,11 @@ public static class AuthorizationPolicies
     public const string SalesOrderDelete = nameof(SalesOrderDelete);
     public const string SalesOrderShip = nameof(SalesOrderShip);
 
-    // Workflow
+    // Workflow inbox (approver-facing)
     public const string WorkflowRead = nameof(WorkflowRead);
-    public const string WorkflowApprovalSubmit = nameof(WorkflowApprovalSubmit);
-    public const string WorkflowReassign = nameof(WorkflowReassign);
+    public const string WorkflowApprovalDecide = nameof(WorkflowApprovalDecide);
+    public const string WorkflowApprovalDelegate = nameof(WorkflowApprovalDelegate);
+    public const string WorkflowApprovalReassign = nameof(WorkflowApprovalReassign);
 
     // Reports
     public const string ReportRun = nameof(ReportRun);
@@ -93,7 +94,7 @@ public static class AuthorizationPolicies
         PurchaseOrderRead, PurchaseOrderCreate, PurchaseOrderUpdate, PurchaseOrderDelete, PurchaseOrderApprove, PurchaseOrderReceive,
         InventoryRead, InventoryCreate, InventoryUpdate, InventoryDelete, InventoryAdjust,
         SalesOrderRead, SalesOrderCreate, SalesOrderUpdate, SalesOrderDelete, SalesOrderShip,
-        WorkflowRead, WorkflowApprovalSubmit, WorkflowReassign,
+        WorkflowRead, WorkflowApprovalDecide, WorkflowApprovalDelegate, WorkflowApprovalReassign,
         ReportRun
     };
 }

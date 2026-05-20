@@ -17,19 +17,15 @@ public sealed class WorkflowApiClient : ApiClientBase, IWorkflowApiClient
     {
     }
 
-    public Task<Result<PagedResult<ApprovalRequestDto>>> ListTasksAsync(string? status = null, string? subjectType = null, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default) =>
-        SendPagedAsync<ApprovalRequestDto>(
-            "v1/workflow/tasks" + QueryString(("status", status), ("subjectType", subjectType), ("pageNumber", pageNumber), ("pageSize", pageSize), ("sort", sort)),
-            pageNumber,
-            pageSize,
-            cancellationToken);
+    public Task<Result<IReadOnlyList<WorkflowApprovalDto>>> ListTasksAsync(CancellationToken cancellationToken = default) =>
+        SendAsync<IReadOnlyList<WorkflowApprovalDto>>(HttpMethod.Get, "v1/workflow/tasks", cancellationToken: cancellationToken);
 
-    public Task<Result<ApprovalRequestDto>> GetTaskAsync(Guid id, CancellationToken cancellationToken = default) =>
-        SendAsync<ApprovalRequestDto>(HttpMethod.Get, $"v1/workflow/tasks/{id}", cancellationToken: cancellationToken);
+    public Task<Result<WorkflowApprovalDto>> GetTaskAsync(Guid id, CancellationToken cancellationToken = default) =>
+        SendAsync<WorkflowApprovalDto>(HttpMethod.Get, $"v1/workflow/tasks/{id}", cancellationToken: cancellationToken);
 
-    public Task<Result> SubmitApprovalAsync(Guid id, SubmitWorkflowApprovalRequest request, CancellationToken cancellationToken = default) =>
-        SendAsync(HttpMethod.Post, $"v1/workflow/approvals/{id}/submit", request, cancellationToken);
+    public Task<Result> DecideAsync(Guid approvalId, WorkflowApprovalDecisionRequest request, CancellationToken cancellationToken = default) =>
+        SendAsync(HttpMethod.Post, $"v1/workflow/approvals/{approvalId}/decision", request, cancellationToken);
 
-    public Task<Result> ReassignTaskAsync(Guid id, ReassignWorkflowTaskRequest request, CancellationToken cancellationToken = default) =>
-        SendAsync(HttpMethod.Post, $"v1/workflow/tasks/{id}/reassign", request, cancellationToken);
+    public Task<Result> ReassignAsync(Guid approvalId, WorkflowReassignRequest request, CancellationToken cancellationToken = default) =>
+        SendAsync(HttpMethod.Post, $"v1/workflow/approvals/{approvalId}/reassign", request, cancellationToken);
 }

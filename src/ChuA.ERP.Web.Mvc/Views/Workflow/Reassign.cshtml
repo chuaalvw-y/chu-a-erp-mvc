@@ -1,16 +1,17 @@
 @model ChuA.ERP.Web.Mvc.ViewModels.Workflow.ReassignFormViewModel
 @{
-    ViewData["Title"] = "Reassign workflow task";
-    var task = ViewData["Task"] as ApprovalRequestDto;
+    ViewData["Title"] = "Reassign workflow approval";
+    var task = ViewData["Task"] as WorkflowApprovalDto;
 }
-<h1 class="h3 mb-4">Reassign task</h1>
+<h1 class="h3 mb-4">Reassign approval</h1>
 
 @if (task is not null)
 {
     <dl class="row">
-        <dt class="col-sm-3">Subject</dt><dd class="col-sm-9">@task.SubjectType <code>@task.SubjectId</code></dd>
-        <dt class="col-sm-3">Requested by</dt><dd class="col-sm-9">@task.RequestedBy</dd>
-        <dt class="col-sm-3">Current status</dt><dd class="col-sm-9">@Html.StatusBadge(task.Status)</dd>
+        <dt class="col-sm-3">Approval id</dt><dd class="col-sm-9"><code>@task.Id</code></dd>
+        <dt class="col-sm-3">Step</dt><dd class="col-sm-9">@task.StepNumber</dd>
+        <dt class="col-sm-3">Currently assigned to</dt><dd class="col-sm-9"><code>@task.AssignedUserId</code></dd>
+        <dt class="col-sm-3">Current status</dt><dd class="col-sm-9">@Html.StatusBadge(task.Decision)</dd>
     </dl>
 }
 
@@ -18,12 +19,13 @@
     @Html.AntiForgeryToken()
     <partial name="_ValidationSummary" />
     <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="InstanceId" />
 
     <div class="row g-3">
         <div class="col-md-6">
-            <label asp-for="NewAssigneeId" class="form-label"></label>
-            <input asp-for="NewAssigneeId" class="form-control" placeholder="User GUID" />
-            <span asp-validation-for="NewAssigneeId" class="text-danger"></span>
+            <label asp-for="ToUserId" class="form-label"></label>
+            <input asp-for="ToUserId" class="form-control" placeholder="User GUID" />
+            <span asp-validation-for="ToUserId" class="text-danger"></span>
         </div>
         <div class="col-md-12">
             <label asp-for="Reason" class="form-label"></label>
@@ -33,7 +35,7 @@
     </div>
 
     <div class="mt-3">
-        <button type="submit" class="btn btn-primary">Reassign task</button>
+        <button type="submit" class="btn btn-primary">Reassign approval</button>
         <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-link">Cancel</a>
     </div>
 </form>

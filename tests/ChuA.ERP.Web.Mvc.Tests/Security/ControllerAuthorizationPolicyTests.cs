@@ -34,7 +34,7 @@ public class ControllerAuthorizationPolicyTests
     [InlineData(typeof(JournalEntriesController), "Edit", AuthorizationPolicies.JournalEntryUpdate)]
     [InlineData(typeof(JournalEntriesController), "Delete", AuthorizationPolicies.JournalEntryDelete)]
     [InlineData(typeof(JournalEntriesController), "DeleteConfirmed", AuthorizationPolicies.JournalEntryDelete)]
-    [InlineData(typeof(WorkflowController), "Reassign", AuthorizationPolicies.WorkflowReassign)]
+    [InlineData(typeof(WorkflowController), "Reassign", AuthorizationPolicies.WorkflowApprovalReassign)]
     public void Mutating_actions_should_use_specific_policies(Type controllerType, string methodName, string expectedPolicy)
     {
         var methods = controllerType.GetMethods(BindingFlags.Instance | BindingFlags.Public)

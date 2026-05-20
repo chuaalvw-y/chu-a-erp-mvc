@@ -3,19 +3,27 @@ using ChuA.ERP.Web.Mvc.Contracts.Dtos;
 
 namespace ChuA.ERP.Web.Mvc.ViewModels.Workflow;
 
-/// <summary>Form for reassigning a workflow task to a different user.</summary>
+/// <summary>
+/// Admin form for reassigning a pending workflow approval to a different
+/// user. Admin-only on the API.
+/// </summary>
 public sealed class ReassignFormViewModel
 {
-    /// <summary>Approval request id.</summary>
+    /// <summary>The approval row id (path parameter on the API).</summary>
     public Guid Id { get; set; }
 
+    /// <summary>The owning workflow-instance id — required by the API body.</summary>
     [Required]
-    [Display(Name = "New assignee")]
-    public Guid NewAssigneeId { get; set; }
+    public Guid InstanceId { get; set; }
 
+    [Required]
+    [Display(Name = "Reassign to user")]
+    public Guid ToUserId { get; set; }
+
+    [Required]
     [StringLength(500)]
     [Display(Name = "Reason")]
-    public string? Reason { get; set; }
+    public string Reason { get; set; } = string.Empty;
 
-    public ReassignWorkflowTaskRequest ToRequest() => new(NewAssigneeId, Reason);
+    public WorkflowReassignRequest ToRequest() => new(InstanceId, ToUserId, Reason);
 }

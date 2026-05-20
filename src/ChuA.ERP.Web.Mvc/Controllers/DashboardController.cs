@@ -33,7 +33,10 @@ public sealed class DashboardController : Controller
         await _currentUser.LoadProfileAsync(cancellationToken).ConfigureAwait(false);
 
         var billsAwaiting = await _bills.GetAwaitingApprovalAsync(pageNumber: 1, pageSize: 1, cancellationToken: cancellationToken).ConfigureAwait(false);
-        var workflowTasks = await _workflow.ListTasksAsync(status: "Pending", subjectType: null, pageNumber: 1, pageSize: 1, cancellationToken: cancellationToken).ConfigureAwait(false);
+        // W1-W5 cutover: the inbox endpoint no longer takes status/subject
+        // filters or paging — the API filters server-side by the caller
+        // and always returns Pending approvals only.
+        var workflowTasks = await _workflow.ListTasksAsync(cancellationToken).ConfigureAwait(false);
         var invoices = await _invoices.ListAsync(customerId: null, status: null, paymentStatus: "Outstanding", search: null, pageNumber: 1, pageSize: 1, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         var vm = new DashboardViewModel
@@ -41,7 +44,7 @@ public sealed class DashboardController : Controller
             DisplayName = _currentUser.DisplayName,
             CompanyId = _currentUser.CompanyId,
             BillsAwaitingApproval = billsAwaiting.IsSuccess ? billsAwaiting.Value.TotalCount : 0,
-            PendingWorkflowTasks = workflowTasks.IsSuccess ? workflowTasks.Value.TotalCount : 0,
+            PendingWorkflowTasks = workflowTasks.IsSuccess ? workflowTasks.Value.Count : 0,
             OutstandingInvoices = invoices.IsSuccess ? invoices.Value.TotalCount : 0,
             ApiReachable = billsAwaiting.IsSuccess && workflowTasks.IsSuccess && invoices.IsSuccess,
         };

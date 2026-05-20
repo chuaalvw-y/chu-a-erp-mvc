@@ -6,15 +6,34 @@ namespace ChuA.ERP.Web.Mvc.ApiClients;
 /// <summary>Calls /api/v1/workflow.</summary>
 public interface IWorkflowApiClient
 {
-    /// <summary>Lists workflow tasks, optionally filtered by status and subject type.</summary>
-    Task<Result<PagedResult<ApprovalRequestDto>>> ListTasksAsync(string? status = null, string? subjectType = null, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Lists the caller's pending workflow approvals. The API filters
+    /// server-side by the authenticated user and doesn't accept status
+    /// or subject-type filters today — all inbox-rows return Pending.
+    /// </summary>
+    Task<Result<IReadOnlyList<WorkflowApprovalDto>>> ListTasksAsync(
+        CancellationToken cancellationToken = default);
 
-    /// <summary>Gets a single workflow task by id.</summary>
-    Task<Result<ApprovalRequestDto>> GetTaskAsync(Guid id, CancellationToken cancellationToken = default);
+    /// <summary>Gets a single workflow approval by id.</summary>
+    Task<Result<WorkflowApprovalDto>> GetTaskAsync(Guid id, CancellationToken cancellationToken = default);
 
-    /// <summary>Submits an approval decision for a workflow approval.</summary>
-    Task<Result> SubmitApprovalAsync(Guid id, SubmitWorkflowApprovalRequest request, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Records an Approve/Reject decision on a pending approval. Replaces
+    /// the legacy <c>/submit</c> route; the request body now carries the
+    /// owning instance id alongside the decision.
+    /// </summary>
+    Task<Result> DecideAsync(
+        Guid approvalId,
+        WorkflowApprovalDecisionRequest request,
+        CancellationToken cancellationToken = default);
 
-    /// <summary>Reassigns a workflow task to another user.</summary>
-    Task<Result> ReassignTaskAsync(Guid id, ReassignWorkflowTaskRequest request, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Admin operation: reassigns a pending approval to a different user
+    /// without an approver decision. Maps to
+    /// <c>POST /workflow/approvals/{approvalId}/reassign</c>.
+    /// </summary>
+    Task<Result> ReassignAsync(
+        Guid approvalId,
+        WorkflowReassignRequest request,
+        CancellationToken cancellationToken = default);
 }

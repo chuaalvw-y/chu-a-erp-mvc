@@ -1,0 +1,73 @@
+@*
+    Copyright (c) 2026 Alvin Wilsen Chan Chua
+    GitHub: chuaalvw-y
+    Licensed under the Alvin Wilsen Chan Chua Proprietary Use-Only License.
+    See LICENSE.txt in the project root for full license information.
+*@
+
+@model ChuA.ERP.Web.Mvc.ViewModels.Workflow.WorkflowDefinitionListViewModel
+@{
+    ViewData["Title"] = "Workflow definitions";
+    var statuses = new[] { "", "Draft", "Published", "Retired" };
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Workflow definitions</h1>
+    <a class="btn btn-primary" asp-action="Create" asp-authorize-policy="WorkflowDefinitionCreate">+ New definition</a>
+</div>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-4">
+        <label class="form-label" for="targetEntityType">Target entity</label>
+        <input id="targetEntityType" name="targetEntityType" value="@Model.TargetEntityType" class="form-control" placeholder="e.g. Bill" />
+    </div>
+    <div class="col-md-3">
+        <label class="form-label" for="status">Status</label>
+        <select id="status" name="status" class="form-select">
+            @foreach (var s in statuses)
+            {
+                if (string.Equals(s, Model.Status, StringComparison.OrdinalIgnoreCase))
+                {
+                    <option value="@s" selected>@(string.IsNullOrEmpty(s) ? "All" : s)</option>
+                }
+                else
+                {
+                    <option value="@s">@(string.IsNullOrEmpty(s) ? "All" : s)</option>
+                }
+            }
+        </select>
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+        <button type="submit" class="btn btn-outline-primary">Filter</button>
+    </div>
+</form>
+
+@if (Model.Definitions.Count == 0)
+{
+    @Html.EmptyState("No workflow definitions match your filters.")
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead><tr>
+                <th>Code</th><th>Name</th><th>Target</th><th>Version</th><th>Status</th><th>Steps</th><th class="actions">Actions</th>
+            </tr></thead>
+            <tbody>
+            @foreach (var d in Model.Definitions)
+            {
+                <tr>
+                    <td><a asp-action="Details" asp-route-id="@d.Id">@d.Code</a></td>
+                    <td>@d.Name</td>
+                    <td>@d.TargetEntityType</td>
+                    <td>@d.Version</td>
+                    <td>@Html.StatusBadge(d.Status)</td>
+                    <td>@d.Steps.Count</td>
+                    <td class="actions">
+                        <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@d.Id">View</a>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}

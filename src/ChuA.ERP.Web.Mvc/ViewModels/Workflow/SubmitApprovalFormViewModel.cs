@@ -1,22 +1,36 @@
+// Copyright (c) 2026 Alvin Wilsen Chan Chua
+// GitHub: chuaalvw-y
+// Licensed under the Alvin Wilsen Chan Chua Proprietary Use-Only License.
+// See LICENSE.txt in the project root for full license information.
+
 using System.ComponentModel.DataAnnotations;
 using ChuA.ERP.Web.Mvc.Contracts.Dtos;
 
 namespace ChuA.ERP.Web.Mvc.ViewModels.Workflow;
 
-/// <summary>Approve/Reject submission form for a workflow approval request.</summary>
+/// <summary>Approve/Reject decision form for a single workflow approval.</summary>
 public sealed class SubmitApprovalFormViewModel
 {
-    /// <summary>Approval request id.</summary>
+    /// <summary>The approval row id (path parameter on the API).</summary>
     public Guid Id { get; set; }
 
+    /// <summary>The owning workflow-instance id — required by the API body.</summary>
     [Required]
-    [RegularExpression("^(Approve|Reject)$", ErrorMessage = "Decision must be 'Approve' or 'Reject'.")]
-    [Display(Name = "Decision")]
-    public string Decision { get; set; } = "Approve";
+    public Guid InstanceId { get; set; }
 
-    [StringLength(1000)]
+    /// <summary>
+    /// Approve or Reject. Maps to <c>WorkflowDecision</c> on the API
+    /// (Approved / Rejected). Delegated / Escalated outcomes go through
+    /// dedicated endpoints, not this form.
+    /// </summary>
+    [Required]
+    [RegularExpression("^(Approved|Rejected)$", ErrorMessage = "Decision must be 'Approved' or 'Rejected'.")]
+    [Display(Name = "Decision")]
+    public string Decision { get; set; } = "Approved";
+
+    [StringLength(2000)]
     [Display(Name = "Comment")]
     public string? Comment { get; set; }
 
-    public SubmitWorkflowApprovalRequest ToRequest() => new(Decision, Comment);
+    public WorkflowApprovalDecisionRequest ToRequest() => new(InstanceId, Decision, Comment);
 }

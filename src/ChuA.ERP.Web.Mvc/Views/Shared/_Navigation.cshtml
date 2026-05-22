@@ -1,3 +1,10 @@
+@*
+    Copyright (c) 2026 Alvin Wilsen Chan Chua
+    GitHub: chuaalvw-y
+    Licensed under the Alvin Wilsen Chan Chua Proprietary Use-Only License.
+    See LICENSE.txt in the project root for full license information.
+*@
+
 @inject ICurrentUserService CurrentUser
 @{
     var controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty;
@@ -16,7 +23,7 @@
     var isSalesRoute = IsRoute("Customers", "SalesOrders", "Invoices");
     var isInventoryRoute = IsRoute("Inventory");
     var isFinanceRoute = IsRoute("ChartOfAccounts", "JournalEntries");
-    var isWorkflowRoute = IsRoute("Workflow");
+    var isWorkflowRoute = IsRoute("Workflow", "WorkflowDefinitions", "WorkflowConfigurations", "WorkflowInstances", "BusinessRules");
     var isReportsRoute = IsRoute("Reports");
 }
 <nav class="erp-nav py-2" aria-label="Primary">
@@ -137,7 +144,19 @@
             <div id="workflowMenu" class="collapse @(isWorkflowRoute ? "show" : string.Empty)">
                 <ul class="nav flex-column">
                     <li class="nav-item" asp-authorize-policy="WorkflowRead">
-                        <a class="@LinkClass("Workflow")" asp-controller="Workflow" asp-action="Index">Approvals</a>
+                        <a class="@LinkClass("Workflow")" asp-controller="Workflow" asp-action="Index">My approvals</a>
+                    </li>
+                    <li class="nav-item" asp-authorize-policy="WorkflowInstanceRead">
+                        <a class="@LinkClass("WorkflowDefinitions")" asp-controller="WorkflowDefinitions" asp-action="Index">Definitions</a>
+                    </li>
+                    <li class="nav-item" asp-authorize-policy="WorkflowInstanceRead">
+                        <a class="@LinkClass("WorkflowConfigurations")" asp-controller="WorkflowConfigurations" asp-action="Index">Configurations</a>
+                    </li>
+                    <li class="nav-item" asp-authorize-policy="WorkflowInstanceRead">
+                        <a class="@LinkClass("WorkflowInstances")" asp-controller="WorkflowInstances" asp-action="Index">Instances</a>
+                    </li>
+                    <li class="nav-item" asp-authorize-policy="BusinessRuleRead">
+                        <a class="@LinkClass("BusinessRules")" asp-controller="BusinessRules" asp-action="Index">Business rules</a>
                     </li>
                 </ul>
             </div>

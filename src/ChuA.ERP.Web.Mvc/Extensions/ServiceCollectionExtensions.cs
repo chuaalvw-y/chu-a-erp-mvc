@@ -1,3 +1,8 @@
+// Copyright (c) 2026 Alvin Wilsen Chan Chua
+// GitHub: chuaalvw-y
+// Licensed under the Alvin Wilsen Chan Chua Proprietary Use-Only License.
+// See LICENSE.txt in the project root for full license information.
+
 using ChuA.ERP.Web.Mvc.ApiClients;
 using ChuA.ERP.Web.Mvc.Configuration;
 using ChuA.ERP.Web.Mvc.Filters;
@@ -223,6 +228,10 @@ public static class ServiceCollectionExtensions
         AddApiClient<IInventoryApiClient, InventoryApiClient>();
         AddApiClient<ISalesOrdersApiClient, SalesOrdersApiClient>();
         AddApiClient<IWorkflowApiClient, WorkflowApiClient>();
+        AddApiClient<IWorkflowDefinitionsApiClient, WorkflowDefinitionsApiClient>();
+        AddApiClient<IWorkflowConfigurationsApiClient, WorkflowConfigurationsApiClient>();
+        AddApiClient<IWorkflowInstancesApiClient, WorkflowInstancesApiClient>();
+        AddApiClient<IBusinessRulesApiClient, BusinessRulesApiClient>();
         AddApiClient<ICompaniesApiClient, CompaniesApiClient>();
         AddApiClient<IRolesApiClient, RolesApiClient>();
         AddApiClient<IReportsApiClient, ReportsApiClient>();

@@ -1,16 +1,25 @@
+@*
+    Copyright (c) 2026 Alvin Wilsen Chan Chua
+    GitHub: chuaalvw-y
+    Licensed under the Alvin Wilsen Chan Chua Proprietary Use-Only License.
+    See LICENSE.txt in the project root for full license information.
+*@
+
 @model ChuA.ERP.Web.Mvc.ViewModels.Workflow.SubmitApprovalFormViewModel
 @{
     ViewData["Title"] = "Submit approval decision";
-    var task = ViewData["Task"] as ApprovalRequestDto;
+    var task = ViewData["Task"] as WorkflowApprovalDto;
 }
 <h1 class="h3 mb-4">Submit approval decision</h1>
 
 @if (task is not null)
 {
     <dl class="row">
-        <dt class="col-sm-3">Subject</dt><dd class="col-sm-9">@task.SubjectType <code>@task.SubjectId</code></dd>
-        <dt class="col-sm-3">Requested by</dt><dd class="col-sm-9">@task.RequestedBy</dd>
-        <dt class="col-sm-3">Current status</dt><dd class="col-sm-9">@Html.StatusBadge(task.Status)</dd>
+        <dt class="col-sm-3">Approval id</dt><dd class="col-sm-9"><code>@task.Id</code></dd>
+        <dt class="col-sm-3">Step</dt><dd class="col-sm-9">@task.StepNumber</dd>
+        <dt class="col-sm-3">Assigned to</dt><dd class="col-sm-9"><code>@task.AssignedUserId</code></dd>
+        <dt class="col-sm-3">Due at</dt><dd class="col-sm-9">@(task.DueAt?.ToString("yyyy-MM-dd HH:mm") ?? "—")</dd>
+        <dt class="col-sm-3">Current status</dt><dd class="col-sm-9">@Html.StatusBadge(task.Decision)</dd>
     </dl>
 }
 
@@ -18,15 +27,16 @@
     @Html.AntiForgeryToken()
     <partial name="_ValidationSummary" />
     <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="InstanceId" />
 
     <fieldset class="mb-3">
         <legend class="form-label">Decision</legend>
         <div class="form-check">
-            <input class="form-check-input" type="radio" asp-for="Decision" id="decision-approve" value="Approve" />
+            <input class="form-check-input" type="radio" asp-for="Decision" id="decision-approve" value="Approved" />
             <label class="form-check-label" for="decision-approve">Approve</label>
         </div>
         <div class="form-check">
-            <input class="form-check-input" type="radio" asp-for="Decision" id="decision-reject" value="Reject" />
+            <input class="form-check-input" type="radio" asp-for="Decision" id="decision-reject" value="Rejected" />
             <label class="form-check-label" for="decision-reject">Reject</label>
         </div>
         <span asp-validation-for="Decision" class="text-danger"></span>
@@ -34,7 +44,7 @@
 
     <div class="mb-3">
         <label asp-for="Comment" class="form-label"></label>
-        <textarea asp-for="Comment" class="form-control" rows="4" maxlength="1000"></textarea>
+        <textarea asp-for="Comment" class="form-control" rows="4" maxlength="2000"></textarea>
         <span asp-validation-for="Comment" class="text-danger"></span>
     </div>
 

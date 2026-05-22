@@ -1,3 +1,8 @@
+// Copyright (c) 2026 Alvin Wilsen Chan Chua
+// GitHub: chuaalvw-y
+// Licensed under the Alvin Wilsen Chan Chua Proprietary Use-Only License.
+// See LICENSE.txt in the project root for full license information.
+
 namespace ChuA.ERP.Web.Mvc.Security;
 
 /// <summary>
@@ -72,10 +77,23 @@ public static class AuthorizationPolicies
     public const string SalesOrderDelete = nameof(SalesOrderDelete);
     public const string SalesOrderShip = nameof(SalesOrderShip);
 
-    // Workflow
+    // Workflow inbox (approver-facing)
     public const string WorkflowRead = nameof(WorkflowRead);
-    public const string WorkflowApprovalSubmit = nameof(WorkflowApprovalSubmit);
-    public const string WorkflowReassign = nameof(WorkflowReassign);
+    public const string WorkflowApprovalDecide = nameof(WorkflowApprovalDecide);
+    public const string WorkflowApprovalDelegate = nameof(WorkflowApprovalDelegate);
+    public const string WorkflowApprovalReassign = nameof(WorkflowApprovalReassign);
+
+    // Workflow engine admin (slice B)
+    public const string WorkflowDefinitionCreate = nameof(WorkflowDefinitionCreate);
+    public const string WorkflowDefinitionUpdate = nameof(WorkflowDefinitionUpdate);
+    public const string WorkflowDefinitionPublish = nameof(WorkflowDefinitionPublish);
+    public const string WorkflowDefinitionRetire = nameof(WorkflowDefinitionRetire);
+    public const string WorkflowConfigManage = nameof(WorkflowConfigManage);
+    public const string WorkflowInstanceRead = nameof(WorkflowInstanceRead);
+    public const string WorkflowInstanceCancel = nameof(WorkflowInstanceCancel);
+
+    // Business rules (slice C — read-only V1)
+    public const string BusinessRuleRead = nameof(BusinessRuleRead);
 
     // Reports
     public const string ReportRun = nameof(ReportRun);
@@ -93,7 +111,10 @@ public static class AuthorizationPolicies
         PurchaseOrderRead, PurchaseOrderCreate, PurchaseOrderUpdate, PurchaseOrderDelete, PurchaseOrderApprove, PurchaseOrderReceive,
         InventoryRead, InventoryCreate, InventoryUpdate, InventoryDelete, InventoryAdjust,
         SalesOrderRead, SalesOrderCreate, SalesOrderUpdate, SalesOrderDelete, SalesOrderShip,
-        WorkflowRead, WorkflowApprovalSubmit, WorkflowReassign,
+        WorkflowRead, WorkflowApprovalDecide, WorkflowApprovalDelegate, WorkflowApprovalReassign,
+        WorkflowDefinitionCreate, WorkflowDefinitionUpdate, WorkflowDefinitionPublish, WorkflowDefinitionRetire,
+        WorkflowConfigManage, WorkflowInstanceRead, WorkflowInstanceCancel,
+        BusinessRuleRead,
         ReportRun
     };
 }

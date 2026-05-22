@@ -1,4 +1,10 @@
+// Copyright (c) 2026 Alvin Wilsen Chan Chua
+// GitHub: chuaalvw-y
+// Licensed under the Alvin Wilsen Chan Chua Proprietary Use-Only License.
+// See LICENSE.txt in the project root for full license information.
+
 using ChuA.ERP.Web.Mvc.ApiClients;
+using ChuA.ERP.Web.Mvc.Contracts.Dtos;
 using ChuA.ERP.Web.Mvc.Extensions;
 using ChuA.ERP.Web.Mvc.Security;
 using ChuA.ERP.Web.Mvc.Utilities;
@@ -8,7 +14,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ChuA.ERP.Web.Mvc.Controllers;
 
-/// <summary>UI for the Workflow module — surfaces approval requests originating upstream.</summary>
+/// <summary>
+/// UI for the workflow inbox. Surfaces the caller's pending workflow
+/// approvals from <c>/api/v1/workflow/tasks</c> and lets them decide,
+/// or — with the admin policy — reassign to another user.
+/// </summary>
 [Authorize]
 public sealed class WorkflowController : Controller
 {
@@ -21,13 +31,13 @@ public sealed class WorkflowController : Controller
 
     [HttpGet]
     [Authorize(Policy = AuthorizationPolicies.WorkflowRead)]
-    public async Task<IActionResult> Index(string? status, string? subjectType, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Index(CancellationToken cancellationToken = default)
     {
-        var result = await _workflow.ListTasksAsync(status, subjectType, pageNumber, pageSize, sort, cancellationToken).ConfigureAwait(false);
+        var result = await _workflow.ListTasksAsync(cancellationToken).ConfigureAwait(false);
         if (result.IsFailure)
         {
             ModelState.AddResultErrors(result);
-            return View(new WorkflowListViewModel { Status = status, SubjectType = subjectType });
+            return View(new WorkflowListViewModel());
         }
 
         ViewData["Breadcrumbs"] = new[]
@@ -35,12 +45,7 @@ public sealed class WorkflowController : Controller
             new Breadcrumb("Dashboard", Url.Action("Index", "Dashboard")),
             new Breadcrumb("Workflow", null, true)
         };
-        return View(new WorkflowListViewModel
-        {
-            Tasks = result.Value,
-            Status = status,
-            SubjectType = subjectType,
-        });
+        return View(new WorkflowListViewModel { Tasks = result.Value });
     }
 
     [HttpGet]
@@ -57,13 +62,13 @@ public sealed class WorkflowController : Controller
         {
             new Breadcrumb("Dashboard", Url.Action("Index", "Dashboard")),
             new Breadcrumb("Workflow", Url.Action(nameof(Index))),
-            new Breadcrumb($"{result.Value.SubjectType} {result.Value.SubjectId}", null, true)
+            new Breadcrumb($"Approval step {result.Value.StepNumber}", null, true)
         };
         return View(result.Value);
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.WorkflowApprovalSubmit)]
+    [Authorize(Policy = AuthorizationPolicies.WorkflowApprovalDecide)]
     public async Task<IActionResult> Submit(Guid id, CancellationToken cancellationToken)
     {
         var result = await _workflow.GetTaskAsync(id, cancellationToken).ConfigureAwait(false);
@@ -77,15 +82,19 @@ public sealed class WorkflowController : Controller
         {
             new Breadcrumb("Dashboard", Url.Action("Index", "Dashboard")),
             new Breadcrumb("Workflow", Url.Action(nameof(Index))),
-            new Breadcrumb($"{result.Value.SubjectType} {result.Value.SubjectId}", Url.Action(nameof(Details), new { id })),
+            new Breadcrumb($"Approval step {result.Value.StepNumber}", Url.Action(nameof(Details), new { id })),
             new Breadcrumb("Submit decision", null, true)
         };
-        return View(new SubmitApprovalFormViewModel { Id = id });
+        return View(new SubmitApprovalFormViewModel
+        {
+            Id = id,
+            InstanceId = result.Value.WorkflowInstanceId
+        });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Policy = AuthorizationPolicies.WorkflowApprovalSubmit)]
+    [Authorize(Policy = AuthorizationPolicies.WorkflowApprovalDecide)]
     public async Task<IActionResult> Submit(Guid id, SubmitApprovalFormViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
@@ -94,11 +103,15 @@ public sealed class WorkflowController : Controller
             return View(model);
         }
 
-        var result = await _workflow.SubmitApprovalAsync(id, model.ToRequest(), cancellationToken).ConfigureAwait(false);
+        var result = await _workflow.DecideAsync(id, model.ToRequest(), cancellationToken).ConfigureAwait(false);
         if (result.IsFailure)
         {
             ModelState.AddResultErrors(result);
             model.Id = id;
+            // Refetch so the surrounding context (step, due date, etc.) still
+            // renders if validation roundtrips a second time.
+            var task = await _workflow.GetTaskAsync(id, cancellationToken).ConfigureAwait(false);
+            if (task.IsSuccess) ViewData["Task"] = task.Value;
             return View(model);
         }
         TempData.AddToast($"Decision '{model.Decision}' submitted.", ToastLevel.Success);
@@ -106,7 +119,7 @@ public sealed class WorkflowController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.WorkflowReassign)]
+    [Authorize(Policy = AuthorizationPolicies.WorkflowApprovalReassign)]
     public async Task<IActionResult> Reassign(Guid id, CancellationToken cancellationToken)
     {
         var result = await _workflow.GetTaskAsync(id, cancellationToken).ConfigureAwait(false);
@@ -120,15 +133,19 @@ public sealed class WorkflowController : Controller
         {
             new Breadcrumb("Dashboard", Url.Action("Index", "Dashboard")),
             new Breadcrumb("Workflow", Url.Action(nameof(Index))),
-            new Breadcrumb($"{result.Value.SubjectType} {result.Value.SubjectId}", Url.Action(nameof(Details), new { id })),
+            new Breadcrumb($"Approval step {result.Value.StepNumber}", Url.Action(nameof(Details), new { id })),
             new Breadcrumb("Reassign", null, true)
         };
-        return View(new ReassignFormViewModel { Id = id });
+        return View(new ReassignFormViewModel
+        {
+            Id = id,
+            InstanceId = result.Value.WorkflowInstanceId
+        });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Policy = AuthorizationPolicies.WorkflowReassign)]
+    [Authorize(Policy = AuthorizationPolicies.WorkflowApprovalReassign)]
     public async Task<IActionResult> Reassign(Guid id, ReassignFormViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
@@ -137,11 +154,13 @@ public sealed class WorkflowController : Controller
             return View(model);
         }
 
-        var result = await _workflow.ReassignTaskAsync(id, model.ToRequest(), cancellationToken).ConfigureAwait(false);
+        var result = await _workflow.ReassignAsync(id, model.ToRequest(), cancellationToken).ConfigureAwait(false);
         if (result.IsFailure)
         {
             ModelState.AddResultErrors(result);
             model.Id = id;
+            var task = await _workflow.GetTaskAsync(id, cancellationToken).ConfigureAwait(false);
+            if (task.IsSuccess) ViewData["Task"] = task.Value;
             return View(model);
         }
         TempData.AddToast("Task reassigned.", ToastLevel.Success);

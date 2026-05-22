@@ -1,0 +1,150 @@
+@*
+    Copyright (c) 2026 Alvin Wilsen Chan Chua
+    GitHub: chuaalvw-y
+    Licensed under the Alvin Wilsen Chan Chua Proprietary Use-Only License.
+    See LICENSE.txt in the project root for full license information.
+*@
+
+@model WorkflowDefinitionDto
+@{
+    ViewData["Title"] = $"{Model.Code} v{Model.Version}";
+    var isDraft = string.Equals(Model.Status, "Draft", StringComparison.OrdinalIgnoreCase);
+    var isPublished = string.Equals(Model.Status, "Published", StringComparison.OrdinalIgnoreCase);
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">@Model.Code v@Model.Version @Html.StatusBadge(Model.Status)</h1>
+    <div>
+        @if (isDraft)
+        {
+            <form asp-action="Publish" asp-route-id="@Model.Id" method="post" class="d-inline" asp-authorize-policy="WorkflowDefinitionPublish">
+                @Html.AntiForgeryToken()
+                <button class="btn btn-outline-success" type="submit">Publish</button>
+            </form>
+        }
+        @if (isPublished)
+        {
+            <form asp-action="Retire" asp-route-id="@Model.Id" method="post" class="d-inline" asp-authorize-policy="WorkflowDefinitionRetire">
+                @Html.AntiForgeryToken()
+                <button class="btn btn-outline-warning" type="submit">Retire</button>
+            </form>
+        }
+        <form asp-action="Clone" asp-route-id="@Model.Id" method="post" class="d-inline" asp-authorize-policy="WorkflowDefinitionCreate">
+            @Html.AntiForgeryToken()
+            <button class="btn btn-outline-primary" type="submit">Clone as new version</button>
+        </form>
+    </div>
+</div>
+
+<dl class="row">
+    <dt class="col-sm-3">Name</dt><dd class="col-sm-9">@Model.Name</dd>
+    <dt class="col-sm-3">Description</dt><dd class="col-sm-9">@(string.IsNullOrEmpty(Model.Description) ? "—" : Model.Description)</dd>
+    <dt class="col-sm-3">Target entity</dt><dd class="col-sm-9">@Model.TargetEntityType</dd>
+    <dt class="col-sm-3">Company id</dt><dd class="col-sm-9">@(Model.CompanyId?.ToString() ?? "(system-wide)")</dd>
+    <dt class="col-sm-3">Created</dt><dd class="col-sm-9">@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</dd>
+    <dt class="col-sm-3">Published</dt><dd class="col-sm-9">@(Model.PublishedAt?.ToString("yyyy-MM-dd HH:mm") ?? "—")</dd>
+    <dt class="col-sm-3">Retired</dt><dd class="col-sm-9">@(Model.RetiredAt?.ToString("yyyy-MM-dd HH:mm") ?? "—")</dd>
+</dl>
+
+<div class="d-flex justify-content-between align-items-center mt-4 mb-2">
+    <h2 class="h5 mb-0">Steps</h2>
+    @if (isDraft)
+    {
+        <a class="btn btn-sm btn-outline-primary" asp-action="AddStep" asp-route-id="@Model.Id" asp-authorize-policy="WorkflowDefinitionUpdate">+ Add step</a>
+    }
+</div>
+
+@if (Model.Steps.Count == 0)
+{
+    @Html.EmptyState("No steps yet. Add at least one before publishing.")
+}
+else
+{
+    <div class="accordion">
+        @foreach (var step in Model.Steps.OrderBy(s => s.StepNumber))
+        {
+            <div class="accordion-item">
+                <h3 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#step-@step.StepNumber" aria-expanded="false">
+                        Step @step.StepNumber — @step.Name
+                        <span class="badge bg-secondary ms-2">@step.ApprovalMode</span>
+                        @if (step.RequiredCount is { } rc)
+                        {
+                            <span class="badge bg-info ms-1">N=@rc</span>
+                        }
+                        @if (step.TimeoutHours is { } th)
+                        {
+                            <span class="badge bg-warning ms-1">@th h timeout</span>
+                        }
+                    </button>
+                </h3>
+                <div id="step-@step.StepNumber" class="accordion-collapse collapse">
+                    <div class="accordion-body">
+                        <dl class="row mb-3">
+                            @if (!string.IsNullOrEmpty(step.ConditionExpression))
+                            {
+                                <dt class="col-sm-3">Condition</dt><dd class="col-sm-9"><code>@step.ConditionExpression</code></dd>
+                            }
+                            @if (step.EscalationStepNumber is { } esc)
+                            {
+                                <dt class="col-sm-3">Escalation step</dt><dd class="col-sm-9">@esc</dd>
+                            }
+                        </dl>
+
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h4 class="h6 mb-0">Approvers (@step.Approvers.Count)</h4>
+                            @if (isDraft)
+                            {
+                                <a class="btn btn-sm btn-outline-primary"
+                                   asp-action="AddApprover" asp-route-id="@Model.Id" asp-route-stepNumber="@step.StepNumber"
+                                   asp-authorize-policy="WorkflowDefinitionUpdate">+ Add approver</a>
+                            }
+                        </div>
+
+                        @if (step.Approvers.Count == 0)
+                        {
+                            <p class="text-muted small">No approvers — publish will be blocked.</p>
+                        }
+                        else
+                        {
+                            <ul class="list-group mb-2">
+                                @foreach (var ap in step.Approvers)
+                                {
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span><strong>@ap.AssigneeType</strong>: <code>@ap.AssigneeId</code></span>
+                                        @if (isDraft)
+                                        {
+                                            <form asp-action="RemoveApprover"
+                                                  asp-route-id="@Model.Id"
+                                                  asp-route-stepNumber="@step.StepNumber"
+                                                  asp-route-assigneeType="@ap.AssigneeType"
+                                                  asp-route-assigneeId="@ap.AssigneeId"
+                                                  method="post" class="d-inline" asp-authorize-policy="WorkflowDefinitionUpdate">
+                                                @Html.AntiForgeryToken()
+                                                <button class="btn btn-sm btn-outline-danger" type="submit">Remove</button>
+                                            </form>
+                                        }
+                                    </li>
+                                }
+                            </ul>
+                        }
+
+                        @if (isDraft)
+                        {
+                            <form asp-action="RemoveStep" asp-route-id="@Model.Id" asp-route-stepNumber="@step.StepNumber"
+                                  method="post" asp-authorize-policy="WorkflowDefinitionUpdate">
+                                @Html.AntiForgeryToken()
+                                <button class="btn btn-sm btn-outline-danger" type="submit"
+                                        onclick="return confirm('Remove step @step.StepNumber? Subsequent steps will be renumbered.');">
+                                    Remove step
+                                </button>
+                            </form>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<a asp-action="Index" class="btn btn-link mt-3">&larr; Back to list</a>

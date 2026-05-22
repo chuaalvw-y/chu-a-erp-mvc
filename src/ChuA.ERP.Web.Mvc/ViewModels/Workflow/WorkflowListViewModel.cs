@@ -1,12 +1,18 @@
-using ChuA.ERP.Web.Mvc.Contracts.Common;
+// Copyright (c) 2026 Alvin Wilsen Chan Chua
+// GitHub: chuaalvw-y
+// Licensed under the Alvin Wilsen Chan Chua Proprietary Use-Only License.
+// See LICENSE.txt in the project root for full license information.
+
 using ChuA.ERP.Web.Mvc.Contracts.Dtos;
 
 namespace ChuA.ERP.Web.Mvc.ViewModels.Workflow;
 
-/// <summary>List page view model for workflow approval requests.</summary>
+/// <summary>
+/// List page view model for the caller's pending workflow approvals.
+/// The API filters server-side by user; status/subject filters from the
+/// legacy ApprovalRequest path no longer apply.
+/// </summary>
 public sealed class WorkflowListViewModel
 {
-    public PagedResult<ApprovalRequestDto> Tasks { get; set; } = PagedResult<ApprovalRequestDto>.Empty();
-    public string? Status { get; set; }
-    public string? SubjectType { get; set; }
+    public IReadOnlyList<WorkflowApprovalDto> Tasks { get; set; } = Array.Empty<WorkflowApprovalDto>();
 }

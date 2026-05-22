@@ -1,3 +1,8 @@
+// Copyright (c) 2026 Alvin Wilsen Chan Chua
+// GitHub: chuaalvw-y
+// Licensed under the Alvin Wilsen Chan Chua Proprietary Use-Only License.
+// See LICENSE.txt in the project root for full license information.
+
 using System.Security.Claims;
 using ChuA.ERP.Web.Mvc.Configuration;
 using ChuA.ERP.Web.Mvc.Services;
@@ -60,7 +65,16 @@ public sealed class AccountController : Controller
         await HttpContext.SignInAsync(
             CookieAuthenticationDefaults.AuthenticationScheme,
             new ClaimsPrincipal(identity)).ConfigureAwait(false);
-        return LocalRedirect(string.IsNullOrEmpty(returnUrl) ? "/" : returnUrl);
+
+        // Only honour a return URL that is genuinely local (open-redirect guard).
+        // Use RedirectToAction for the fallback so we never call LocalRedirect with
+        // a value it would reject — that throws a 500 even though sign-in succeeded.
+        if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            return Redirect(returnUrl);
+        }
+
+        return RedirectToAction("Index", "Home");
     }
 
     [HttpPost]

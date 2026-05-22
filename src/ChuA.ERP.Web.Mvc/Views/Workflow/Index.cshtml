@@ -1,59 +1,39 @@
+@*
+    Copyright (c) 2026 Alvin Wilsen Chan Chua
+    GitHub: chuaalvw-y
+    Licensed under the Alvin Wilsen Chan Chua Proprietary Use-Only License.
+    See LICENSE.txt in the project root for full license information.
+*@
+
 @model ChuA.ERP.Web.Mvc.ViewModels.Workflow.WorkflowListViewModel
 @{
-    ViewData["Title"] = "Workflow tasks";
-    var statuses = new[] { "", "Pending", "Approved", "Rejected", "Cancelled" };
+    ViewData["Title"] = "My workflow tasks";
 }
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h3 mb-0">Workflow tasks</h1>
+    <h1 class="h3 mb-0">My workflow tasks</h1>
 </div>
 
-<form method="get" class="row g-2 mb-3">
-    <div class="col-md-3">
-        <label class="form-label" for="status">Status</label>
-        <select id="status" name="status" class="form-select">
-            @foreach (var s in statuses)
-            {
-                if (string.Equals(s, Model.Status, StringComparison.OrdinalIgnoreCase))
-                {
-                    <option value="@s" selected>@(string.IsNullOrEmpty(s) ? "All" : s)</option>
-                }
-                else
-                {
-                    <option value="@s">@(string.IsNullOrEmpty(s) ? "All" : s)</option>
-                }
-            }
-        </select>
-    </div>
-    <div class="col-md-4">
-        <label class="form-label" for="subjectType">Subject type</label>
-        <input id="subjectType" type="text" name="subjectType" value="@Model.SubjectType" class="form-control" placeholder="e.g. Bill, PurchaseOrder" />
-    </div>
-    <div class="col-md-3 d-flex align-items-end">
-        <button type="submit" class="btn btn-outline-primary">Filter</button>
-    </div>
-</form>
-
-@if (Model.Tasks.Items.Count == 0)
+@if (Model.Tasks.Count == 0)
 {
-    @Html.EmptyState("No workflow tasks match your filters.")
+    @Html.EmptyState("No pending workflow approvals assigned to you.")
 }
 else
 {
     <div class="table-responsive">
         <table class="table table-striped table-hover">
             <thead><tr>
-                <th>Subject</th><th>Subject id</th><th>Requested by</th><th>Requested at</th><th>Required</th><th>Status</th><th class="actions">Actions</th>
+                <th>Approval id</th><th>Instance</th><th>Step</th><th>Assigned</th><th>Due</th><th>Status</th><th class="actions">Actions</th>
             </tr></thead>
             <tbody>
-            @foreach (var t in Model.Tasks.Items)
+            @foreach (var t in Model.Tasks)
             {
                 <tr>
-                    <td><a asp-action="Details" asp-route-id="@t.Id">@t.SubjectType</a></td>
-                    <td><code>@t.SubjectId</code></td>
-                    <td>@t.RequestedBy</td>
-                    <td>@t.RequestedAt.ToString("yyyy-MM-dd HH:mm")</td>
-                    <td>@t.RequiredApprovals</td>
-                    <td>@Html.StatusBadge(t.Status)</td>
+                    <td><a asp-action="Details" asp-route-id="@t.Id"><code>@t.Id.ToString()[..8]</code></a></td>
+                    <td><code>@t.WorkflowInstanceId.ToString()[..8]</code></td>
+                    <td>@t.StepNumber</td>
+                    <td>@t.AssignedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@(t.DueAt?.ToString("yyyy-MM-dd HH:mm") ?? "—")</td>
+                    <td>@Html.StatusBadge(t.Decision)</td>
                     <td class="actions">
                         <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@t.Id">View</a>
                     </td>
@@ -62,5 +42,4 @@ else
             </tbody>
         </table>
     </div>
-    <partial name="_Pager" model="Model.Tasks" />
 }

@@ -12,6 +12,24 @@ The documentation is structured so it can be:
 - Used for onboarding new hires
 - Referenced ad-hoc by experienced users
 
+## Offline formats (Word & PDF)
+
+Combined, single-file renderings of this entire library are available for
+distribution and printing:
+
+| File | Format | Notes |
+|---|---|---|
+| [`ChuA.ERP-User-Documentation.docx`](ChuA.ERP-User-Documentation.docx) | Microsoft Word | Open in Word; right-click the Table of Contents → **Update Field** to populate page numbers |
+| [`ChuA.ERP-User-Documentation.pdf`](ChuA.ERP-User-Documentation.pdf) | PDF | ~150 pages, with live Table of Contents and page numbers |
+
+> **Note** — These two files are **generated** from the Markdown sources by
+> `build-docs.py`; do not edit them by hand. After changing any Markdown
+> page, regenerate with `python docs/build-docs.py` (requires
+> `pip install markdown beautifulsoup4 python-docx reportlab`). Mermaid
+> diagrams render as labelled source boxes in the offline formats because
+> no diagram engine is bundled; they render graphically in Markdown
+> viewers that support Mermaid.
+
 ## How this library is organised
 
 | Library section | Audience | When to read it |

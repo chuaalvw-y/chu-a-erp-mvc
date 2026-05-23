@@ -12,10 +12,10 @@
             <span class="me-1">@CurrentUser.DisplayName</span>
         </button>
         <ul class="dropdown-menu dropdown-menu-end">
-            <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile">My profile</a></li>
+            <li><a class="dropdown-item" asp-area="" asp-controller="Account" asp-action="Profile">My profile</a></li>
             <li><hr class="dropdown-divider" /></li>
             <li>
-                <form asp-controller="Account" asp-action="Logout" method="post" class="px-3">
+                <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="px-3">
                     @Html.AntiForgeryToken()
                     <button type="submit" class="btn btn-link p-0">Sign out</button>
                 </form>
@@ -23,6 +23,6 @@
         </ul>
     </div>
     <div asp-authenticated="false">
-        <a class="btn btn-sm btn-outline-light" asp-controller="Account" asp-action="Login">Sign in</a>
+        <a class="btn btn-sm btn-outline-light" asp-area="" asp-controller="Account" asp-action="Login">Sign in</a>
     </div>
 </div>

@@ -29,7 +29,7 @@
 <nav class="erp-nav py-2" aria-label="Primary">
     <ul class="nav flex-column">
         <li class="nav-item">
-            <a class="@LinkClass("Dashboard")" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+            <a class="@LinkClass("Dashboard")" asp-area="Dashboard" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
         </li>
 
         <li class="nav-section px-3 pt-3">
@@ -46,13 +46,13 @@
             <div id="purchasingMenu" class="collapse @(isPurchasingRoute ? "show" : string.Empty)">
                 <ul class="nav flex-column">
                     <li class="nav-item" asp-authorize-policy="VendorRead">
-                        <a class="@LinkClass("Vendors")" asp-controller="Vendors" asp-action="Index">Vendors</a>
+                        <a class="@LinkClass("Vendors")" asp-area="" asp-controller="Vendors" asp-action="Index">Vendors</a>
                     </li>
                     <li class="nav-item" asp-authorize-policy="PurchaseOrderRead">
-                        <a class="@LinkClass("PurchaseOrders")" asp-controller="PurchaseOrders" asp-action="Index">Purchase Orders</a>
+                        <a class="@LinkClass("PurchaseOrders")" asp-area="" asp-controller="PurchaseOrders" asp-action="Index">Purchase Orders</a>
                     </li>
                     <li class="nav-item" asp-authorize-policy="BillRead">
-                        <a class="@LinkClass("Bills")" asp-controller="Bills" asp-action="Index">Bills</a>
+                        <a class="@LinkClass("Bills")" asp-area="" asp-controller="Bills" asp-action="Index">Bills</a>
                     </li>
                 </ul>
             </div>
@@ -72,13 +72,13 @@
             <div id="salesMenu" class="collapse @(isSalesRoute ? "show" : string.Empty)">
                 <ul class="nav flex-column">
                     <li class="nav-item" asp-authorize-policy="CustomerRead">
-                        <a class="@LinkClass("Customers")" asp-controller="Customers" asp-action="Index">Customers</a>
+                        <a class="@LinkClass("Customers")" asp-area="" asp-controller="Customers" asp-action="Index">Customers</a>
                     </li>
                     <li class="nav-item" asp-authorize-policy="SalesOrderRead">
-                        <a class="@LinkClass("SalesOrders")" asp-controller="SalesOrders" asp-action="Index">Sales Orders</a>
+                        <a class="@LinkClass("SalesOrders")" asp-area="" asp-controller="SalesOrders" asp-action="Index">Sales Orders</a>
                     </li>
                     <li class="nav-item" asp-authorize-policy="InvoiceRead">
-                        <a class="@LinkClass("Invoices")" asp-controller="Invoices" asp-action="Index">Invoices</a>
+                        <a class="@LinkClass("Invoices")" asp-area="" asp-controller="Invoices" asp-action="Index">Invoices</a>
                     </li>
                 </ul>
             </div>
@@ -98,10 +98,10 @@
             <div id="inventoryMenu" class="collapse @(isInventoryRoute ? "show" : string.Empty)">
                 <ul class="nav flex-column">
                     <li class="nav-item" asp-authorize-policy="InventoryRead">
-                        <a class="@LinkClass("Inventory")" asp-controller="Inventory" asp-action="Index">Items</a>
+                        <a class="@LinkClass("Inventory")" asp-area="" asp-controller="Inventory" asp-action="Index">Items</a>
                     </li>
                     <li class="nav-item" asp-authorize-policy="InventoryCreate">
-                        <a class="nav-link" asp-controller="Inventory" asp-action="ImportDemo">Import items</a>
+                        <a class="nav-link" asp-area="" asp-controller="Inventory" asp-action="ImportDemo">Import items</a>
                     </li>
                 </ul>
             </div>
@@ -121,10 +121,10 @@
             <div id="financeMenu" class="collapse @(isFinanceRoute ? "show" : string.Empty)">
                 <ul class="nav flex-column">
                     <li class="nav-item" asp-authorize-policy="ChartOfAccountRead">
-                        <a class="@LinkClass("ChartOfAccounts")" asp-controller="ChartOfAccounts" asp-action="Index">Chart of Accounts</a>
+                        <a class="@LinkClass("ChartOfAccounts")" asp-area="" asp-controller="ChartOfAccounts" asp-action="Index">Chart of Accounts</a>
                     </li>
                     <li class="nav-item" asp-authorize-policy="JournalEntryRead">
-                        <a class="@LinkClass("JournalEntries")" asp-controller="JournalEntries" asp-action="Index">Journal Entries</a>
+                        <a class="@LinkClass("JournalEntries")" asp-area="" asp-controller="JournalEntries" asp-action="Index">Journal Entries</a>
                     </li>
                 </ul>
             </div>
@@ -144,19 +144,19 @@
             <div id="workflowMenu" class="collapse @(isWorkflowRoute ? "show" : string.Empty)">
                 <ul class="nav flex-column">
                     <li class="nav-item" asp-authorize-policy="WorkflowRead">
-                        <a class="@LinkClass("Workflow")" asp-controller="Workflow" asp-action="Index">My approvals</a>
+                        <a class="@LinkClass("Workflow")" asp-area="" asp-controller="Workflow" asp-action="Index">My approvals</a>
                     </li>
                     <li class="nav-item" asp-authorize-policy="WorkflowInstanceRead">
-                        <a class="@LinkClass("WorkflowDefinitions")" asp-controller="WorkflowDefinitions" asp-action="Index">Definitions</a>
+                        <a class="@LinkClass("WorkflowDefinitions")" asp-area="" asp-controller="WorkflowDefinitions" asp-action="Index">Definitions</a>
                     </li>
                     <li class="nav-item" asp-authorize-policy="WorkflowInstanceRead">
-                        <a class="@LinkClass("WorkflowConfigurations")" asp-controller="WorkflowConfigurations" asp-action="Index">Configurations</a>
+                        <a class="@LinkClass("WorkflowConfigurations")" asp-area="" asp-controller="WorkflowConfigurations" asp-action="Index">Configurations</a>
                     </li>
                     <li class="nav-item" asp-authorize-policy="WorkflowInstanceRead">
-                        <a class="@LinkClass("WorkflowInstances")" asp-controller="WorkflowInstances" asp-action="Index">Instances</a>
+                        <a class="@LinkClass("WorkflowInstances")" asp-area="" asp-controller="WorkflowInstances" asp-action="Index">Instances</a>
                     </li>
                     <li class="nav-item" asp-authorize-policy="BusinessRuleRead">
-                        <a class="@LinkClass("BusinessRules")" asp-controller="BusinessRules" asp-action="Index">Business rules</a>
+                        <a class="@LinkClass("BusinessRules")" asp-area="" asp-controller="BusinessRules" asp-action="Index">Business rules</a>
                     </li>
                 </ul>
             </div>
@@ -176,7 +176,7 @@
             <div id="reportsMenu" class="collapse @(isReportsRoute ? "show" : string.Empty)">
                 <ul class="nav flex-column">
                     <li class="nav-item" asp-authorize-policy="ReportRun">
-                        <a class="@LinkClass("Reports")" asp-controller="Reports" asp-action="Index">Reports</a>
+                        <a class="@LinkClass("Reports")" asp-area="" asp-controller="Reports" asp-action="Index">Reports</a>
                     </li>
                 </ul>
             </div>
@@ -184,18 +184,18 @@
 
         <li class="nav-section text-uppercase small text-muted px-3 pt-3" asp-authorize-role="SystemAdmin,CompanyAdmin">Administration</li>
         <li class="nav-item" asp-authorize-role="SystemAdmin">
-            <a class="@LinkClass("Companies")" asp-controller="Companies" asp-action="Index">Companies</a>
+            <a class="@LinkClass("Companies")" asp-area="" asp-controller="Companies" asp-action="Index">Companies</a>
         </li>
         <li class="nav-item" asp-authorize-role="SystemAdmin,CompanyAdmin">
-            <a class="@LinkClass("Users")" asp-controller="Users" asp-action="Index">Users</a>
+            <a class="@LinkClass("Users")" asp-area="" asp-controller="Users" asp-action="Index">Users</a>
         </li>
         <li class="nav-item" asp-authorize-role="SystemAdmin,CompanyAdmin">
-            <a class="@LinkClass("Roles")" asp-controller="Roles" asp-action="Index">Roles</a>
+            <a class="@LinkClass("Roles")" asp-area="" asp-controller="Roles" asp-action="Index">Roles</a>
         </li>
 
         <li class="nav-section text-uppercase small text-muted px-3 pt-3">System</li>
         <li class="nav-item">
-            <a class="@LinkClass("Health")" asp-controller="Health" asp-action="Index">System Health</a>
+            <a class="@LinkClass("Health")" asp-area="" asp-controller="Health" asp-action="Index">System Health</a>
         </li>
     </ul>
 </nav>

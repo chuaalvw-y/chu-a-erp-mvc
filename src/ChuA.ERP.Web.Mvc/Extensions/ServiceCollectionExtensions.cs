@@ -153,6 +153,32 @@ public static class ServiceCollectionExtensions
                 }
             });
 
+        // Phase J — tell Auth0 to issue an access_token FOR the ERP API audience.
+        //
+        // Without this, the OIDC flow asks for the default scopes (openid/profile/email)
+        // and Auth0 returns an *opaque* access_token only usable against /userinfo. The
+        // ERP API does JWT bearer validation against ValidAudience="https://api.chua-erp.com"
+        // and rejects opaque tokens with a 401 -> ErpClaimsTransformation fails closed
+        // -> empty sidebar submenu.
+        //
+        // The canonical Auth0 + ASP.NET Core pattern: pass `audience` as an extra
+        // OIDC authorization parameter (AdditionalAuthorizationParameters was added in
+        // .NET 9). This tells Auth0 to issue a JWT access_token whose `aud` claim
+        // matches the API identifier. We do NOT touch TokenValidationParameters.
+        // ValidAudience — the ID token's `aud` is the OIDC client_id, NOT the API
+        // identifier, so setting ValidAudience to the API identifier would re-introduce
+        // the IDX10214 "audience mismatch" failure we previously hit.
+        //
+        // The audience matches the ERP API's appsettings (Authentication:Audience).
+        // If the value ever diverges between environments, lift it to configuration.
+        const string ErpApiAudience = "https://api.chua-erp.com";
+        services.PostConfigure<Microsoft.AspNetCore.Authentication.OpenIdConnect.OpenIdConnectOptions>(
+            Microsoft.AspNetCore.Authentication.OpenIdConnect.OpenIdConnectDefaults.AuthenticationScheme,
+            options =>
+            {
+                options.AdditionalAuthorizationParameters["audience"] = ErpApiAudience;
+            });
+
         // Phase J — re-assert ErpClaimsTransformation as the IClaimsTransformation
         // winner. AddChuAAuthentication (called above via AddChuAAuthentication)
         // registers ChuAClaimsTransformation when EnableClaimsTransformation=true

@@ -130,6 +130,15 @@ public sealed class ErpClaimsTransformation : IClaimsTransformation
         // Sentinel — added first so re-entry short-circuits cleanly.
         hydrated.AddClaim(new Claim(SentinelClaimType, SentinelClaimValue));
 
+        // Phase J explicit "resolved ERP user" marker. The API's /me endpoint
+        // reads this claim (not sub) so an authenticated-but-unresolved
+        // principal cannot reach the profile data — see UsersController.
+        // GetCurrentUserAsync. Symmetric with BypassAuthenticationHandler.
+        if (!hydrated.HasClaim(c => c.Type == "erp_user_id"))
+        {
+            hydrated.AddClaim(new Claim("erp_user_id", profile.UserId.ToString()));
+        }
+
         // Active company + memberships (de-duplicate against any claims
         // already on the principal — the bypass handler may have stamped
         // a companies claim too).

@@ -162,6 +162,56 @@ public sealed class ErpClaimsTransformationTests
     }
 
     [Fact]
+    public async Task Re_entry_during_GetMeAsync_does_not_recurse_into_TransformAsync()
+    {
+        // Pins down the fix for a stack overflow discovered the first time
+        // ErpClaimsTransformation actually ran end-to-end against Auth0.
+        //
+        // The call chain that recurses:
+        //   TransformAsync
+        //     -> _users.GetMeAsync()
+        //       -> ApiClientBase.BuildRequestAsync()
+        //         -> CookieTokenAcquisitionService.GetAccessTokenAsync()
+        //           -> ctx.GetTokenAsync("access_token")
+        //             -> IAuthenticationService.AuthenticateAsync()
+        //               -> IClaimsTransformation.TransformAsync()   <-- recursion
+        //
+        // The contract this test enforces: the transformation stashes the
+        // untransformed principal in HttpContext.Items BEFORE the GetMeAsync
+        // call, so the re-entry short-circuits at step 1 instead of looping
+        // back through the /me round-trip.
+
+        ErpClaimsTransformation sut = null!;
+        var reentryHitSentinel = false;
+        _users.Setup(u => u.GetMeAsync(It.IsAny<CancellationToken>()))
+              .Returns(async (CancellationToken _) =>
+              {
+                  // Simulate CookieTokenAcquisitionService triggering re-auth
+                  // halfway through the outer call. If the re-entry doesn't
+                  // hit the HttpContext.Items short-circuit, this either
+                  // recurses infinitely (test framework times out / stack
+                  // overflows) or fires _users.GetMeAsync() a second time.
+                  var inner = await sut!.TransformAsync(AuthenticatedPrincipal()).ConfigureAwait(false);
+                  reentryHitSentinel = inner is not null;
+                  return Result<CurrentUserDto>.Success(Profile());
+              });
+
+        sut = BuildSut();
+        var outer = await sut.TransformAsync(AuthenticatedPrincipal());
+
+        // Exactly one /me round-trip across the outer + re-entrant calls.
+        _users.Verify(u => u.GetMeAsync(It.IsAny<CancellationToken>()), Times.Once);
+        reentryHitSentinel.Should().BeTrue();
+
+        // The outer call still produces a fully hydrated principal (sentinel +
+        // erp_user_id + permission claims), proving the guard only short-
+        // circuits the re-entry — not the outer call.
+        outer.HasClaim(ErpClaimsTransformation.SentinelClaimType,
+                       ErpClaimsTransformation.SentinelClaimValue).Should().BeTrue();
+        outer.FindFirst("erp_user_id").Should().NotBeNull();
+    }
+
+    [Fact]
     public async Task Memoizes_in_HttpContext_Items_so_re_entry_reuses_the_principal()
     {
         // Even if the framework re-runs the transformation against the original

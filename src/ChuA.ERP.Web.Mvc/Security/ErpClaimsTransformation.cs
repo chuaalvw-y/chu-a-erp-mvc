@@ -111,6 +111,24 @@ public sealed class ErpClaimsTransformation : IClaimsTransformation
         }
 
         // 5) Fetch (or load + cache) the profile from the API.
+        //
+        // CRITICAL — re-entry guard against infinite recursion. Calling
+        // _users.GetMeAsync() runs ApiClientBase.BuildRequestAsync, which calls
+        // CookieTokenAcquisitionService.GetAccessTokenAsync(), which calls
+        // ctx.GetTokenAsync("access_token"). That helper internally invokes
+        // IAuthenticationService.AuthenticateAsync to read the saved tokens off
+        // the auth ticket — and AuthenticateAsync re-runs IClaimsTransformation,
+        // landing us right back here. Without a guard, the stack blows on the
+        // very first request.
+        //
+        // We stash the UNTRANSFORMED principal in HttpContext.Items NOW so the
+        // re-entry hits the short-circuit at step 1 and returns the bare
+        // principal. That principal is sufficient for GetTokenAsync — it only
+        // needs the saved-tokens dictionary, not any of the ERP claims we're
+        // about to stamp. After the call returns we overwrite the stashed value
+        // with the actual hydrated principal at the bottom of this method.
+        Stash(ctx, principal);
+
         var cacheKey = $"erp:auth-profile:{sub}";
         if (!_cache.TryGetValue<CurrentUserDto>(cacheKey, out var profile) || profile is null)
         {
@@ -121,8 +139,8 @@ public sealed class ErpClaimsTransformation : IClaimsTransformation
                     "ErpClaimsTransformation: /users/me returned no profile for sub={Subject}. " +
                     "Failing closed — downstream [Authorize] will deny.", sub);
 
-                // Stash the bare principal so we don't call /me again this request.
-                Stash(ctx, principal);
+                // Untransformed principal is already stashed above; this is the
+                // fail-closed exit so we return it without further enrichment.
                 return principal;
             }
 

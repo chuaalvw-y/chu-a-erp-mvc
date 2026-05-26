@@ -4,39 +4,43 @@
 // See LICENSE.txt in the project root for full license information.
 
 using System.Security.Claims;
-using ChuA.ERP.Web.Mvc.Configuration;
 using ChuA.ERP.Web.Mvc.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 
 namespace ChuA.ERP.Web.Mvc.Controllers;
 
 /// <summary>
-/// Handles sign-in, sign-out, profile, and access-denied flows. When OIDC is enabled the
-/// login/logout actions delegate to the OIDC handler; otherwise they issue/clear a local
-/// cookie containing a development principal (so the rest of the UI is browsable in dev).
+/// Handles sign-in, sign-out, profile, and access-denied flows. When the OIDC scheme is
+/// registered (ChuAAuthentication:Providers.&lt;name&gt;.ClientId is set), the login/logout
+/// actions delegate to the OIDC handler; otherwise they issue/clear a local cookie
+/// containing a development principal (so the rest of the UI is browsable in dev).
 /// </summary>
 public sealed class AccountController : Controller
 {
-    private readonly IOptions<OidcOptions> _oidcOptions;
+    private readonly IAuthenticationSchemeProvider _schemeProvider;
     private readonly ICurrentUserService _currentUser;
 
-    public AccountController(IOptions<OidcOptions> oidcOptions, ICurrentUserService currentUser)
+    public AccountController(IAuthenticationSchemeProvider schemeProvider, ICurrentUserService currentUser)
     {
-        _oidcOptions = oidcOptions;
+        _schemeProvider = schemeProvider;
         _currentUser = currentUser;
     }
 
+    private async Task<bool> IsOidcConfiguredAsync()
+        => await _schemeProvider
+            .GetSchemeAsync(OpenIdConnectDefaults.AuthenticationScheme)
+            .ConfigureAwait(false) is not null;
+
     [HttpGet]
     [AllowAnonymous]
-    public IActionResult Login(string? returnUrl = null)
+    public async Task<IActionResult> Login(string? returnUrl = null)
     {
         returnUrl ??= "/";
-        if (_oidcOptions.Value.Enabled)
+        if (await IsOidcConfiguredAsync().ConfigureAwait(false))
         {
             var props = new AuthenticationProperties { RedirectUri = returnUrl };
             return Challenge(props, OpenIdConnectDefaults.AuthenticationScheme);
@@ -82,7 +86,7 @@ public sealed class AccountController : Controller
     public async Task<IActionResult> Logout()
     {
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme).ConfigureAwait(false);
-        if (_oidcOptions.Value.Enabled)
+        if (await IsOidcConfiguredAsync().ConfigureAwait(false))
         {
             return SignOut(new AuthenticationProperties { RedirectUri = "/" }, OpenIdConnectDefaults.AuthenticationScheme);
         }

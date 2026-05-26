@@ -6,6 +6,7 @@
 *@
 
 @inject ICurrentUserService CurrentUser
+@inject IWebHostEnvironment WebHostEnvironment
 @{
     var controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty;
     var requestPath = Context.Request.Path.Value ?? string.Empty;
@@ -197,5 +198,15 @@
         <li class="nav-item">
             <a class="@LinkClass("Health")" asp-area="" asp-controller="Health" asp-action="Index">System Health</a>
         </li>
+
+        @if (WebHostEnvironment.IsDevelopment())
+        {
+            <li class="nav-section text-uppercase small text-muted px-3 pt-3">Development</li>
+            <li class="nav-item">
+                <a class="@LinkClass("AuthDebug")" asp-area="" asp-controller="AuthDebug" asp-action="Index" title="Inspect the current user's claims, roles, permissions, and scopes (Development only)">
+                    <i class="bi bi-bug-fill me-1"></i>Auth Debug
+                </a>
+            </li>
+        }
     </ul>
 </nav>

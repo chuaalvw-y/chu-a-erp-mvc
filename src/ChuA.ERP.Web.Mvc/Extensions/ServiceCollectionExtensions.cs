@@ -91,6 +91,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<GlobalExceptionFilter>();
         services.AddMemoryCache();
         services.AddSingleton<ITicketStore, MemoryCacheTicketStore>();
+        // Pure function over a ClaimsPrincipal; singleton is safe and avoids per-request allocations.
+        services.AddSingleton<IAuthDebugSnapshotBuilder, AuthDebugSnapshotBuilder>();
         return services;
     }
 

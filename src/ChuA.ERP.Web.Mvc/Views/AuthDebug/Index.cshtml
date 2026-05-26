@@ -1,0 +1,312 @@
+@*
+    Copyright (c) 2026 Alvin Wilsen Chan Chua
+    GitHub: chuaalvw-y
+    Licensed under the Alvin Wilsen Chan Chua Proprietary Use-Only License.
+    See LICENSE.txt in the project root for full license information.
+*@
+
+@using ChuA.ERP.Web.Mvc.Models.Auth
+@model AuthDebugViewModel
+@{
+    ViewData["Title"] = "Auth Debug";
+}
+
+<div class="alert alert-warning d-flex align-items-start gap-2 mb-3" role="alert">
+    <i class="bi bi-bug-fill flex-shrink-0 mt-1"></i>
+    <div>
+        <strong>Development diagnostic page.</strong>
+        Surfaces the authenticated user's claims, roles, permissions and scopes to help
+        troubleshoot Auth0 / OIDC role propagation. Hard-blocked outside Development
+        (returns 404) and never exposes access tokens, refresh tokens, the client
+        secret, or cookie values.
+        <a class="ms-2" asp-controller="AuthDebug" asp-action="Claims">JSON export</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-md-6">
+        <div class="card h-100 shadow-sm">
+            <div class="card-header">
+                <i class="bi bi-person-badge me-1"></i> Authentication summary
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4 text-muted">Authenticated</dt>
+                    <dd class="col-sm-8">
+                        @if (Model.IsAuthenticated)
+                        {
+                            <span class="badge text-bg-success">Yes</span>
+                        }
+                        else
+                        {
+                            <span class="badge text-bg-danger">No</span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-4 text-muted">Scheme</dt>
+                    <dd class="col-sm-8"><code>@(Model.AuthenticationType ?? "—")</code></dd>
+
+                    <dt class="col-sm-4 text-muted">Name</dt>
+                    <dd class="col-sm-8">@(Model.Name ?? "—")</dd>
+
+                    <dt class="col-sm-4 text-muted">User ID</dt>
+                    <dd class="col-sm-8"><code class="text-break">@(Model.UserId ?? "—")</code></dd>
+
+                    <dt class="col-sm-4 text-muted">Email</dt>
+                    <dd class="col-sm-8">@(Model.Email ?? "—")</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card h-100 shadow-sm">
+            <div class="card-header">
+                <i class="bi bi-tags me-1"></i> Claim sources discovered
+            </div>
+            <div class="card-body small">
+                <p class="text-muted mb-2">
+                    The claim types that yielded the values shown below. If a column is empty,
+                    the IdP didn't emit those values under any recognised name — most likely
+                    Auth0 is sending them under a custom namespaced claim (e.g.
+                    <code>https://chua-erp.com/roles</code>); inspect the full claims table.
+                </p>
+                <dl class="row mb-0">
+                    <dt class="col-sm-4 text-muted">Roles from</dt>
+                    <dd class="col-sm-8">
+                        @if (Model.DiscoveredRoleClaimTypes.Count == 0)
+                        {
+                            <em class="text-danger">none matched</em>
+                        }
+                        else
+                        {
+                            @foreach (var type in Model.DiscoveredRoleClaimTypes)
+                            {
+                                <code class="d-block text-break">@type</code>
+                            }
+                        }
+                    </dd>
+
+                    <dt class="col-sm-4 text-muted">Permissions from</dt>
+                    <dd class="col-sm-8">
+                        @if (Model.DiscoveredPermissionClaimTypes.Count == 0)
+                        {
+                            <em class="text-danger">none matched</em>
+                        }
+                        else
+                        {
+                            @foreach (var type in Model.DiscoveredPermissionClaimTypes)
+                            {
+                                <code class="d-block text-break">@type</code>
+                            }
+                        }
+                    </dd>
+
+                    <dt class="col-sm-4 text-muted">Scopes from</dt>
+                    <dd class="col-sm-8">
+                        @if (Model.DiscoveredScopeClaimTypes.Count == 0)
+                        {
+                            <em class="text-danger">none matched</em>
+                        }
+                        else
+                        {
+                            @foreach (var type in Model.DiscoveredScopeClaimTypes)
+                            {
+                                <code class="d-block text-break">@type</code>
+                            }
+                        }
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-3">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <span><i class="bi bi-shield-lock me-1"></i> Roles &amp; permissions</span>
+        <small class="text-muted">@Model.Roles.Count roles · @Model.Permissions.Count permissions · @Model.Scopes.Count scopes</small>
+    </div>
+    <div class="card-body">
+        <div class="mb-3">
+            <div class="text-uppercase small text-muted mb-1">Roles</div>
+            @if (Model.Roles.Count == 0)
+            {
+                <em class="text-danger">No role values reached the principal.</em>
+            }
+            else
+            {
+                @foreach (var role in Model.Roles)
+                {
+                    <button type="button"
+                            class="badge text-bg-primary border-0 me-1 mb-1 auth-debug-copy"
+                            data-copy-value="@role"
+                            title="Copy">
+                        @role <i class="bi bi-clipboard ms-1 small"></i>
+                    </button>
+                }
+            }
+        </div>
+
+        <div class="mb-3">
+            <div class="text-uppercase small text-muted mb-1">Permissions</div>
+            @if (Model.Permissions.Count == 0)
+            {
+                <em class="text-muted">No permission values present.</em>
+            }
+            else
+            {
+                @foreach (var permission in Model.Permissions)
+                {
+                    <button type="button"
+                            class="badge text-bg-success border-0 me-1 mb-1 auth-debug-copy"
+                            data-copy-value="@permission"
+                            title="Copy">
+                        @permission <i class="bi bi-clipboard ms-1 small"></i>
+                    </button>
+                }
+            }
+        </div>
+
+        <div>
+            <div class="text-uppercase small text-muted mb-1">Scopes</div>
+            @if (Model.Scopes.Count == 0)
+            {
+                <em class="text-muted">No scope values present.</em>
+            }
+            else
+            {
+                @foreach (var scope in Model.Scopes)
+                {
+                    <button type="button"
+                            class="badge text-bg-warning border-0 me-1 mb-1 auth-debug-copy"
+                            data-copy-value="@scope"
+                            title="Copy">
+                        @scope <i class="bi bi-clipboard ms-1 small"></i>
+                    </button>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header d-flex align-items-center justify-content-between gap-2">
+        <span><i class="bi bi-list-columns-reverse me-1"></i> All claims (@Model.Claims.Count)</span>
+        <div class="d-flex align-items-center gap-2">
+            <label class="visually-hidden" for="authDebugClaimsFilter">Filter</label>
+            <input id="authDebugClaimsFilter"
+                   type="search"
+                   class="form-control form-control-sm"
+                   placeholder="Filter type or value…"
+                   style="max-width: 16rem;" />
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-sm table-striped table-hover mb-0 align-middle" id="authDebugClaimsTable">
+            <thead>
+                <tr>
+                    <th scope="col" style="width: 28%;">Type</th>
+                    <th scope="col" style="width: 38%;">Value</th>
+                    <th scope="col" style="width: 22%;">Issuer</th>
+                    <th scope="col" style="width: 12%;">Value type</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Claims.Count == 0)
+                {
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-3">No claims on the principal.</td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var claim in Model.Claims)
+                    {
+                        <tr>
+                            <td>
+                                <code class="text-break">@claim.Type</code>
+                                <button type="button"
+                                        class="btn btn-link btn-sm p-0 ms-1 auth-debug-copy"
+                                        data-copy-value="@claim.Type"
+                                        title="Copy type">
+                                    <i class="bi bi-clipboard small"></i>
+                                </button>
+                            </td>
+                            <td class="text-break">
+                                <span>@claim.Value</span>
+                                <button type="button"
+                                        class="btn btn-link btn-sm p-0 ms-1 auth-debug-copy"
+                                        data-copy-value="@claim.Value"
+                                        title="Copy value">
+                                    <i class="bi bi-clipboard small"></i>
+                                </button>
+                            </td>
+                            <td class="text-break"><small class="text-muted">@claim.Issuer</small></td>
+                            <td class="text-break"><small class="text-muted">@claim.ValueType</small></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            // Copy-to-clipboard for badges and table cells. Uses navigator.clipboard when
+            // available (HTTPS in dev) and falls back to a hidden textarea for HTTP loopback.
+            function copyToClipboard(value) {
+                if (navigator.clipboard && window.isSecureContext) {
+                    return navigator.clipboard.writeText(value);
+                }
+                return new Promise(function (resolve) {
+                    var ta = document.createElement('textarea');
+                    ta.value = value;
+                    ta.setAttribute('readonly', '');
+                    ta.style.position = 'absolute';
+                    ta.style.left = '-9999px';
+                    document.body.appendChild(ta);
+                    ta.select();
+                    try { document.execCommand('copy'); } catch (e) { /* swallow */ }
+                    document.body.removeChild(ta);
+                    resolve();
+                });
+            }
+
+            document.addEventListener('click', function (evt) {
+                var trigger = evt.target.closest('.auth-debug-copy');
+                if (!trigger) { return; }
+                evt.preventDefault();
+                var value = trigger.getAttribute('data-copy-value') || '';
+                copyToClipboard(value).then(function () {
+                    var icon = trigger.querySelector('i.bi');
+                    if (!icon) { return; }
+                    var previous = icon.className;
+                    icon.className = 'bi bi-check2 small';
+                    setTimeout(function () { icon.className = previous; }, 1200);
+                });
+            });
+
+            // Client-side filter for the claims table.
+            var filterInput = document.getElementById('authDebugClaimsFilter');
+            var table = document.getElementById('authDebugClaimsTable');
+            if (filterInput && table) {
+                filterInput.addEventListener('input', function () {
+                    var needle = (filterInput.value || '').trim().toLowerCase();
+                    var rows = table.tBodies[0] ? table.tBodies[0].rows : [];
+                    for (var i = 0; i < rows.length; i++) {
+                        var row = rows[i];
+                        if (!needle) {
+                            row.style.display = '';
+                            continue;
+                        }
+                        var hay = (row.textContent || '').toLowerCase();
+                        row.style.display = hay.indexOf(needle) === -1 ? 'none' : '';
+                    }
+                });
+            }
+        })();
+    </script>
+}

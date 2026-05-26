@@ -4,6 +4,7 @@
 // See LICENSE.txt in the project root for full license information.
 
 using System.Security.Claims;
+using ChuA.Authentication.Abstractions;
 using ChuA.ERP.Web.Mvc.ApiClients;
 using ChuA.ERP.Web.Mvc.Contracts.Dtos;
 using Microsoft.AspNetCore.Authentication;
@@ -46,22 +47,37 @@ public sealed class ErpClaimsTransformation : IClaimsTransformation
     private readonly IUsersApiClient _users;
     private readonly IMemoryCache _cache;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IClaimsMappingService _claimsMapping;
     private readonly ILogger<ErpClaimsTransformation> _logger;
 
     public ErpClaimsTransformation(
         IUsersApiClient users,
         IMemoryCache cache,
         IHttpContextAccessor httpContextAccessor,
+        IClaimsMappingService claimsMapping,
         ILogger<ErpClaimsTransformation> logger)
     {
         _users = users;
         _cache = cache;
         _httpContextAccessor = httpContextAccessor;
+        _claimsMapping = claimsMapping;
         _logger = logger;
     }
 
     public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
     {
+        // 0) Run the ChuA.Authentication claim mapping first. Microsoft.AspNetCore.
+        //    Authentication resolves a SINGLE IClaimsTransformation via
+        //    GetRequiredService<T>(), so we can't rely on both this transformation
+        //    AND the library's ChuAClaimsTransformation running in sequence — the
+        //    last registration wins. We re-assert ours as the winner in DI (see
+        //    AddChuAAuthN in ServiceCollectionExtensions.cs) and then explicitly
+        //    invoke the library's IClaimsMappingService here so role/permission/
+        //    scope claim-type mappings (e.g. Auth0 namespaced http://.../roles ->
+        //    ClaimTypes.Role) still happen. Without this, our transformation would
+        //    silently drop the library's mapping behaviour.
+        principal = _claimsMapping.MapClaims(principal);
+
         // 1) Already transformed in this request? Return as-is.
         var ctx = _httpContextAccessor.HttpContext;
         if (ctx is not null &&

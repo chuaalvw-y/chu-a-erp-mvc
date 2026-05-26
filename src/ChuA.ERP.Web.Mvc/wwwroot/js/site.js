@@ -34,6 +34,40 @@
             });
         }
 
+        // Sidebar section collapse toggles (Purchasing / Sales / Inventory /
+        // Finance / Workflow / Reports). These USE Bootstrap's Collapse plugin,
+        // but we bind the click handler ourselves rather than rely on the
+        // data API. Same-page elements (Account dropdown, toasts) confirm the
+        // data API is alive, yet clicks on the nav section buttons were being
+        // silently swallowed somewhere up the chain — owning the binding here
+        // makes the collapse deterministic and avoids the "menu won't collapse"
+        // regression noted on the Phase J pass.
+        document.querySelectorAll('.nav-section-collapse-toggle').forEach(function (toggle) {
+            var selector = toggle.getAttribute('data-bs-target');
+            if (!selector) { return; }
+            var target = document.querySelector(selector);
+            if (!target) { return; }
+
+            // Take this button off the data API so we don't double-fire.
+            toggle.removeAttribute('data-bs-toggle');
+
+            var instance = (window.bootstrap && window.bootstrap.Collapse)
+                ? window.bootstrap.Collapse.getOrCreateInstance(target, { toggle: false })
+                : null;
+
+            toggle.addEventListener('click', function () {
+                if (instance) {
+                    instance.toggle();
+                } else {
+                    // Bootstrap JS not loaded — fall back to a manual class flip so the
+                    // menu still works (no animation, but functional).
+                    target.classList.toggle('show');
+                }
+                toggle.setAttribute('aria-expanded',
+                    target.classList.contains('show') ? 'true' : 'false');
+            });
+        });
+
         // Auto-dismiss toasts after 5s
         document.querySelectorAll('.toast.show').forEach(function (t) {
             setTimeout(function () { t.classList.remove('show'); }, 5000);

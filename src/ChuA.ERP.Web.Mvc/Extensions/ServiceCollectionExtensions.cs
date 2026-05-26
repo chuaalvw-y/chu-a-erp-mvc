@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -87,14 +88,16 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICorrelationIdAccessor, CorrelationIdAccessor>();
         services.AddScoped<ITokenAcquisitionService, CookieTokenAcquisitionService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
-        // Phase J — hydrates role/permission claims from the ERP database
-        // (via /api/v1/users/me) onto every authenticated principal. Must
-        // be transient because IClaimsTransformation is resolved per call
-        // by Microsoft.AspNetCore.Authentication; the implementation does
-        // its own per-request short-circuit via HttpContext.Items + a 30s
-        // IMemoryCache window.
-        services.AddTransient<Microsoft.AspNetCore.Authentication.IClaimsTransformation,
-                              Security.ErpClaimsTransformation>();
+        // Phase J — IClaimsTransformation registration moved to AddChuAAuthN
+        // (post-AddChuAAuthentication). Microsoft.AspNetCore.Authentication
+        // resolves a SINGLE IClaimsTransformation via GetRequiredService<T>(),
+        // returning the LAST registration. Registering ErpClaimsTransformation
+        // here was getting shadowed by ChuA.Authentication's ChuAClaimsTransformation
+        // (registered later inside AddChuAAuthentication), which meant our /me
+        // call never fired and no permission claims ever landed on the principal.
+        // The fix re-asserts our transformation as the winner AFTER the library
+        // has run, and ErpClaimsTransformation now delegates the library's
+        // claim-mapping behaviour via IClaimsMappingService internally.
         services.AddScoped<CorrelationIdActionFilter>();
         services.AddScoped<GlobalExceptionFilter>();
         services.AddMemoryCache();
@@ -149,6 +152,20 @@ public static class ServiceCollectionExtensions
                     options.SessionStore = ticketStore;
                 }
             });
+
+        // Phase J — re-assert ErpClaimsTransformation as the IClaimsTransformation
+        // winner. AddChuAAuthentication (called above via AddChuAAuthentication)
+        // registers ChuAClaimsTransformation when EnableClaimsTransformation=true
+        // (the default). Microsoft.AspNetCore.Authentication's AuthenticationService
+        // resolves a SINGLE IClaimsTransformation via GetRequiredService<T>(),
+        // returning the LAST registration. Without this RemoveAll + re-add, the
+        // library's transformation wins and our /me call never fires -> no
+        // permission claims -> empty sidebar submenu. ErpClaimsTransformation
+        // chains IClaimsMappingService internally so the library's role/permission
+        // mapping behaviour is preserved.
+        services.RemoveAll<Microsoft.AspNetCore.Authentication.IClaimsTransformation>();
+        services.AddTransient<Microsoft.AspNetCore.Authentication.IClaimsTransformation,
+                              Security.ErpClaimsTransformation>();
 
         return services;
     }

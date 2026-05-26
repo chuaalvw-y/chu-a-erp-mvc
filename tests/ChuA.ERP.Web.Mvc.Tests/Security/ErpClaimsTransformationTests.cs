@@ -4,6 +4,7 @@
 // See LICENSE.txt in the project root for full license information.
 
 using System.Security.Claims;
+using ChuA.Authentication.Abstractions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -35,16 +36,23 @@ public sealed class ErpClaimsTransformationTests
     private readonly IMemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
     private readonly DefaultHttpContext _httpContext = new();
     private readonly Mock<IHttpContextAccessor> _httpContextAccessor = new();
+    private readonly Mock<IClaimsMappingService> _claimsMapping = new();
 
     public ErpClaimsTransformationTests()
     {
         _httpContextAccessor.Setup(a => a.HttpContext).Returns(_httpContext);
+        // Default: pass-through. Tests that care about the chained mapping
+        // (e.g. asserting roles still surface at the configured claim type)
+        // override this Setup explicitly.
+        _claimsMapping.Setup(s => s.MapClaims(It.IsAny<ClaimsPrincipal>()))
+                      .Returns((ClaimsPrincipal p) => p);
     }
 
     private ErpClaimsTransformation BuildSut() => new(
         _users.Object,
         _cache,
         _httpContextAccessor.Object,
+        _claimsMapping.Object,
         NullLogger<ErpClaimsTransformation>.Instance);
 
     private static ClaimsPrincipal AuthenticatedPrincipal(

@@ -57,7 +57,14 @@ public class CurrentUserServiceTests
     public async Task LoadProfileAsync_should_cache_the_first_successful_call()
     {
         var (sut, users, _) = Build();
-        var profile = new CurrentUserDto("u1", Guid.NewGuid(), new[] { "SystemAdmin" }, new[] { "vendor:view" });
+        var profile = new CurrentUserDto(
+            UserId: Guid.NewGuid(),
+            Email: "u1@chua-erp.test",
+            DisplayName: "U1",
+            ActiveCompanyId: Guid.NewGuid(),
+            Companies: Array.Empty<MembershipDto>(),
+            Roles: new[] { "SystemAdmin" },
+            Permissions: new[] { "vendor:view" });
         users.Setup(u => u.GetMeAsync(It.IsAny<CancellationToken>())).ReturnsAsync(Result<CurrentUserDto>.Success(profile));
 
         var first = await sut.LoadProfileAsync();

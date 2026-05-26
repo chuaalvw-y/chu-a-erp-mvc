@@ -87,6 +87,14 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICorrelationIdAccessor, CorrelationIdAccessor>();
         services.AddScoped<ITokenAcquisitionService, CookieTokenAcquisitionService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
+        // Phase J — hydrates role/permission claims from the ERP database
+        // (via /api/v1/users/me) onto every authenticated principal. Must
+        // be transient because IClaimsTransformation is resolved per call
+        // by Microsoft.AspNetCore.Authentication; the implementation does
+        // its own per-request short-circuit via HttpContext.Items + a 30s
+        // IMemoryCache window.
+        services.AddTransient<Microsoft.AspNetCore.Authentication.IClaimsTransformation,
+                              Security.ErpClaimsTransformation>();
         services.AddScoped<CorrelationIdActionFilter>();
         services.AddScoped<GlobalExceptionFilter>();
         services.AddMemoryCache();

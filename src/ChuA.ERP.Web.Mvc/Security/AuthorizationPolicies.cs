@@ -6,115 +6,175 @@
 namespace ChuA.ERP.Web.Mvc.Security;
 
 /// <summary>
-/// Mirror of <c>ChuA.ERP.Api.Constants.AuthorizationPolicies</c>. The MVC declares the same
-/// policy names locally so controllers and tag helpers can decorate actions without taking a
-/// project reference to the API.
+/// MVC-local mirror of the canonical <c>ChuA.ERP.Domain.Authorization.ErpPermissions</c>
+/// catalogue. Controllers and tag helpers reference these constants so the MVC project
+/// stays decoupled from the API and Domain assemblies; the policy strings (values) are
+/// identical to the Domain catalogue, so a permission claim issued by the API or the
+/// Phase J IClaimsTransformation is recognised by both sides.
+///
+/// <para>Phase J convention: <c>module:action</c>, lowercase, colon-separated. Adding
+/// a new permission here MUST be accompanied by the matching entry in
+/// <c>ErpPermissions</c> in the Domain project, otherwise the API will reject the
+/// policy at startup.</para>
 /// </summary>
 public static class AuthorizationPolicies
 {
-    // Baseline
+    // ---- Baseline (not permission-backed) ---------------------------------
     public const string AuthenticatedUser = "AuthenticatedUser";
-    public const string SystemAdmin = "SystemAdmin";
-    public const string CompanyAdmin = "CompanyAdmin";
+    public const string SystemAdmin       = "SystemAdmin";
+    public const string CompanyAdmin      = "CompanyAdmin";
 
-    // Vendors (AP master data)
-    public const string VendorRead = nameof(VendorRead);
-    public const string VendorCreate = nameof(VendorCreate);
-    public const string VendorUpdate = nameof(VendorUpdate);
-    public const string VendorDelete = nameof(VendorDelete);
+    // ---- Baseline permission ----------------------------------------------
+    public const string Admin = "erp:admin";
 
-    // Customers (AR master data)
-    public const string CustomerRead = nameof(CustomerRead);
-    public const string CustomerCreate = nameof(CustomerCreate);
-    public const string CustomerUpdate = nameof(CustomerUpdate);
-    public const string CustomerDelete = nameof(CustomerDelete);
+    // ---- Dashboard --------------------------------------------------------
+    public const string DashboardView      = "dashboard:view";
+    public const string DashboardConfigure = "dashboard:configure";
 
-    // Finance
-    public const string ChartOfAccountRead = nameof(ChartOfAccountRead);
-    public const string ChartOfAccountCreate = nameof(ChartOfAccountCreate);
-    public const string ChartOfAccountUpdate = nameof(ChartOfAccountUpdate);
-    public const string ChartOfAccountDelete = nameof(ChartOfAccountDelete);
-    public const string JournalEntryRead = nameof(JournalEntryRead);
-    public const string JournalEntryCreate = nameof(JournalEntryCreate);
-    public const string JournalEntryUpdate = nameof(JournalEntryUpdate);
-    public const string JournalEntryDelete = nameof(JournalEntryDelete);
-    public const string JournalEntryPost = nameof(JournalEntryPost);
+    // ---- Identity ---------------------------------------------------------
+    public const string UsersView         = "users:view";
+    public const string UsersCreate       = "users:create";
+    public const string UsersUpdate       = "users:update";
+    public const string UsersDelete       = "users:delete";
+    public const string RolesManage       = "roles:manage";
+    public const string PermissionsManage = "permissions:manage";
+    public const string CredentialManage  = "credential:manage";
 
-    // Accounts Payable
-    public const string BillRead = nameof(BillRead);
-    public const string BillCreate = nameof(BillCreate);
-    public const string BillUpdate = nameof(BillUpdate);
-    public const string BillDelete = nameof(BillDelete);
-    public const string BillApprove = nameof(BillApprove);
-    public const string BillPay = nameof(BillPay);
+    // ---- Organisation / Tenancy -------------------------------------------
+    public const string CompanyView      = "company:view";
+    public const string CompanyConfigure = "company:configure";
+    public const string TenantManage     = "tenant:manage";
 
-    // Accounts Receivable
-    public const string InvoiceRead = nameof(InvoiceRead);
-    public const string InvoiceCreate = nameof(InvoiceCreate);
-    public const string InvoiceUpdate = nameof(InvoiceUpdate);
-    public const string InvoiceDelete = nameof(InvoiceDelete);
-    public const string InvoiceApplyPayment = nameof(InvoiceApplyPayment);
+    // ---- Vendors ----------------------------------------------------------
+    public const string VendorView   = "vendor:view";
+    public const string VendorCreate = "vendor:create";
+    public const string VendorUpdate = "vendor:update";
+    public const string VendorDelete = "vendor:delete";
 
-    // Procurement
-    public const string PurchaseOrderRead = nameof(PurchaseOrderRead);
-    public const string PurchaseOrderCreate = nameof(PurchaseOrderCreate);
-    public const string PurchaseOrderUpdate = nameof(PurchaseOrderUpdate);
-    public const string PurchaseOrderDelete = nameof(PurchaseOrderDelete);
-    public const string PurchaseOrderApprove = nameof(PurchaseOrderApprove);
-    public const string PurchaseOrderReceive = nameof(PurchaseOrderReceive);
+    // ---- Customers --------------------------------------------------------
+    public const string CustomerView   = "customer:view";
+    public const string CustomerCreate = "customer:create";
+    public const string CustomerUpdate = "customer:update";
+    public const string CustomerDelete = "customer:delete";
 
-    // Inventory
-    public const string InventoryRead = nameof(InventoryRead);
-    public const string InventoryCreate = nameof(InventoryCreate);
-    public const string InventoryUpdate = nameof(InventoryUpdate);
-    public const string InventoryDelete = nameof(InventoryDelete);
-    public const string InventoryAdjust = nameof(InventoryAdjust);
+    // ---- Purchase Orders --------------------------------------------------
+    public const string PurchaseOrderView    = "purchase-order:view";
+    public const string PurchaseOrderCreate  = "purchase-order:create";
+    public const string PurchaseOrderUpdate  = "purchase-order:update";
+    public const string PurchaseOrderDelete  = "purchase-order:delete";
+    public const string PurchaseOrderApprove = "purchase-order:approve";
+    public const string PurchaseOrderCancel  = "purchase-order:cancel";
+    public const string PurchaseOrderReceive = "purchase-order:receive";
 
-    // Sales
-    public const string SalesOrderRead = nameof(SalesOrderRead);
-    public const string SalesOrderCreate = nameof(SalesOrderCreate);
-    public const string SalesOrderUpdate = nameof(SalesOrderUpdate);
-    public const string SalesOrderDelete = nameof(SalesOrderDelete);
-    public const string SalesOrderShip = nameof(SalesOrderShip);
+    // ---- Sales Orders -----------------------------------------------------
+    public const string SalesOrderView    = "sales-order:view";
+    public const string SalesOrderCreate  = "sales-order:create";
+    public const string SalesOrderUpdate  = "sales-order:update";
+    public const string SalesOrderDelete  = "sales-order:delete";
+    public const string SalesOrderApprove = "sales-order:approve";
+    public const string SalesOrderCancel  = "sales-order:cancel";
+    public const string SalesOrderShip    = "sales-order:ship";
 
-    // Workflow inbox (approver-facing)
-    public const string WorkflowRead = nameof(WorkflowRead);
-    public const string WorkflowApprovalDecide = nameof(WorkflowApprovalDecide);
-    public const string WorkflowApprovalDelegate = nameof(WorkflowApprovalDelegate);
-    public const string WorkflowApprovalReassign = nameof(WorkflowApprovalReassign);
+    // ---- Inventory --------------------------------------------------------
+    public const string InventoryView     = "inventory:view";
+    public const string InventoryCreate   = "inventory:create";
+    public const string InventoryUpdate   = "inventory:update";
+    public const string InventoryDelete   = "inventory:delete";
+    public const string InventoryAdjust   = "inventory:adjust";
+    public const string InventoryTransfer = "inventory:transfer";
+    public const string InventoryCount    = "inventory:count";
 
-    // Workflow engine admin (slice B)
-    public const string WorkflowDefinitionCreate = nameof(WorkflowDefinitionCreate);
-    public const string WorkflowDefinitionUpdate = nameof(WorkflowDefinitionUpdate);
-    public const string WorkflowDefinitionPublish = nameof(WorkflowDefinitionPublish);
-    public const string WorkflowDefinitionRetire = nameof(WorkflowDefinitionRetire);
-    public const string WorkflowConfigManage = nameof(WorkflowConfigManage);
-    public const string WorkflowInstanceRead = nameof(WorkflowInstanceRead);
-    public const string WorkflowInstanceCancel = nameof(WorkflowInstanceCancel);
+    // ---- Invoices (AR) ----------------------------------------------------
+    public const string InvoiceView         = "invoice:view";
+    public const string InvoiceCreate       = "invoice:create";
+    public const string InvoiceUpdate       = "invoice:update";
+    public const string InvoiceDelete       = "invoice:delete";
+    public const string InvoiceApprove      = "invoice:approve";
+    public const string InvoicePost         = "invoice:post";
+    public const string InvoiceVoid         = "invoice:void";
+    public const string InvoiceApplyPayment = "invoice:apply-payment";
 
-    // Business rules (slice C — read-only V1)
-    public const string BusinessRuleRead = nameof(BusinessRuleRead);
+    // ---- Bills (AP) -------------------------------------------------------
+    public const string BillView    = "bill:view";
+    public const string BillCreate  = "bill:create";
+    public const string BillUpdate  = "bill:update";
+    public const string BillDelete  = "bill:delete";
+    public const string BillApprove = "bill:approve";
+    public const string BillPay     = "bill:pay";
+    public const string BillVoid    = "bill:void";
 
-    // Reports
-    public const string ReportRun = nameof(ReportRun);
+    // ---- Payments ---------------------------------------------------------
+    public const string PaymentView    = "payment:view";
+    public const string PaymentCreate  = "payment:create";
+    public const string PaymentApprove = "payment:approve";
+    public const string PaymentVoid    = "payment:void";
+
+    // ---- General Ledger ---------------------------------------------------
+    public const string JournalEntryView    = "journal-entry:view";
+    public const string JournalEntryCreate  = "journal-entry:create";
+    public const string JournalEntryUpdate  = "journal-entry:update";
+    public const string JournalEntryDelete  = "journal-entry:delete";
+    public const string JournalEntryApprove = "journal-entry:approve";
+    public const string JournalEntryPost    = "journal-entry:post";
+    public const string JournalEntryVoid    = "journal-entry:void";
+
+    public const string ChartOfAccountView   = "chart-of-accounts:view";
+    public const string ChartOfAccountCreate = "chart-of-accounts:create";
+    public const string ChartOfAccountUpdate = "chart-of-accounts:update";
+    public const string ChartOfAccountDelete = "chart-of-accounts:delete";
+
+    // ---- Workflow ---------------------------------------------------------
+    public const string WorkflowView      = "workflow:view";
+    public const string WorkflowConfigure = "workflow:configure";
+    public const string WorkflowApprove   = "workflow:approve";
+    public const string WorkflowDelegate  = "workflow:delegate";
+    public const string WorkflowCancel    = "workflow:cancel";
+
+    // ---- Business rules ---------------------------------------------------
+    public const string BusinessRuleView   = "business-rule:view";
+    public const string BusinessRuleManage = "business-rule:manage";
+
+    // ---- Reports ----------------------------------------------------------
+    public const string ReportsView   = "reports:view";
+    public const string ReportsExport = "reports:export";
+    public const string ReportsAdmin  = "reports:admin";
+
+    // ---- Audit ------------------------------------------------------------
+    public const string AuditView   = "audit:view";
+    public const string AuditExport = "audit:export";
+
+    // ---- System -----------------------------------------------------------
+    public const string SystemConfigure = "system:configure";
+    public const string SystemHealth    = "system:health";
 
     /// <summary>Returns every policy name declared on this class (useful for DI registration).</summary>
     public static IReadOnlyCollection<string> All { get; } = new[]
     {
         AuthenticatedUser, SystemAdmin, CompanyAdmin,
-        VendorRead, VendorCreate, VendorUpdate, VendorDelete,
-        CustomerRead, CustomerCreate, CustomerUpdate, CustomerDelete,
-        ChartOfAccountRead, ChartOfAccountCreate, ChartOfAccountUpdate, ChartOfAccountDelete,
-        JournalEntryRead, JournalEntryCreate, JournalEntryUpdate, JournalEntryDelete, JournalEntryPost,
-        BillRead, BillCreate, BillUpdate, BillDelete, BillApprove, BillPay,
-        InvoiceRead, InvoiceCreate, InvoiceUpdate, InvoiceDelete, InvoiceApplyPayment,
-        PurchaseOrderRead, PurchaseOrderCreate, PurchaseOrderUpdate, PurchaseOrderDelete, PurchaseOrderApprove, PurchaseOrderReceive,
-        InventoryRead, InventoryCreate, InventoryUpdate, InventoryDelete, InventoryAdjust,
-        SalesOrderRead, SalesOrderCreate, SalesOrderUpdate, SalesOrderDelete, SalesOrderShip,
-        WorkflowRead, WorkflowApprovalDecide, WorkflowApprovalDelegate, WorkflowApprovalReassign,
-        WorkflowDefinitionCreate, WorkflowDefinitionUpdate, WorkflowDefinitionPublish, WorkflowDefinitionRetire,
-        WorkflowConfigManage, WorkflowInstanceRead, WorkflowInstanceCancel,
-        BusinessRuleRead,
-        ReportRun
+        Admin,
+        DashboardView, DashboardConfigure,
+        UsersView, UsersCreate, UsersUpdate, UsersDelete,
+        RolesManage, PermissionsManage, CredentialManage,
+        CompanyView, CompanyConfigure, TenantManage,
+        VendorView, VendorCreate, VendorUpdate, VendorDelete,
+        CustomerView, CustomerCreate, CustomerUpdate, CustomerDelete,
+        PurchaseOrderView, PurchaseOrderCreate, PurchaseOrderUpdate, PurchaseOrderDelete,
+        PurchaseOrderApprove, PurchaseOrderCancel, PurchaseOrderReceive,
+        SalesOrderView, SalesOrderCreate, SalesOrderUpdate, SalesOrderDelete,
+        SalesOrderApprove, SalesOrderCancel, SalesOrderShip,
+        InventoryView, InventoryCreate, InventoryUpdate, InventoryDelete,
+        InventoryAdjust, InventoryTransfer, InventoryCount,
+        InvoiceView, InvoiceCreate, InvoiceUpdate, InvoiceDelete,
+        InvoiceApprove, InvoicePost, InvoiceVoid, InvoiceApplyPayment,
+        BillView, BillCreate, BillUpdate, BillDelete, BillApprove, BillPay, BillVoid,
+        PaymentView, PaymentCreate, PaymentApprove, PaymentVoid,
+        JournalEntryView, JournalEntryCreate, JournalEntryUpdate, JournalEntryDelete,
+        JournalEntryApprove, JournalEntryPost, JournalEntryVoid,
+        ChartOfAccountView, ChartOfAccountCreate, ChartOfAccountUpdate, ChartOfAccountDelete,
+        WorkflowView, WorkflowConfigure, WorkflowApprove, WorkflowDelegate, WorkflowCancel,
+        BusinessRuleView, BusinessRuleManage,
+        ReportsView, ReportsExport, ReportsAdmin,
+        AuditView, AuditExport,
+        SystemConfigure, SystemHealth,
     };
 }

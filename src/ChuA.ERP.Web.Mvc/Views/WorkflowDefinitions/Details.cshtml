@@ -16,19 +16,19 @@
     <div>
         @if (isDraft)
         {
-            <form asp-action="Publish" asp-route-id="@Model.Id" method="post" class="d-inline" asp-authorize-policy="WorkflowDefinitionPublish">
+            <form asp-action="Publish" asp-route-id="@Model.Id" method="post" class="d-inline" asp-authorize-policy="workflow:configure">
                 @Html.AntiForgeryToken()
                 <button class="btn btn-outline-success" type="submit">Publish</button>
             </form>
         }
         @if (isPublished)
         {
-            <form asp-action="Retire" asp-route-id="@Model.Id" method="post" class="d-inline" asp-authorize-policy="WorkflowDefinitionRetire">
+            <form asp-action="Retire" asp-route-id="@Model.Id" method="post" class="d-inline" asp-authorize-policy="workflow:configure">
                 @Html.AntiForgeryToken()
                 <button class="btn btn-outline-warning" type="submit">Retire</button>
             </form>
         }
-        <form asp-action="Clone" asp-route-id="@Model.Id" method="post" class="d-inline" asp-authorize-policy="WorkflowDefinitionCreate">
+        <form asp-action="Clone" asp-route-id="@Model.Id" method="post" class="d-inline" asp-authorize-policy="workflow:configure">
             @Html.AntiForgeryToken()
             <button class="btn btn-outline-primary" type="submit">Clone as new version</button>
         </form>
@@ -49,7 +49,7 @@
     <h2 class="h5 mb-0">Steps</h2>
     @if (isDraft)
     {
-        <a class="btn btn-sm btn-outline-primary" asp-action="AddStep" asp-route-id="@Model.Id" asp-authorize-policy="WorkflowDefinitionUpdate">+ Add step</a>
+        <a class="btn btn-sm btn-outline-primary" asp-action="AddStep" asp-route-id="@Model.Id" asp-authorize-policy="workflow:configure">+ Add step</a>
     }
 </div>
 
@@ -97,7 +97,7 @@ else
                             {
                                 <a class="btn btn-sm btn-outline-primary"
                                    asp-action="AddApprover" asp-route-id="@Model.Id" asp-route-stepNumber="@step.StepNumber"
-                                   asp-authorize-policy="WorkflowDefinitionUpdate">+ Add approver</a>
+                                   asp-authorize-policy="workflow:configure">+ Add approver</a>
                             }
                         </div>
 
@@ -119,7 +119,7 @@ else
                                                   asp-route-stepNumber="@step.StepNumber"
                                                   asp-route-assigneeType="@ap.AssigneeType"
                                                   asp-route-assigneeId="@ap.AssigneeId"
-                                                  method="post" class="d-inline" asp-authorize-policy="WorkflowDefinitionUpdate">
+                                                  method="post" class="d-inline" asp-authorize-policy="workflow:configure">
                                                 @Html.AntiForgeryToken()
                                                 <button class="btn btn-sm btn-outline-danger" type="submit">Remove</button>
                                             </form>
@@ -132,7 +132,7 @@ else
                         @if (isDraft)
                         {
                             <form asp-action="RemoveStep" asp-route-id="@Model.Id" asp-route-stepNumber="@step.StepNumber"
-                                  method="post" asp-authorize-policy="WorkflowDefinitionUpdate">
+                                  method="post" asp-authorize-policy="workflow:configure">
                                 @Html.AntiForgeryToken()
                                 <button class="btn btn-sm btn-outline-danger" type="submit"
                                         onclick="return confirm('Remove step @step.StepNumber? Subsequent steps will be renumbered.');">

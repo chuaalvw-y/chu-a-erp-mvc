@@ -24,7 +24,7 @@ public class AuthorizePolicyTagHelperTests
     {
         var user = new Mock<ICurrentUserService>();
         user.Setup(u => u.HasAnyPermission(It.IsAny<string[]>())).Returns(false);
-        var sut = new AuthorizePolicyTagHelper(user.Object) { Policy = "VendorCreate" };
+        var sut = new AuthorizePolicyTagHelper(user.Object) { Policy = "vendor:create" };
 
         var output = NewOutput();
         await sut.ProcessAsync(NewContext(), output);
@@ -37,7 +37,7 @@ public class AuthorizePolicyTagHelperTests
     {
         var user = new Mock<ICurrentUserService>();
         user.Setup(u => u.HasAnyPermission(It.IsAny<string[]>())).Returns(true);
-        var sut = new AuthorizePolicyTagHelper(user.Object) { Policy = "VendorCreate" };
+        var sut = new AuthorizePolicyTagHelper(user.Object) { Policy = "vendor:create" };
 
         var output = NewOutput();
         await sut.ProcessAsync(NewContext(), output);
@@ -50,7 +50,7 @@ public class AuthorizePolicyTagHelperTests
     {
         var user = new Mock<ICurrentUserService>();
         await sut(user.Object, "VendorRead, BillRead").ProcessAsync(NewContext(), NewOutput());
-        user.Verify(u => u.HasAnyPermission(It.Is<string[]>(arr => arr.Length == 2 && arr.Contains("VendorRead") && arr.Contains("BillRead"))));
+        user.Verify(u => u.HasAnyPermission(It.Is<string[]>(arr => arr.Length == 2 && arr.Contains("vendor:view") && arr.Contains("bill:view"))));
     }
 
     [Fact]
@@ -62,7 +62,7 @@ public class AuthorizePolicyTagHelperTests
             .Returns(true);
 
         var output = NewOutput();
-        await sut(user.Object, "VendorRead").ProcessAsync(NewContext(), output);
+        await sut(user.Object, "vendor:view").ProcessAsync(NewContext(), output);
 
         user.Verify(u => u.LoadProfileAsync(It.IsAny<CancellationToken>()), Times.Once);
         output.TagName.Should().Be("li");

@@ -15,7 +15,7 @@
     <h1 class="h3 mb-0">@Model.TargetEntityType <small class="text-muted">@Model.TargetEntityId.ToString()[..8]</small> @Html.StatusBadge(Model.Status)</h1>
     @if (isRunning)
     {
-        <a class="btn btn-outline-danger" asp-action="Cancel" asp-route-id="@Model.Id" asp-authorize-policy="WorkflowInstanceCancel">Cancel</a>
+        <a class="btn btn-outline-danger" asp-action="Cancel" asp-route-id="@Model.Id" asp-authorize-policy="workflow:cancel">Cancel</a>
     }
 </div>
 

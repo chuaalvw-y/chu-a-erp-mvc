@@ -26,7 +26,7 @@ public sealed class ChartOfAccountsController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.ChartOfAccountRead)]
+    [Authorize(Policy = AuthorizationPolicies.ChartOfAccountView)]
     public async Task<IActionResult> Index(string? accountType, string? search, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default)
     {
         var result = await _coa.ListAsync(accountType, search, pageNumber, pageSize, sort, cancellationToken).ConfigureAwait(false);
@@ -52,7 +52,7 @@ public sealed class ChartOfAccountsController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.ChartOfAccountRead)]
+    [Authorize(Policy = AuthorizationPolicies.ChartOfAccountView)]
     public async Task<IActionResult> Details(Guid id, CancellationToken cancellationToken)
     {
         var result = await _coa.GetAsync(id, cancellationToken).ConfigureAwait(false);

@@ -5,6 +5,7 @@
 
 using System.Reflection;
 using Microsoft.AspNetCore.Authorization;
+using ChuA.ERP.Web.Mvc.Security;
 
 namespace ChuA.ERP.Web.Mvc.Tests.Security;
 
@@ -39,20 +40,20 @@ public class ControllerAuthorizationPolicyTests
     [InlineData(typeof(JournalEntriesController), "Edit", AuthorizationPolicies.JournalEntryUpdate)]
     [InlineData(typeof(JournalEntriesController), "Delete", AuthorizationPolicies.JournalEntryDelete)]
     [InlineData(typeof(JournalEntriesController), "DeleteConfirmed", AuthorizationPolicies.JournalEntryDelete)]
-    [InlineData(typeof(WorkflowController), "Reassign", AuthorizationPolicies.WorkflowApprovalReassign)]
-    [InlineData(typeof(WorkflowDefinitionsController), "Create", AuthorizationPolicies.WorkflowDefinitionCreate)]
-    [InlineData(typeof(WorkflowDefinitionsController), "AddStep", AuthorizationPolicies.WorkflowDefinitionUpdate)]
-    [InlineData(typeof(WorkflowDefinitionsController), "RemoveStep", AuthorizationPolicies.WorkflowDefinitionUpdate)]
-    [InlineData(typeof(WorkflowDefinitionsController), "AddApprover", AuthorizationPolicies.WorkflowDefinitionUpdate)]
-    [InlineData(typeof(WorkflowDefinitionsController), "RemoveApprover", AuthorizationPolicies.WorkflowDefinitionUpdate)]
-    [InlineData(typeof(WorkflowDefinitionsController), "Publish", AuthorizationPolicies.WorkflowDefinitionPublish)]
-    [InlineData(typeof(WorkflowDefinitionsController), "Retire", AuthorizationPolicies.WorkflowDefinitionRetire)]
-    [InlineData(typeof(WorkflowDefinitionsController), "Clone", AuthorizationPolicies.WorkflowDefinitionCreate)]
-    [InlineData(typeof(WorkflowConfigurationsController), "Create", AuthorizationPolicies.WorkflowConfigManage)]
-    [InlineData(typeof(WorkflowConfigurationsController), "Edit", AuthorizationPolicies.WorkflowConfigManage)]
-    [InlineData(typeof(WorkflowConfigurationsController), "Activate", AuthorizationPolicies.WorkflowConfigManage)]
-    [InlineData(typeof(WorkflowConfigurationsController), "Deactivate", AuthorizationPolicies.WorkflowConfigManage)]
-    [InlineData(typeof(WorkflowInstancesController), "Cancel", AuthorizationPolicies.WorkflowInstanceCancel)]
+    [InlineData(typeof(WorkflowController), "Reassign", AuthorizationPolicies.WorkflowDelegate)]
+    [InlineData(typeof(WorkflowDefinitionsController), "Create", AuthorizationPolicies.WorkflowConfigure)]
+    [InlineData(typeof(WorkflowDefinitionsController), "AddStep", AuthorizationPolicies.WorkflowConfigure)]
+    [InlineData(typeof(WorkflowDefinitionsController), "RemoveStep", AuthorizationPolicies.WorkflowConfigure)]
+    [InlineData(typeof(WorkflowDefinitionsController), "AddApprover", AuthorizationPolicies.WorkflowConfigure)]
+    [InlineData(typeof(WorkflowDefinitionsController), "RemoveApprover", AuthorizationPolicies.WorkflowConfigure)]
+    [InlineData(typeof(WorkflowDefinitionsController), "Publish", AuthorizationPolicies.WorkflowConfigure)]
+    [InlineData(typeof(WorkflowDefinitionsController), "Retire", AuthorizationPolicies.WorkflowConfigure)]
+    [InlineData(typeof(WorkflowDefinitionsController), "Clone", AuthorizationPolicies.WorkflowConfigure)]
+    [InlineData(typeof(WorkflowConfigurationsController), "Create", AuthorizationPolicies.WorkflowConfigure)]
+    [InlineData(typeof(WorkflowConfigurationsController), "Edit", AuthorizationPolicies.WorkflowConfigure)]
+    [InlineData(typeof(WorkflowConfigurationsController), "Activate", AuthorizationPolicies.WorkflowConfigure)]
+    [InlineData(typeof(WorkflowConfigurationsController), "Deactivate", AuthorizationPolicies.WorkflowConfigure)]
+    [InlineData(typeof(WorkflowInstancesController), "Cancel", AuthorizationPolicies.WorkflowCancel)]
     public void Mutating_actions_should_use_specific_policies(Type controllerType, string methodName, string expectedPolicy)
     {
         var methods = controllerType.GetMethods(BindingFlags.Instance | BindingFlags.Public)

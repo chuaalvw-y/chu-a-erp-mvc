@@ -28,7 +28,7 @@ public sealed class InvoicesController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.InvoiceRead)]
+    [Authorize(Policy = AuthorizationPolicies.InvoiceView)]
     public async Task<IActionResult> Index(Guid? customerId, string? status, string? paymentStatus, string? search, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default)
     {
         var result = await _invoices.ListAsync(customerId, status, paymentStatus, search, pageNumber, pageSize, sort, cancellationToken).ConfigureAwait(false);
@@ -56,7 +56,7 @@ public sealed class InvoicesController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.InvoiceRead)]
+    [Authorize(Policy = AuthorizationPolicies.InvoiceView)]
     public async Task<IActionResult> Details(Guid id, CancellationToken cancellationToken)
     {
         var result = await _invoices.GetAsync(id, cancellationToken).ConfigureAwait(false);

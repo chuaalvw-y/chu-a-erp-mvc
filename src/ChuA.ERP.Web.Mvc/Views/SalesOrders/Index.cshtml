@@ -55,7 +55,7 @@ else
                     <td class="text-end">@Html.Money(so.TotalAmount)</td>
                     <td class="actions">
                         <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@so.Id">View</a>
-                        <a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-id="@so.Id" asp-authorize-policy="SalesOrderUpdate">Edit</a>
+                        <a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-id="@so.Id" asp-authorize-policy="sales-order:update">Edit</a>
                     </td>
                 </tr>
             }

@@ -29,7 +29,7 @@ public sealed class BusinessRulesController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.BusinessRuleRead)]
+    [Authorize(Policy = AuthorizationPolicies.BusinessRuleView)]
     public async Task<IActionResult> Index(string? targetEntity, string? triggerEvent, CancellationToken cancellationToken)
     {
         var result = await _rules.ListAsync(targetEntity, triggerEvent, cancellationToken).ConfigureAwait(false);
@@ -52,7 +52,7 @@ public sealed class BusinessRulesController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.BusinessRuleRead)]
+    [Authorize(Policy = AuthorizationPolicies.BusinessRuleView)]
     public async Task<IActionResult> Details(Guid id, CancellationToken cancellationToken)
     {
         var result = await _rules.GetAsync(id, cancellationToken).ConfigureAwait(false);

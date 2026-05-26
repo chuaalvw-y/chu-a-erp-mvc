@@ -46,13 +46,13 @@
         <li class="nav-item">
             <div id="purchasingMenu" class="collapse @(isPurchasingRoute ? "show" : string.Empty)">
                 <ul class="nav flex-column">
-                    <li class="nav-item" asp-authorize-policy="VendorRead">
+                    <li class="nav-item" asp-authorize-policy="vendor:view">
                         <a class="@LinkClass("Vendors")" asp-area="" asp-controller="Vendors" asp-action="Index">Vendors</a>
                     </li>
-                    <li class="nav-item" asp-authorize-policy="PurchaseOrderRead">
+                    <li class="nav-item" asp-authorize-policy="purchase-order:view">
                         <a class="@LinkClass("PurchaseOrders")" asp-area="" asp-controller="PurchaseOrders" asp-action="Index">Purchase Orders</a>
                     </li>
-                    <li class="nav-item" asp-authorize-policy="BillRead">
+                    <li class="nav-item" asp-authorize-policy="bill:view">
                         <a class="@LinkClass("Bills")" asp-area="" asp-controller="Bills" asp-action="Index">Bills</a>
                     </li>
                 </ul>
@@ -72,13 +72,13 @@
         <li class="nav-item">
             <div id="salesMenu" class="collapse @(isSalesRoute ? "show" : string.Empty)">
                 <ul class="nav flex-column">
-                    <li class="nav-item" asp-authorize-policy="CustomerRead">
+                    <li class="nav-item" asp-authorize-policy="customer:view">
                         <a class="@LinkClass("Customers")" asp-area="" asp-controller="Customers" asp-action="Index">Customers</a>
                     </li>
-                    <li class="nav-item" asp-authorize-policy="SalesOrderRead">
+                    <li class="nav-item" asp-authorize-policy="sales-order:view">
                         <a class="@LinkClass("SalesOrders")" asp-area="" asp-controller="SalesOrders" asp-action="Index">Sales Orders</a>
                     </li>
-                    <li class="nav-item" asp-authorize-policy="InvoiceRead">
+                    <li class="nav-item" asp-authorize-policy="invoice:view">
                         <a class="@LinkClass("Invoices")" asp-area="" asp-controller="Invoices" asp-action="Index">Invoices</a>
                     </li>
                 </ul>
@@ -98,10 +98,10 @@
         <li class="nav-item">
             <div id="inventoryMenu" class="collapse @(isInventoryRoute ? "show" : string.Empty)">
                 <ul class="nav flex-column">
-                    <li class="nav-item" asp-authorize-policy="InventoryRead">
+                    <li class="nav-item" asp-authorize-policy="inventory:view">
                         <a class="@LinkClass("Inventory")" asp-area="" asp-controller="Inventory" asp-action="Index">Items</a>
                     </li>
-                    <li class="nav-item" asp-authorize-policy="InventoryCreate">
+                    <li class="nav-item" asp-authorize-policy="inventory:create">
                         <a class="nav-link" asp-area="" asp-controller="Inventory" asp-action="ImportDemo">Import items</a>
                     </li>
                 </ul>
@@ -121,10 +121,10 @@
         <li class="nav-item">
             <div id="financeMenu" class="collapse @(isFinanceRoute ? "show" : string.Empty)">
                 <ul class="nav flex-column">
-                    <li class="nav-item" asp-authorize-policy="ChartOfAccountRead">
+                    <li class="nav-item" asp-authorize-policy="chart-of-accounts:view">
                         <a class="@LinkClass("ChartOfAccounts")" asp-area="" asp-controller="ChartOfAccounts" asp-action="Index">Chart of Accounts</a>
                     </li>
-                    <li class="nav-item" asp-authorize-policy="JournalEntryRead">
+                    <li class="nav-item" asp-authorize-policy="journal-entry:view">
                         <a class="@LinkClass("JournalEntries")" asp-area="" asp-controller="JournalEntries" asp-action="Index">Journal Entries</a>
                     </li>
                 </ul>
@@ -144,19 +144,19 @@
         <li class="nav-item">
             <div id="workflowMenu" class="collapse @(isWorkflowRoute ? "show" : string.Empty)">
                 <ul class="nav flex-column">
-                    <li class="nav-item" asp-authorize-policy="WorkflowRead">
+                    <li class="nav-item" asp-authorize-policy="workflow:view">
                         <a class="@LinkClass("Workflow")" asp-area="" asp-controller="Workflow" asp-action="Index">My approvals</a>
                     </li>
-                    <li class="nav-item" asp-authorize-policy="WorkflowInstanceRead">
+                    <li class="nav-item" asp-authorize-policy="workflow:view">
                         <a class="@LinkClass("WorkflowDefinitions")" asp-area="" asp-controller="WorkflowDefinitions" asp-action="Index">Definitions</a>
                     </li>
-                    <li class="nav-item" asp-authorize-policy="WorkflowInstanceRead">
+                    <li class="nav-item" asp-authorize-policy="workflow:view">
                         <a class="@LinkClass("WorkflowConfigurations")" asp-area="" asp-controller="WorkflowConfigurations" asp-action="Index">Configurations</a>
                     </li>
-                    <li class="nav-item" asp-authorize-policy="WorkflowInstanceRead">
+                    <li class="nav-item" asp-authorize-policy="workflow:view">
                         <a class="@LinkClass("WorkflowInstances")" asp-area="" asp-controller="WorkflowInstances" asp-action="Index">Instances</a>
                     </li>
-                    <li class="nav-item" asp-authorize-policy="BusinessRuleRead">
+                    <li class="nav-item" asp-authorize-policy="business-rule:view">
                         <a class="@LinkClass("BusinessRules")" asp-area="" asp-controller="BusinessRules" asp-action="Index">Business rules</a>
                     </li>
                 </ul>
@@ -176,7 +176,7 @@
         <li class="nav-item">
             <div id="reportsMenu" class="collapse @(isReportsRoute ? "show" : string.Empty)">
                 <ul class="nav flex-column">
-                    <li class="nav-item" asp-authorize-policy="ReportRun">
+                    <li class="nav-item" asp-authorize-policy="reports:view">
                         <a class="@LinkClass("Reports")" asp-area="" asp-controller="Reports" asp-action="Index">Reports</a>
                     </li>
                 </ul>

@@ -26,7 +26,7 @@ public sealed class CustomersController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.CustomerRead)]
+    [Authorize(Policy = AuthorizationPolicies.CustomerView)]
     public async Task<IActionResult> Index(string? search, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default)
     {
         var result = await _customers.ListAsync(search, pageNumber, pageSize, sort, cancellationToken).ConfigureAwait(false);
@@ -50,7 +50,7 @@ public sealed class CustomersController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.CustomerRead)]
+    [Authorize(Policy = AuthorizationPolicies.CustomerView)]
     public async Task<IActionResult> Details(Guid id, CancellationToken cancellationToken)
     {
         var result = await _customers.GetAsync(id, cancellationToken).ConfigureAwait(false);

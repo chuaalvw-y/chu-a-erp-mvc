@@ -36,7 +36,7 @@ else
                     <td>@Html.StatusBadge(b.Status)</td>
                     <td class="actions">
                         <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@b.Id">View</a>
-                        <a class="btn btn-sm btn-success" asp-action="Approve" asp-route-id="@b.Id" asp-authorize-policy="BillApprove">Approve</a>
+                        <a class="btn btn-sm btn-success" asp-action="Approve" asp-route-id="@b.Id" asp-authorize-policy="bill:approve">Approve</a>
                     </td>
                 </tr>
             }

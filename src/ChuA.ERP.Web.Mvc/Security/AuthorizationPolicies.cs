@@ -134,6 +134,9 @@ public static class AuthorizationPolicies
     public const string BusinessRuleView   = "business-rule:view";
     public const string BusinessRuleManage = "business-rule:manage";
 
+    // ---- HR / Organisation -----------------------------------------------
+    public const string HrView = "hr:view";
+
     // ---- Reports ----------------------------------------------------------
     public const string ReportsView   = "reports:view";
     public const string ReportsExport = "reports:export";
@@ -173,6 +176,7 @@ public static class AuthorizationPolicies
         ChartOfAccountView, ChartOfAccountCreate, ChartOfAccountUpdate, ChartOfAccountDelete,
         WorkflowView, WorkflowConfigure, WorkflowApprove, WorkflowDelegate, WorkflowCancel,
         BusinessRuleView, BusinessRuleManage,
+        HrView,
         ReportsView, ReportsExport, ReportsAdmin,
         AuditView, AuditExport,
         SystemConfigure, SystemHealth,

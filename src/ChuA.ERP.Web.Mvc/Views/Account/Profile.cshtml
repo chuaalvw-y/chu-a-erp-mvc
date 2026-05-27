@@ -23,7 +23,27 @@ else
 {
     <dl class="row">
         <dt class="col-sm-3">User id</dt><dd class="col-sm-9"><code>@Model.UserId</code></dd>
-        <dt class="col-sm-3">Company id</dt><dd class="col-sm-9"><code>@Model.CompanyId</code></dd>
+        @if (!string.IsNullOrWhiteSpace(Model.Email))
+        {
+            <dt class="col-sm-3">Email</dt><dd class="col-sm-9">@Model.Email</dd>
+        }
+        @if (!string.IsNullOrWhiteSpace(Model.DisplayName))
+        {
+            <dt class="col-sm-3">Display name</dt><dd class="col-sm-9">@Model.DisplayName</dd>
+        }
+        <dt class="col-sm-3">Active company</dt><dd class="col-sm-9"><code>@(Model.ActiveCompanyId?.ToString() ?? "—")</code></dd>
+        <dt class="col-sm-3">Memberships</dt>
+        <dd class="col-sm-9">
+            @if (Model.Companies.Count == 0) { <span class="text-muted">None</span>; }
+            else
+            {
+                foreach (var c in Model.Companies)
+                {
+                    var tag = c.IsDefault ? "primary" : "secondary";
+                    <span class="badge text-bg-@tag me-1"><code>@c.CompanyId</code>@(c.IsDefault ? " (default)" : "")</span>
+                }
+            }
+        </dd>
         <dt class="col-sm-3">Roles</dt>
         <dd class="col-sm-9">
             @if (Model.Roles.Count == 0) { <span class="text-muted">None</span>; }

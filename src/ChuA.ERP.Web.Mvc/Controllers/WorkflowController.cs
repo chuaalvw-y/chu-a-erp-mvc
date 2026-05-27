@@ -30,7 +30,7 @@ public sealed class WorkflowController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.WorkflowRead)]
+    [Authorize(Policy = AuthorizationPolicies.WorkflowView)]
     public async Task<IActionResult> Index(CancellationToken cancellationToken = default)
     {
         var result = await _workflow.ListTasksAsync(cancellationToken).ConfigureAwait(false);
@@ -49,7 +49,7 @@ public sealed class WorkflowController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.WorkflowRead)]
+    [Authorize(Policy = AuthorizationPolicies.WorkflowView)]
     public async Task<IActionResult> Details(Guid id, CancellationToken cancellationToken)
     {
         var result = await _workflow.GetTaskAsync(id, cancellationToken).ConfigureAwait(false);
@@ -68,7 +68,7 @@ public sealed class WorkflowController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.WorkflowApprovalDecide)]
+    [Authorize(Policy = AuthorizationPolicies.WorkflowApprove)]
     public async Task<IActionResult> Submit(Guid id, CancellationToken cancellationToken)
     {
         var result = await _workflow.GetTaskAsync(id, cancellationToken).ConfigureAwait(false);
@@ -94,7 +94,7 @@ public sealed class WorkflowController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Policy = AuthorizationPolicies.WorkflowApprovalDecide)]
+    [Authorize(Policy = AuthorizationPolicies.WorkflowApprove)]
     public async Task<IActionResult> Submit(Guid id, SubmitApprovalFormViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
@@ -119,7 +119,7 @@ public sealed class WorkflowController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.WorkflowApprovalReassign)]
+    [Authorize(Policy = AuthorizationPolicies.WorkflowDelegate)]
     public async Task<IActionResult> Reassign(Guid id, CancellationToken cancellationToken)
     {
         var result = await _workflow.GetTaskAsync(id, cancellationToken).ConfigureAwait(false);
@@ -145,7 +145,7 @@ public sealed class WorkflowController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Policy = AuthorizationPolicies.WorkflowApprovalReassign)]
+    [Authorize(Policy = AuthorizationPolicies.WorkflowDelegate)]
     public async Task<IActionResult> Reassign(Guid id, ReassignFormViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)

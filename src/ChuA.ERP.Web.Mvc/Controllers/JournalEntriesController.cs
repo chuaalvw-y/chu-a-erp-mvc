@@ -26,7 +26,7 @@ public sealed class JournalEntriesController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.JournalEntryRead)]
+    [Authorize(Policy = AuthorizationPolicies.JournalEntryView)]
     public async Task<IActionResult> Index(Guid? fiscalPeriodId, string? status, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default)
     {
         var result = await _entries.ListAsync(fiscalPeriodId, status, pageNumber, pageSize, sort, cancellationToken).ConfigureAwait(false);
@@ -50,7 +50,7 @@ public sealed class JournalEntriesController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.JournalEntryRead)]
+    [Authorize(Policy = AuthorizationPolicies.JournalEntryView)]
     public async Task<IActionResult> Details(Guid id, CancellationToken cancellationToken)
     {
         var result = await _entries.GetAsync(id, cancellationToken).ConfigureAwait(false);

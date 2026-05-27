@@ -48,16 +48,23 @@ public class CurrentUserServiceTests
     [Fact]
     public void HasAnyPermission_should_match_permission_claims()
     {
-        var (sut, _, _) = Build(claims => claims.Add(new Claim("permission", "VendorRead")));
-        sut.HasAnyPermission("VendorRead").Should().BeTrue();
-        sut.HasAnyPermission("BillApprove").Should().BeFalse();
+        var (sut, _, _) = Build(claims => claims.Add(new Claim("permission", "vendor:view")));
+        sut.HasAnyPermission("vendor:view").Should().BeTrue();
+        sut.HasAnyPermission("bill:approve").Should().BeFalse();
     }
 
     [Fact]
     public async Task LoadProfileAsync_should_cache_the_first_successful_call()
     {
         var (sut, users, _) = Build();
-        var profile = new CurrentUserDto("u1", Guid.NewGuid(), new[] { "SystemAdmin" }, new[] { "VendorRead" });
+        var profile = new CurrentUserDto(
+            UserId: Guid.NewGuid(),
+            Email: "u1@chua-erp.test",
+            DisplayName: "U1",
+            ActiveCompanyId: Guid.NewGuid(),
+            Companies: Array.Empty<MembershipDto>(),
+            Roles: new[] { "SystemAdmin" },
+            Permissions: new[] { "vendor:view" });
         users.Setup(u => u.GetMeAsync(It.IsAny<CancellationToken>())).ReturnsAsync(Result<CurrentUserDto>.Success(profile));
 
         var first = await sut.LoadProfileAsync();

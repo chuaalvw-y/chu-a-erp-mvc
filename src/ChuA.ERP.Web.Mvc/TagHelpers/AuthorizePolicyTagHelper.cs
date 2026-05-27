@@ -13,6 +13,13 @@ namespace ChuA.ERP.Web.Mvc.TagHelpers;
 /// (or comma-separated list) unless the current user owns at least one of the listed
 /// permissions. Used for menu/UI visibility — defense in depth alongside server-side
 /// <c>[Authorize(Policy=...)]</c> on the actions themselves.
+///
+/// <para>Phase J — permissions are already on the principal by the time this
+/// helper runs (<see cref="Security.ErpClaimsTransformation"/> hydrates them
+/// once per request from <c>/api/v1/users/me</c>, cached 30s). The previous
+/// per-call <c>LoadProfileAsync</c> fallback has been removed: it's now
+/// redundant work that fires once per nav item on every page render. The
+/// helper became synchronous as a result.</para>
 /// </summary>
 [HtmlTargetElement(Attributes = "asp-authorize-policy")]
 public sealed class AuthorizePolicyTagHelper : TagHelper
@@ -27,18 +34,13 @@ public sealed class AuthorizePolicyTagHelper : TagHelper
     [HtmlAttributeName("asp-authorize-policy")]
     public string Policy { get; set; } = string.Empty;
 
-    public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
+    public override void Process(TagHelperContext context, TagHelperOutput output)
     {
         var policies = (Policy ?? string.Empty)
             .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         if (policies.Length == 0)
         {
             return;
-        }
-
-        if (!_currentUser.HasAnyPermission(policies))
-        {
-            await _currentUser.LoadProfileAsync().ConfigureAwait(false);
         }
 
         if (!_currentUser.HasAnyPermission(policies))

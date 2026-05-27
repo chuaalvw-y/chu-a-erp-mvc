@@ -28,7 +28,7 @@ public sealed class BillsController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.BillRead)]
+    [Authorize(Policy = AuthorizationPolicies.BillView)]
     public async Task<IActionResult> Index(Guid? vendorId, string? status, string? paymentStatus, string? search, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default)
     {
         var result = await _bills.ListAsync(vendorId, status, paymentStatus, search, pageNumber, pageSize, sort, cancellationToken).ConfigureAwait(false);
@@ -56,7 +56,7 @@ public sealed class BillsController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.BillRead)]
+    [Authorize(Policy = AuthorizationPolicies.BillView)]
     public async Task<IActionResult> AwaitingApproval(int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default)
     {
         var result = await _bills.GetAwaitingApprovalAsync(pageNumber, pageSize, sort, cancellationToken).ConfigureAwait(false);
@@ -79,7 +79,7 @@ public sealed class BillsController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.BillRead)]
+    [Authorize(Policy = AuthorizationPolicies.BillView)]
     public async Task<IActionResult> Details(Guid id, CancellationToken cancellationToken)
     {
         var result = await _bills.GetAsync(id, cancellationToken).ConfigureAwait(false);

@@ -29,7 +29,7 @@ public sealed class WorkflowInstancesController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.WorkflowInstanceRead)]
+    [Authorize(Policy = AuthorizationPolicies.WorkflowView)]
     public async Task<IActionResult> Index(string? status, string? targetEntityType, Guid? targetEntityId, CancellationToken cancellationToken)
     {
         var result = await _instances.ListAsync(status, targetEntityType, targetEntityId, cancellationToken).ConfigureAwait(false);
@@ -53,7 +53,7 @@ public sealed class WorkflowInstancesController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.WorkflowInstanceRead)]
+    [Authorize(Policy = AuthorizationPolicies.WorkflowView)]
     public async Task<IActionResult> Details(Guid id, CancellationToken cancellationToken)
     {
         var result = await _instances.GetAsync(id, cancellationToken).ConfigureAwait(false);
@@ -72,12 +72,12 @@ public sealed class WorkflowInstancesController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.WorkflowInstanceCancel)]
+    [Authorize(Policy = AuthorizationPolicies.WorkflowCancel)]
     public IActionResult Cancel(Guid id) => View(new CancelWorkflowInstanceFormViewModel { Id = id });
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Policy = AuthorizationPolicies.WorkflowInstanceCancel)]
+    [Authorize(Policy = AuthorizationPolicies.WorkflowCancel)]
     public async Task<IActionResult> Cancel(Guid id, CancelWorkflowInstanceFormViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) { model.Id = id; return View(model); }

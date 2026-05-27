@@ -26,7 +26,7 @@ public sealed class InventoryController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.InventoryRead)]
+    [Authorize(Policy = AuthorizationPolicies.InventoryView)]
     public async Task<IActionResult> Index(string? search, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default)
     {
         var result = await _inventory.ListAsync(search, pageNumber, pageSize, sort, cancellationToken).ConfigureAwait(false);
@@ -50,7 +50,7 @@ public sealed class InventoryController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.InventoryRead)]
+    [Authorize(Policy = AuthorizationPolicies.InventoryView)]
     public async Task<IActionResult> Details(Guid id, CancellationToken cancellationToken)
     {
         var result = await _inventory.GetAsync(id, cancellationToken).ConfigureAwait(false);
@@ -218,7 +218,7 @@ public sealed class InventoryController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.InventoryRead)]
+    [Authorize(Policy = AuthorizationPolicies.InventoryView)]
     public async Task<IActionResult> Balance(Guid itemId, Guid warehouseId, CancellationToken cancellationToken)
     {
         var itemResult = await _inventory.GetAsync(itemId, cancellationToken).ConfigureAwait(false);

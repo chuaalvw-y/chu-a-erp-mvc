@@ -32,7 +32,7 @@ else
                     <td>@r.Name</td>
                     <td>@r.Description</td>
                     <td class="actions">
-                        <a asp-action="Run" asp-route-code="@r.Code" class="btn btn-sm btn-outline-primary" asp-authorize-policy="ReportRun">Run</a>
+                        <a asp-action="Run" asp-route-code="@r.Code" class="btn btn-sm btn-outline-primary" asp-authorize-policy="reports:view">Run</a>
                     </td>
                 </tr>
             }

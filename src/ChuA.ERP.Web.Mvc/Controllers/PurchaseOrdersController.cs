@@ -30,7 +30,7 @@ public sealed class PurchaseOrdersController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.PurchaseOrderRead)]
+    [Authorize(Policy = AuthorizationPolicies.PurchaseOrderView)]
     public async Task<IActionResult> Index(Guid? vendorId, string? status, string? search, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default)
     {
         var result = await _purchaseOrders.ListAsync(vendorId, status, search, pageNumber, pageSize, sort, cancellationToken).ConfigureAwait(false);
@@ -57,7 +57,7 @@ public sealed class PurchaseOrdersController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.PurchaseOrderRead)]
+    [Authorize(Policy = AuthorizationPolicies.PurchaseOrderView)]
     public async Task<IActionResult> Details(Guid id, CancellationToken cancellationToken)
     {
         var result = await _purchaseOrders.GetAsync(id, cancellationToken).ConfigureAwait(false);

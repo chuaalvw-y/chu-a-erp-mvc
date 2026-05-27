@@ -53,9 +53,27 @@ public sealed class CurrentUserService : ICurrentUserService
         }
     }
 
-    public IReadOnlyCollection<string> Roles =>
-        User?.FindAll(ClaimTypes.Role).Select(c => c.Value).Distinct().ToArray()
-        ?? Array.Empty<string>();
+    public IReadOnlyCollection<string> Roles
+    {
+        get
+        {
+            // Phase J — the OIDC handler is configured with MapInboundClaims=false
+            // and RoleClaimType="role" (see OidcWebAppAuthenticationProviderConfigurator),
+            // so Auth0 role claims arrive at type "role" — NOT the ClaimTypes.Role URI.
+            // Reading by the URI literal silently misses every role and is the
+            // root cause of the "Admin nav disappears under Auth0" symptom. Read
+            // via the identity's configured RoleClaimType so cookie auth (legacy
+            // URI), JWT bearer ("role"), and the bypass handler all agree.
+            var roleClaimType = RoleClaimType(User);
+            return User?.FindAll(roleClaimType).Select(c => c.Value).Distinct(StringComparer.Ordinal).ToArray()
+                   ?? Array.Empty<string>();
+        }
+    }
+
+    private static string RoleClaimType(ClaimsPrincipal? user) =>
+        (user?.Identity as ClaimsIdentity)?.RoleClaimType is { Length: > 0 } configured
+            ? configured
+            : ClaimTypes.Role;
 
     public IReadOnlyCollection<string> Permissions
     {

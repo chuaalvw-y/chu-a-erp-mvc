@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -23,11 +23,22 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="10.0.0" />
     <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="10.0.0" />
-    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.2.0" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.2.0" />
+    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.15.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.15.0" />
 
     <!-- Structured logging to file (and console) -->
-    <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+
+	  <!-- Phase 2: Shared / Cross-cutting libraries (matches Application README §Dependencies) -->
+	  <ProjectReference Include="..\..\..\..\..\GitHub\.NETCore10\chu-a-dotnet10-authentication\src\ChuA.Authentication\ChuA.Authentication.csproj" />
+	  <ProjectReference Include="..\..\..\..\..\GitHub\.NETCore10\chu-a-dotnet10-authorization\src\ChuA.Authorization\ChuA.Authorization.csproj" />
+	  <ProjectReference Include="..\..\..\..\..\GitHub\.NETCore10\chu-a-dotnet10-validation\src\ChuA.Validation\ChuA.Validation.csproj" />
+	  <ProjectReference Include="..\..\..\..\..\GitHub\.NETCore10\chu-a-dotnet10-error-handling\src\ChuA.ErrorHandling\ChuA.ErrorHandling.csproj" />
+	  <ProjectReference Include="..\..\..\..\..\GitHub\.NETCore10\chu-a-dotnet10-messaging\src\ChuA.Messaging\ChuA.Messaging.csproj" />
+	  <ProjectReference Include="..\..\..\..\..\GitHub\.NETCore10\chu-a-dotnet10-auditing\src\ChuA.Auditing\ChuA.Auditing.csproj" />
+	  <ProjectReference Include="..\..\..\..\..\GitHub\.NETCore10\chu-a-dotnet10-caching\src\ChuA.Caching\ChuA.Caching.csproj" />
+	  <ProjectReference Include="..\..\..\..\..\GitHub\.NETCore10\chu-a-dotnet10-notifications\src\ChuA.Notifications\ChuA.Notifications.csproj" />
+	  <ProjectReference Include="..\..\..\..\..\GitHub\.NETCore10\chu-a-dotnet10-observability\src\ChuA.Observability\ChuA.Observability.csproj" />
 
 	  <!-- Dashboard -->
 	  <ProjectReference Include="..\..\..\chu-a-erp-dashboard\chu-a-dotnet-core-mvc\ChuA.ERP.Dashboard.Mvc\ChuA.ERP.Dashboard.Mvc.csproj" />

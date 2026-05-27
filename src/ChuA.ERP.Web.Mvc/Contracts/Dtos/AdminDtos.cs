@@ -77,11 +77,28 @@ public sealed record UpdateUserRequest(
     bool TwoFactorEnabled,
     Guid? EmployeeId);
 
+/// <summary>
+/// Mirror of <c>ChuA.ERP.Application.DTOs.ErpAuthorizationProfileDto</c> on
+/// the MVC side. Returned by <c>GET /api/v1/users/me</c>. Consumed by:
+/// <list type="bullet">
+///   <item>The MVC <c>ErpClaimsTransformation</c> — hydrates role and
+///         permission claims onto the cookie principal once per request.</item>
+///   <item><c>CurrentUserService</c> — surfaces the active company + the
+///         memberships dropdown to layout/nav code.</item>
+///   <item>The diagnostic /Account/Claims page.</item>
+/// </list>
+/// </summary>
 public sealed record CurrentUserDto(
-    string UserId,
-    Guid CompanyId,
+    Guid UserId,
+    string? Email,
+    string? DisplayName,
+    Guid? ActiveCompanyId,
+    IReadOnlyList<MembershipDto> Companies,
     IReadOnlyList<string> Roles,
     IReadOnlyList<string> Permissions);
+
+/// <summary>One membership row from <c>identity.UserCompanies</c>.</summary>
+public sealed record MembershipDto(Guid CompanyId, bool IsDefault);
 
 public sealed record ReportSummaryDto(string Code, string Name, string Description);
 

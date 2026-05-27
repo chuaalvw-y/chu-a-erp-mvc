@@ -30,7 +30,7 @@ public sealed class WorkflowDefinitionsController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.WorkflowInstanceRead)]
+    [Authorize(Policy = AuthorizationPolicies.WorkflowView)]
     public async Task<IActionResult> Index(string? targetEntityType, string? status, CancellationToken cancellationToken)
     {
         var result = await _definitions.ListAsync(targetEntityType, status, cancellationToken).ConfigureAwait(false);
@@ -53,7 +53,7 @@ public sealed class WorkflowDefinitionsController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.WorkflowInstanceRead)]
+    [Authorize(Policy = AuthorizationPolicies.WorkflowView)]
     public async Task<IActionResult> Details(Guid id, CancellationToken cancellationToken)
     {
         var result = await _definitions.GetAsync(id, cancellationToken).ConfigureAwait(false);
@@ -72,12 +72,12 @@ public sealed class WorkflowDefinitionsController : Controller
     }
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.WorkflowDefinitionCreate)]
+    [Authorize(Policy = AuthorizationPolicies.WorkflowConfigure)]
     public IActionResult Create() => View(new CreateWorkflowDefinitionFormViewModel());
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Policy = AuthorizationPolicies.WorkflowDefinitionCreate)]
+    [Authorize(Policy = AuthorizationPolicies.WorkflowConfigure)]
     public async Task<IActionResult> Create(CreateWorkflowDefinitionFormViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return View(model);
@@ -94,13 +94,13 @@ public sealed class WorkflowDefinitionsController : Controller
     // ---- Step administration -----------------------------------------------
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.WorkflowDefinitionUpdate)]
+    [Authorize(Policy = AuthorizationPolicies.WorkflowConfigure)]
     public IActionResult AddStep(Guid id) =>
         View(new AddWorkflowStepFormViewModel { DefinitionId = id });
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Policy = AuthorizationPolicies.WorkflowDefinitionUpdate)]
+    [Authorize(Policy = AuthorizationPolicies.WorkflowConfigure)]
     public async Task<IActionResult> AddStep(Guid id, AddWorkflowStepFormViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) { model.DefinitionId = id; return View(model); }
@@ -117,7 +117,7 @@ public sealed class WorkflowDefinitionsController : Controller
 
     [HttpPost("WorkflowDefinitions/{id:guid}/steps/{stepNumber:int}/delete")]
     [ValidateAntiForgeryToken]
-    [Authorize(Policy = AuthorizationPolicies.WorkflowDefinitionUpdate)]
+    [Authorize(Policy = AuthorizationPolicies.WorkflowConfigure)]
     public async Task<IActionResult> RemoveStep(Guid id, int stepNumber, CancellationToken cancellationToken)
     {
         var result = await _definitions.RemoveStepAsync(id, stepNumber, cancellationToken).ConfigureAwait(false);
@@ -135,13 +135,13 @@ public sealed class WorkflowDefinitionsController : Controller
     // ---- Approver administration -------------------------------------------
 
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.WorkflowDefinitionUpdate)]
+    [Authorize(Policy = AuthorizationPolicies.WorkflowConfigure)]
     public IActionResult AddApprover(Guid id, int stepNumber) =>
         View(new AddWorkflowApproverFormViewModel { DefinitionId = id, StepNumber = (short)stepNumber });
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Policy = AuthorizationPolicies.WorkflowDefinitionUpdate)]
+    [Authorize(Policy = AuthorizationPolicies.WorkflowConfigure)]
     public async Task<IActionResult> AddApprover(Guid id, int stepNumber, AddWorkflowApproverFormViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
@@ -164,7 +164,7 @@ public sealed class WorkflowDefinitionsController : Controller
 
     [HttpPost("WorkflowDefinitions/{id:guid}/steps/{stepNumber:int}/approvers/{assigneeType}/{assigneeId:guid}/delete")]
     [ValidateAntiForgeryToken]
-    [Authorize(Policy = AuthorizationPolicies.WorkflowDefinitionUpdate)]
+    [Authorize(Policy = AuthorizationPolicies.WorkflowConfigure)]
     public async Task<IActionResult> RemoveApprover(Guid id, int stepNumber, string assigneeType, Guid assigneeId, CancellationToken cancellationToken)
     {
         var result = await _definitions.RemoveApproverAsync(id, stepNumber, assigneeType, assigneeId, cancellationToken).ConfigureAwait(false);
@@ -183,7 +183,7 @@ public sealed class WorkflowDefinitionsController : Controller
 
     [HttpPost("WorkflowDefinitions/{id:guid}/publish")]
     [ValidateAntiForgeryToken]
-    [Authorize(Policy = AuthorizationPolicies.WorkflowDefinitionPublish)]
+    [Authorize(Policy = AuthorizationPolicies.WorkflowConfigure)]
     public async Task<IActionResult> Publish(Guid id, CancellationToken cancellationToken)
     {
         var result = await _definitions.PublishAsync(id, cancellationToken).ConfigureAwait(false);
@@ -194,7 +194,7 @@ public sealed class WorkflowDefinitionsController : Controller
 
     [HttpPost("WorkflowDefinitions/{id:guid}/retire")]
     [ValidateAntiForgeryToken]
-    [Authorize(Policy = AuthorizationPolicies.WorkflowDefinitionRetire)]
+    [Authorize(Policy = AuthorizationPolicies.WorkflowConfigure)]
     public async Task<IActionResult> Retire(Guid id, CancellationToken cancellationToken)
     {
         var result = await _definitions.RetireAsync(id, cancellationToken).ConfigureAwait(false);
@@ -205,7 +205,7 @@ public sealed class WorkflowDefinitionsController : Controller
 
     [HttpPost("WorkflowDefinitions/{id:guid}/clone")]
     [ValidateAntiForgeryToken]
-    [Authorize(Policy = AuthorizationPolicies.WorkflowDefinitionCreate)]
+    [Authorize(Policy = AuthorizationPolicies.WorkflowConfigure)]
     public async Task<IActionResult> Clone(Guid id, CancellationToken cancellationToken)
     {
         var result = await _definitions.CloneAsync(id, cancellationToken).ConfigureAwait(false);

@@ -6,6 +6,45 @@
 *@
 
 @{
-    ViewData["Title"] = "Access denied";
+    ViewData["Title"] = "Access pending";
+    Layout = "_Layout";
 }
-<partial name="AccessDenied" />
+
+@*
+    Phase J — fail-closed landing page. Rendered when the IdP authenticated
+    the caller but ErpClaimsTransformation could not resolve them to an ERP
+    user (no identity.ExternalLogins row, or /users/me returned 404). The
+    user is signed in at the IdP, but downstream [Authorize] denies because
+    no role / permission claims got stamped. Provisioning is an explicit
+    admin step — see Phase J spec §10.
+*@
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-body text-center py-5">
+                    <div class="mb-4">
+                        <i class="bi bi-shield-lock display-1 text-warning" aria-hidden="true"></i>
+                    </div>
+                    <h1 class="h3 mb-3">Access pending</h1>
+                    <p class="text-muted mb-4">
+                        You signed in successfully, but your account hasn't been
+                        provisioned in the ERP yet — or your administrator has
+                        revoked your access.
+                    </p>
+                    <p class="small text-muted mb-4">
+                        Contact your administrator to complete provisioning. They'll
+                        link your identity to an ERP user record and grant you a role.
+                    </p>
+                    <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-outline-secondary">Sign out</button>
+                    </form>
+                </div>
+            </div>
+            <p class="small text-muted text-center mt-3">
+                Trace identifier: <code>@Context.TraceIdentifier</code>
+            </p>
+        </div>
+    </div>
+</div>

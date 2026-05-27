@@ -3,13 +3,14 @@
 // Licensed under the Alvin Wilsen Chan Chua Proprietary Use-Only License.
 // See LICENSE.txt in the project root for full license information.
 
+using ChuA.Authentication.Constants;
+using ChuA.Authentication.Extensions;
 using ChuA.ERP.Web.Mvc.ApiClients;
 using ChuA.ERP.Web.Mvc.Configuration;
 using ChuA.ERP.Web.Mvc.Filters;
 using ChuA.ERP.Web.Mvc.Security;
 using ChuA.ERP.Web.Mvc.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -18,7 +19,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Polly;
 using Polly.Extensions.Http;
 
@@ -70,13 +70,11 @@ public static class ServiceCollectionExtensions
             .Validate(options => environment.IsDevelopment() || !options.UseAuthBypass, "Api:UseAuthBypass must be false outside Development.")
             .ValidateOnStart();
 
+        // OidcOptions is now legacy. Auth wiring lives under the "ChuAAuthentication" section
+        // and flows through ChuA.Authentication. The binding is kept so older callers that still
+        // resolve IOptions<OidcOptions> (and the StartupOptionsValidationTests) keep working.
         services.AddOptions<OidcOptions>()
-            .Bind(configuration.GetSection(OidcOptions.SectionName))
-            .Validate(options => environment.IsDevelopment() || options.Enabled, "Oidc:Enabled must be true outside Development.")
-            .Validate(options => environment.IsDevelopment() || !string.IsNullOrWhiteSpace(options.Authority), "Oidc:Authority is required outside Development.")
-            .Validate(options => environment.IsDevelopment() || !string.IsNullOrWhiteSpace(options.ClientId), "Oidc:ClientId is required outside Development.")
-            .Validate(options => environment.IsDevelopment() || !string.IsNullOrWhiteSpace(options.ClientSecret), "Oidc:ClientSecret is required outside Development.")
-            .ValidateOnStart();
+            .Bind(configuration.GetSection(OidcOptions.SectionName));
 
         services.AddOptions<AppEnvironmentOptions>()
             .Bind(configuration.GetSection(AppEnvironmentOptions.SectionName));
@@ -89,10 +87,19 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICorrelationIdAccessor, CorrelationIdAccessor>();
         services.AddScoped<ITokenAcquisitionService, CookieTokenAcquisitionService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
+        // Phase J — hydrates role/permission/erp_user_id claims from the ERP database
+        // (via /api/v1/users/me) onto every authenticated principal. Plugs into the
+        // library's single IClaimsTransformation via the IClaimsEnricher contract.
+        // The library handles MapClaims + per-request re-entry guard; we just stamp
+        // ERP claims and let the library do the rest.
+        services.AddScoped<ChuA.Authentication.Claims.IClaimsEnricher,
+                           Security.ErpClaimsTransformation>();
         services.AddScoped<CorrelationIdActionFilter>();
         services.AddScoped<GlobalExceptionFilter>();
         services.AddMemoryCache();
         services.AddSingleton<ITicketStore, MemoryCacheTicketStore>();
+        // Pure function over a ClaimsPrincipal; singleton is safe and avoids per-request allocations.
+        services.AddSingleton<IAuthDebugSnapshotBuilder, AuthDebugSnapshotBuilder>();
         return services;
     }
 
@@ -101,30 +108,37 @@ public static class ServiceCollectionExtensions
         IConfiguration configuration,
         IWebHostEnvironment environment)
     {
-        var oidc = configuration.GetSection(OidcOptions.SectionName).Get<OidcOptions>() ?? new OidcOptions();
+        // Auth wiring is delegated to the ChuA.Authentication shared library. We merge a default
+        // ChuAAuthentication shape underneath the host configuration so callers that have not yet
+        // populated the section still get a coherent cookie + OIDC web-app wiring (cookie-only
+        // when ClientId is empty — preserves the DevLogin path in Development).
+        var configurationWithAuthDefaults = new ConfigurationBuilder()
+            .AddInMemoryCollection(BuildChuAAuthenticationDefaults())
+            .AddConfiguration(configuration)
+            .Build();
 
-        var auth = services.AddAuthentication(options =>
-        {
-            options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = oidc.Enabled
-                ? OpenIdConnectDefaults.AuthenticationScheme
-                : CookieAuthenticationDefaults.AuthenticationScheme;
-        });
+        services.AddChuAAuthentication(
+            configurationWithAuthDefaults,
+            ChuAAuthenticationDefaults.ConfigurationSectionName);
 
-        auth.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
-        {
-            options.LoginPath = "/Account/Login";
-            options.LogoutPath = "/Account/Logout";
-            options.AccessDeniedPath = "/Account/AccessDenied";
-            options.Cookie.Name = "ChuA.ERP.Auth";
-            options.Cookie.HttpOnly = true;
-            options.Cookie.SameSite = SameSiteMode.Lax;
-            options.Cookie.SecurePolicy = environment.IsDevelopment()
-                ? CookieSecurePolicy.SameAsRequest
-                : CookieSecurePolicy.Always;
-            options.ExpireTimeSpan = TimeSpan.FromHours(8);
-            options.SlidingExpiration = true;
-        });
+        // PostConfigure the cookie scheme that ChuA.Authentication registered with the
+        // ERP-specific paths, cookie name, expiry, and (in Production) a server-side ticket store.
+        services.PostConfigure<CookieAuthenticationOptions>(
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            options =>
+            {
+                options.LoginPath = "/Account/Login";
+                options.LogoutPath = "/Account/Logout";
+                options.AccessDeniedPath = "/Account/AccessDenied";
+                options.Cookie.Name = "ChuA.ERP.Auth";
+                options.Cookie.HttpOnly = true;
+                options.Cookie.SameSite = SameSiteMode.Lax;
+                options.Cookie.SecurePolicy = environment.IsDevelopment()
+                    ? CookieSecurePolicy.SameAsRequest
+                    : CookieSecurePolicy.Always;
+                options.ExpireTimeSpan = TimeSpan.FromHours(8);
+                options.SlidingExpiration = true;
+            });
 
         services.AddOptions<CookieAuthenticationOptions>(CookieAuthenticationDefaults.AuthenticationScheme)
             .Configure<ITicketStore>((options, ticketStore) =>
@@ -135,32 +149,34 @@ public static class ServiceCollectionExtensions
                 }
             });
 
-        if (oidc.Enabled)
-        {
-            auth.AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
-            {
-                options.Authority = oidc.Authority;
-                options.ClientId = oidc.ClientId;
-                options.ClientSecret = oidc.ClientSecret;
-                options.CallbackPath = oidc.CallbackPath;
-                options.SignedOutCallbackPath = oidc.SignedOutCallbackPath;
-                options.ResponseType = OpenIdConnectResponseType.Code;
-                options.UsePkce = true;
-                options.SaveTokens = true;
-                options.GetClaimsFromUserInfoEndpoint = true;
-                options.RequireHttpsMetadata = oidc.RequireHttpsMetadata;
-                options.Scope.Clear();
-                foreach (var scope in oidc.Scopes)
-                {
-                    options.Scope.Add(scope);
-                }
-                options.TokenValidationParameters.NameClaimType = "preferred_username";
-                options.TokenValidationParameters.RoleClaimType = "role";
-            });
-        }
-
         return services;
     }
+
+    /// <summary>
+    /// Default ChuAAuthentication shape: an Auth0-backed cookie + OIDC code-flow web app with
+    /// empty credentials. The OidcWebApp configurator falls back to cookie-only registration
+    /// when ClientId is empty, so the DevLogin path still works in Development without an IdP.
+    /// </summary>
+    private static Dictionary<string, string?> BuildChuAAuthenticationDefaults() => new()
+    {
+        ["ChuAAuthentication:DefaultProvider"] = "Auth0",
+        ["ChuAAuthentication:RequireAuthenticatedUserByDefault"] = "false",
+        ["ChuAAuthentication:EnableClaimsTransformation"] = "true",
+        ["ChuAAuthentication:NameClaimType"] = "preferred_username",
+        ["ChuAAuthentication:RoleClaimType"] = "role",
+        ["ChuAAuthentication:Providers:Auth0:Type"] = "Auth0WebApp",
+        ["ChuAAuthentication:Providers:Auth0:Scheme"] = "OpenIdConnect",
+        ["ChuAAuthentication:Providers:Auth0:CookieScheme"] = "Cookies",
+        ["ChuAAuthentication:Providers:Auth0:CallbackPath"] = "/signin-oidc",
+        ["ChuAAuthentication:Providers:Auth0:SignedOutCallbackPath"] = "/signout-callback-oidc",
+        ["ChuAAuthentication:Providers:Auth0:Scopes:0"] = "openid",
+        ["ChuAAuthentication:Providers:Auth0:Scopes:1"] = "profile",
+        ["ChuAAuthentication:Providers:Auth0:Scopes:2"] = "email",
+        ["ChuAAuthentication:Providers:Auth0:RequireHttpsMetadata"] = "true",
+        ["ChuAAuthentication:Providers:Auth0:UsePkce"] = "true",
+        ["ChuAAuthentication:Providers:Auth0:SaveTokens"] = "true",
+        ["ChuAAuthentication:Providers:Auth0:GetClaimsFromUserInfoEndpoint"] = "true",
+    };
 
     private static IServiceCollection AddChuAAuthZ(this IServiceCollection services)
     {

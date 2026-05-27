@@ -15,8 +15,8 @@
     <div>
         @if (isDraft)
         {
-            <a class="btn btn-outline-primary" asp-action="Edit" asp-route-id="@Model.Id" asp-authorize-policy="JournalEntryUpdate">Edit</a>
-            <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@Model.Id" asp-authorize-policy="JournalEntryDelete">Delete</a>
+            <a class="btn btn-outline-primary" asp-action="Edit" asp-route-id="@Model.Id" asp-authorize-policy="journal-entry:update">Edit</a>
+            <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@Model.Id" asp-authorize-policy="journal-entry:delete">Delete</a>
         }
     </div>
 </div>
@@ -48,7 +48,7 @@
 <div class="d-flex gap-2 mb-4">
     @if (isDraft)
     {
-        <a class="btn btn-success btn-lg" asp-action="Post" asp-route-id="@Model.Id" asp-authorize-policy="JournalEntryPost">Post entry</a>
+        <a class="btn btn-success btn-lg" asp-action="Post" asp-route-id="@Model.Id" asp-authorize-policy="journal-entry:post">Post entry</a>
     }
 </div>
 

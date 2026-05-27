@@ -24,7 +24,7 @@ public class AuthorizePolicyTagHelperTests
     {
         var user = new Mock<ICurrentUserService>();
         user.Setup(u => u.HasAnyPermission(It.IsAny<string[]>())).Returns(false);
-        var sut = new AuthorizePolicyTagHelper(user.Object) { Policy = "VendorCreate" };
+        var sut = new AuthorizePolicyTagHelper(user.Object) { Policy = "vendor:create" };
 
         var output = NewOutput();
         await sut.ProcessAsync(NewContext(), output);
@@ -37,7 +37,7 @@ public class AuthorizePolicyTagHelperTests
     {
         var user = new Mock<ICurrentUserService>();
         user.Setup(u => u.HasAnyPermission(It.IsAny<string[]>())).Returns(true);
-        var sut = new AuthorizePolicyTagHelper(user.Object) { Policy = "VendorCreate" };
+        var sut = new AuthorizePolicyTagHelper(user.Object) { Policy = "vendor:create" };
 
         var output = NewOutput();
         await sut.ProcessAsync(NewContext(), output);
@@ -48,24 +48,36 @@ public class AuthorizePolicyTagHelperTests
     [Fact]
     public async Task Splits_comma_separated_policy_list()
     {
+        // Phase J — the helper forwards the parsed tokens VERBATIM to
+        // ICurrentUserService.HasAnyPermission. There is no alias translation
+        // any more: permissions live on the principal in their canonical
+        // colon-form, hydrated once per request by ErpClaimsTransformation.
         var user = new Mock<ICurrentUserService>();
-        await sut(user.Object, "VendorRead, BillRead").ProcessAsync(NewContext(), NewOutput());
-        user.Verify(u => u.HasAnyPermission(It.Is<string[]>(arr => arr.Length == 2 && arr.Contains("VendorRead") && arr.Contains("BillRead"))));
+        user.Setup(u => u.HasAnyPermission(It.IsAny<string[]>())).Returns(true);
+
+        await sut(user.Object, "vendor:view, bill:view").ProcessAsync(NewContext(), NewOutput());
+
+        user.Verify(u => u.HasAnyPermission(It.Is<string[]>(arr =>
+            arr.Length == 2 && arr.Contains("vendor:view") && arr.Contains("bill:view"))));
     }
 
     [Fact]
-    public async Task Loads_profile_before_suppressing_when_permission_is_not_in_claims()
+    public async Task Does_not_load_profile_when_permission_is_not_in_claims()
     {
-        var user = new Mock<ICurrentUserService>();
-        user.SetupSequence(u => u.HasAnyPermission(It.IsAny<string[]>()))
-            .Returns(false)
-            .Returns(true);
+        // Phase J — the previous per-render LoadProfileAsync fallback fired
+        // once per nav item on every page (≈20 API hits per page render).
+        // That fallback has been removed: ErpClaimsTransformation already
+        // hydrated the principal once on the way in, so a missing permission
+        // here genuinely means "no". This test pins down that the helper
+        // does NOT regress back to the chatty behaviour.
+        var user = new Mock<ICurrentUserService>(MockBehavior.Strict);
+        user.Setup(u => u.HasAnyPermission(It.IsAny<string[]>())).Returns(false);
 
         var output = NewOutput();
-        await sut(user.Object, "VendorRead").ProcessAsync(NewContext(), output);
+        await sut(user.Object, "vendor:view").ProcessAsync(NewContext(), output);
 
-        user.Verify(u => u.LoadProfileAsync(It.IsAny<CancellationToken>()), Times.Once);
-        output.TagName.Should().Be("li");
+        user.Verify(u => u.LoadProfileAsync(It.IsAny<CancellationToken>()), Times.Never);
+        output.TagName.Should().BeNull();   // suppressed
     }
 
     private static AuthorizePolicyTagHelper sut(ICurrentUserService user, string policy) => new(user) { Policy = policy };

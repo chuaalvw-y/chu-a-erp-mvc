@@ -91,11 +91,43 @@ UI exercises every menu item.
 ### Roles & permissions
 
 - **Roles** drive coarse menu visibility (`<li asp-authorize-role="SystemAdmin">…`).
-- **Permissions** drive fine-grained gating (`<li asp-authorize-policy="VendorRead">…`).
+- **Permissions** drive fine-grained gating (`<li asp-authorize-policy="vendor:view">…`).
 
-Both are sourced from claims on the principal (`role` and `permission`). The MVC also
-hydrates a `CurrentUserDto` from `GET /api/v1/users/me` and merges the API-reported
-permissions with claim-based permissions.
+Both are sourced from claims on the principal (`role` and `permission`). Permissions
+use the canonical colon-form (`module:action`, e.g. `vendor:create`, `invoice:approve`).
+The principal is hydrated **once per request** by `ErpClaimsTransformation` — see the
+Phase J section below.
+
+## Phase J — Authorization model
+
+The MVC delegates authentication to Auth0 (cookie + OIDC) but **the ERP database is the
+single source of truth for authorization**. Revoking a permission in
+`[identity].[RolePermissions]` takes effect within ~30 seconds without redeploying or
+re-signing tokens.
+
+```
+Auth0  ──►  Cookie  ──►  IClaimsTransformation  ──►  GET /api/v1/users/me
+(authentication)         ErpClaimsTransformation     (authorization profile from ERP DB)
+                                  │
+                                  ▼
+                         role + permission + erp_user_id + company_id claims
+```
+
+| File | Responsibility |
+| --- | --- |
+| `Security/ErpClaimsTransformation.cs` | Per-request transform. Calls `/users/me`, stamps `role` / `permission` / `erp_user_id` / `company_id` / `companies` claims onto a cloned `ClaimsIdentity`. Caches per-request in `HttpContext.Items` and per-user in `IMemoryCache` (30 s TTL). |
+| `Services/CurrentUserService.cs` | Reads roles via the identity's configured `RoleClaimType` (NOT the legacy `ClaimTypes.Role` URI), so role-aware APIs (`User.IsInRole`, `[Authorize(Roles=…)]`, nav helpers) all agree on a single source. |
+| `TagHelpers/AuthorizePolicyTagHelper.cs` | Synchronous nav gate. Forwards comma-separated colon-form tokens verbatim to `ICurrentUserService.HasAnyPermission`. No per-render API hit. |
+| `Views/Account/AccessDenied.cshtml` | "Access pending" page rendered when a principal authenticates but the ERP DB has no `[identity].[ExternalLogins]` row for the IdP subject. |
+
+**Fail-closed contract.** If `/users/me` returns 404 (or the principal lacks `sub`), the
+transformation returns the principal unchanged. Every downstream `[Authorize(Policy=…)]`
+denies, and the AccessDenied page surfaces the missing provisioning instead of silently
+granting access.
+
+**Tests pinning the contract:** `tests/ChuA.ERP.Web.Mvc.Tests/Security/ErpClaimsTransformationTests.cs` —
+RoleClaimType emission, per-request memoization, sentinel short-circuit, fail-closed on
+API failure, deduplication, anonymous/missing-sub passthrough.
 
 ## API base URL configuration
 

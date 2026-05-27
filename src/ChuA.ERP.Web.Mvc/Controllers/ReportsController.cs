@@ -15,7 +15,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ChuA.ERP.Web.Mvc.Controllers;
 
 /// <summary>UI for listing and running reports.</summary>
-[Authorize(Policy = AuthorizationPolicies.ReportRun)]
+[Authorize(Policy = AuthorizationPolicies.ReportsView)]
 public sealed class ReportsController : Controller
 {
     private readonly IReportsApiClient _reports;

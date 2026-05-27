@@ -16,7 +16,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -88,16 +87,13 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICorrelationIdAccessor, CorrelationIdAccessor>();
         services.AddScoped<ITokenAcquisitionService, CookieTokenAcquisitionService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
-        // Phase J — IClaimsTransformation registration moved to AddChuAAuthN
-        // (post-AddChuAAuthentication). Microsoft.AspNetCore.Authentication
-        // resolves a SINGLE IClaimsTransformation via GetRequiredService<T>(),
-        // returning the LAST registration. Registering ErpClaimsTransformation
-        // here was getting shadowed by ChuA.Authentication's ChuAClaimsTransformation
-        // (registered later inside AddChuAAuthentication), which meant our /me
-        // call never fired and no permission claims ever landed on the principal.
-        // The fix re-asserts our transformation as the winner AFTER the library
-        // has run, and ErpClaimsTransformation now delegates the library's
-        // claim-mapping behaviour via IClaimsMappingService internally.
+        // Phase J — hydrates role/permission/erp_user_id claims from the ERP database
+        // (via /api/v1/users/me) onto every authenticated principal. Plugs into the
+        // library's single IClaimsTransformation via the IClaimsEnricher contract.
+        // The library handles MapClaims + per-request re-entry guard; we just stamp
+        // ERP claims and let the library do the rest.
+        services.AddScoped<ChuA.Authentication.Claims.IClaimsEnricher,
+                           Security.ErpClaimsTransformation>();
         services.AddScoped<CorrelationIdActionFilter>();
         services.AddScoped<GlobalExceptionFilter>();
         services.AddMemoryCache();
@@ -152,46 +148,6 @@ public static class ServiceCollectionExtensions
                     options.SessionStore = ticketStore;
                 }
             });
-
-        // Phase J — tell Auth0 to issue an access_token FOR the ERP API audience.
-        //
-        // Without this, the OIDC flow asks for the default scopes (openid/profile/email)
-        // and Auth0 returns an *opaque* access_token only usable against /userinfo. The
-        // ERP API does JWT bearer validation against ValidAudience="https://api.chua-erp.com"
-        // and rejects opaque tokens with a 401 -> ErpClaimsTransformation fails closed
-        // -> empty sidebar submenu.
-        //
-        // The canonical Auth0 + ASP.NET Core pattern: pass `audience` as an extra
-        // OIDC authorization parameter (AdditionalAuthorizationParameters was added in
-        // .NET 9). This tells Auth0 to issue a JWT access_token whose `aud` claim
-        // matches the API identifier. We do NOT touch TokenValidationParameters.
-        // ValidAudience — the ID token's `aud` is the OIDC client_id, NOT the API
-        // identifier, so setting ValidAudience to the API identifier would re-introduce
-        // the IDX10214 "audience mismatch" failure we previously hit.
-        //
-        // The audience matches the ERP API's appsettings (Authentication:Audience).
-        // If the value ever diverges between environments, lift it to configuration.
-        const string ErpApiAudience = "https://api.chua-erp.com";
-        services.PostConfigure<Microsoft.AspNetCore.Authentication.OpenIdConnect.OpenIdConnectOptions>(
-            Microsoft.AspNetCore.Authentication.OpenIdConnect.OpenIdConnectDefaults.AuthenticationScheme,
-            options =>
-            {
-                options.AdditionalAuthorizationParameters["audience"] = ErpApiAudience;
-            });
-
-        // Phase J — re-assert ErpClaimsTransformation as the IClaimsTransformation
-        // winner. AddChuAAuthentication (called above via AddChuAAuthentication)
-        // registers ChuAClaimsTransformation when EnableClaimsTransformation=true
-        // (the default). Microsoft.AspNetCore.Authentication's AuthenticationService
-        // resolves a SINGLE IClaimsTransformation via GetRequiredService<T>(),
-        // returning the LAST registration. Without this RemoveAll + re-add, the
-        // library's transformation wins and our /me call never fires -> no
-        // permission claims -> empty sidebar submenu. ErpClaimsTransformation
-        // chains IClaimsMappingService internally so the library's role/permission
-        // mapping behaviour is preserved.
-        services.RemoveAll<Microsoft.AspNetCore.Authentication.IClaimsTransformation>();
-        services.AddTransient<Microsoft.AspNetCore.Authentication.IClaimsTransformation,
-                              Security.ErpClaimsTransformation>();
 
         return services;
     }

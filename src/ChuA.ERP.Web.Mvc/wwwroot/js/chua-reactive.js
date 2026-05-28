@@ -181,6 +181,20 @@
         return connectionStarted;
     }
 
+    /**
+     * Fan an event into every registered handler. Lets bridge modules (e.g.
+     * chua-workflow-bridge.js connected to the API's own hub) re-emit external
+     * events into the local event bus so consumers stay hub-agnostic.
+     */
+    function dispatch(eventName) {
+        if (!eventName) { return; }
+        var args = Array.prototype.slice.call(arguments, 1);
+        (listeners[eventName] || []).forEach(function (h) {
+            try { h.apply(null, args); }
+            catch (e) { console.error('chua-reactive: handler for ' + eventName + ' threw', e); }
+        });
+    }
+
     /** Register {handler} for the named server event. */
     function on(eventName, handler) {
         if (!eventName || typeof handler !== 'function') { return; }
@@ -233,6 +247,7 @@
         connect: ensureConnection,
         on: on,
         off: off,
+        dispatch: dispatch,
         subscribe: subscribe,
         unsubscribe: unsubscribe,
         HUB_PATH: HUB_PATH

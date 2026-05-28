@@ -1,0 +1,84 @@
+@*
+    Copyright (c) 2026 Alvin Wilsen Chan Chua
+    GitHub: chuaalvw-y
+    Licensed under the Alvin Wilsen Chan Chua Proprietary Use-Only License.
+    See LICENSE.txt in the project root for full license information.
+
+    Notification-center dropdown items partial. Rendered on first dropdown open and again
+    on every SignalR notificationReceived event so the list stays in sync without a poll.
+*@
+
+@using ChuA.ERP.Web.Mvc.Models.Notifications
+@model NotificationCenterViewModel
+
+@functions {
+    static string LevelBadgeClass(NotificationLevel level) => level switch
+    {
+        NotificationLevel.Success => "text-bg-success",
+        NotificationLevel.Warning => "text-bg-warning",
+        NotificationLevel.Error => "text-bg-danger",
+        _ => "text-bg-secondary"
+    };
+
+    static string LevelIcon(NotificationLevel level) => level switch
+    {
+        NotificationLevel.Success => "bi-check-circle",
+        NotificationLevel.Warning => "bi-exclamation-triangle",
+        NotificationLevel.Error => "bi-x-circle",
+        _ => "bi-info-circle"
+    };
+
+    static string RelativeTime(DateTime utc)
+    {
+        var diff = DateTime.UtcNow - utc;
+        if (diff.TotalSeconds < 60) return "just now";
+        if (diff.TotalMinutes < 60) return $"{(int)diff.TotalMinutes} min ago";
+        if (diff.TotalHours < 24) return $"{(int)diff.TotalHours} h ago";
+        return utc.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
+    }
+}
+
+@if (Model.Items.Count == 0)
+{
+    <li class="px-3 py-2 text-muted small">No notifications yet.</li>
+}
+else
+{
+    @foreach (var item in Model.Items)
+    {
+        <li class="dropdown-item-text px-0 @(item.IsUnread ? "fw-semibold" : "fw-normal")"
+            data-notification-id="@item.Id"
+            data-unread="@(item.IsUnread.ToString().ToLowerInvariant())">
+            <div class="d-flex align-items-start gap-2 px-3 py-2 border-bottom @(item.IsUnread ? "bg-light-subtle" : string.Empty)">
+                <i class="bi @LevelIcon(item.Level) @(item.Level == NotificationLevel.Info ? "text-secondary" : string.Empty) mt-1" aria-hidden="true"></i>
+                <div class="flex-grow-1">
+                    <div class="d-flex align-items-baseline justify-content-between gap-2">
+                        @if (!string.IsNullOrWhiteSpace(item.Link))
+                        {
+                            <a class="text-body text-decoration-none" href="@item.Link">@item.Title</a>
+                        }
+                        else
+                        {
+                            <span class="text-body">@item.Title</span>
+                        }
+                        <small class="text-muted text-nowrap">@RelativeTime(item.CreatedUtc)</small>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(item.Body))
+                    {
+                        <div class="small text-muted">@item.Body</div>
+                    }
+                </div>
+                @if (item.IsUnread)
+                {
+                    <button type="button"
+                            class="btn btn-link btn-sm p-0 text-muted js-mark-read"
+                            data-notification-id="@item.Id"
+                            title="Mark as read"
+                            aria-label="Mark as read">
+                        <i class="bi bi-check2"></i>
+                    </button>
+                }
+            </div>
+        </li>
+    }
+}

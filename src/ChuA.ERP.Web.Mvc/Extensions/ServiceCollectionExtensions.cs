@@ -100,6 +100,16 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ITicketStore, MemoryCacheTicketStore>();
         // Pure function over a ClaimsPrincipal; singleton is safe and avoids per-request allocations.
         services.AddSingleton<IAuthDebugSnapshotBuilder, AuthDebugSnapshotBuilder>();
+
+        // Reactive UX infrastructure (Wave 1): in-memory notification store + SignalR-backed publisher.
+        // Store is a singleton — per-user notifications survive across requests within the same MVC process.
+        // Publisher is also a singleton; its only dependencies (IHubContext, store, logger) are themselves singletons.
+        services.AddSingleton<INotificationStore, InMemoryNotificationStore>();
+        services.AddSingleton<INotificationPublisher, HubNotificationPublisher>();
+
+        // Host-side SignalR. The MVC owns ChuaErpHub; the client connects to /hubs/erp from chua-reactive.js.
+        services.AddSignalR();
+
         return services;
     }
 

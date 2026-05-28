@@ -3,10 +3,13 @@
 // Licensed under the Alvin Wilsen Chan Chua Proprietary Use-Only License.
 // See LICENSE.txt in the project root for full license information.
 
+using System.Security.Claims;
 using ChuA.ERP.Web.Mvc.ApiClients;
 using ChuA.ERP.Web.Mvc.Contracts.Dtos;
 using ChuA.ERP.Web.Mvc.Extensions;
+using ChuA.ERP.Web.Mvc.Models.Notifications;
 using ChuA.ERP.Web.Mvc.Security;
+using ChuA.ERP.Web.Mvc.Services;
 using ChuA.ERP.Web.Mvc.Utilities;
 using ChuA.ERP.Web.Mvc.ViewModels.Workflow;
 using Microsoft.AspNetCore.Authorization;
@@ -22,12 +25,24 @@ namespace ChuA.ERP.Web.Mvc.Controllers;
 [Authorize]
 public sealed class WorkflowController : Controller
 {
-    private readonly IWorkflowApiClient _workflow;
+    /// <summary>Event name broadcast to the user's tabs when their workflow inbox has changed.</summary>
+    public const string InboxChangedEvent = "workflowInboxChanged";
 
-    public WorkflowController(IWorkflowApiClient workflow)
+    private readonly IWorkflowApiClient _workflow;
+    private readonly INotificationPublisher _notifications;
+
+    public WorkflowController(
+        IWorkflowApiClient workflow,
+        INotificationPublisher notifications)
     {
         _workflow = workflow;
+        _notifications = notifications;
     }
+
+    private string? CurrentUserId =>
+        User.FindFirstValue("sub")
+        ?? User.FindFirstValue(ClaimTypes.NameIdentifier)
+        ?? User.Identity?.Name;
 
     [HttpGet]
     [Authorize(Policy = AuthorizationPolicies.WorkflowView)]
@@ -115,6 +130,18 @@ public sealed class WorkflowController : Controller
             return View(model);
         }
         TempData.AddToast($"Decision '{model.Decision}' submitted.", ToastLevel.Success);
+        await BroadcastInboxChangedAsync(cancellationToken).ConfigureAwait(false);
+        if (CurrentUserId is { Length: > 0 } uid)
+        {
+            await _notifications.PublishAsync(
+                uid,
+                $"Decision '{model.Decision}' submitted",
+                body: $"Approval step {id.ToString()[..8]} decided.",
+                level: NotificationLevel.Success,
+                link: Url.Action(nameof(Details), new { id }),
+                category: "workflow",
+                cancellationToken: cancellationToken).ConfigureAwait(false);
+        }
         return RedirectToAction(nameof(Details), new { id });
     }
 
@@ -164,6 +191,55 @@ public sealed class WorkflowController : Controller
             return View(model);
         }
         TempData.AddToast("Task reassigned.", ToastLevel.Success);
+        await BroadcastInboxChangedAsync(cancellationToken).ConfigureAwait(false);
+        if (CurrentUserId is { Length: > 0 } uid)
+        {
+            await _notifications.PublishAsync(
+                uid,
+                "Approval reassigned",
+                body: $"Approval {id.ToString()[..8]} reassigned.",
+                level: NotificationLevel.Info,
+                link: Url.Action(nameof(Details), new { id }),
+                category: "workflow",
+                cancellationToken: cancellationToken).ConfigureAwait(false);
+        }
         return RedirectToAction(nameof(Details), new { id });
     }
+
+    /// <summary>
+    /// Returns the workflow-inbox table fragment for the current user. Hit by
+    /// <c>chua-reactive.js</c> after a decision/reassign or when a <c>workflowInboxChanged</c>
+    /// SignalR event arrives.
+    /// </summary>
+    [HttpGet]
+    [Authorize(Policy = AuthorizationPolicies.WorkflowView)]
+    public async Task<IActionResult> InboxPartial(CancellationToken cancellationToken = default)
+    {
+        var result = await _workflow.ListTasksAsync(cancellationToken).ConfigureAwait(false);
+        if (result.IsFailure)
+        {
+            ModelState.AddResultErrors(result);
+            return PartialView("_WorkflowInboxTable", new WorkflowListViewModel());
+        }
+        return PartialView("_WorkflowInboxTable", new WorkflowListViewModel { Tasks = result.Value });
+    }
+
+    /// <summary>
+    /// Returns the count of pending workflow tasks for the current user as JSON. Cheap
+    /// poll target for the topbar badge.
+    /// </summary>
+    [HttpGet]
+    [Authorize(Policy = AuthorizationPolicies.WorkflowView)]
+    public async Task<IActionResult> Count(CancellationToken cancellationToken = default)
+    {
+        var result = await _workflow.ListTasksAsync(cancellationToken).ConfigureAwait(false);
+        var count = result.IsSuccess ? result.Value.Count : 0;
+        return Json(new { count });
+    }
+
+    /// <summary>Fires the <c>workflowInboxChanged</c> event to the current user's tabs.</summary>
+    private Task BroadcastInboxChangedAsync(CancellationToken cancellationToken)
+        => CurrentUserId is { Length: > 0 } uid
+            ? _notifications.BroadcastEventAsync(uid, InboxChangedEvent, cancellationToken: cancellationToken)
+            : Task.CompletedTask;
 }

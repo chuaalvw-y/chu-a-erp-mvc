@@ -5,6 +5,7 @@
 
 using ChuA.ERP.Dashboard.Mvc.Infrastructure;
 using ChuA.ERP.Web.Mvc.Extensions;
+using ChuA.ERP.Web.Mvc.Hubs;
 using Serilog;
 
 namespace ChuA.ERP.Web.Mvc;
@@ -80,6 +81,11 @@ public class Program
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
+
+            // MVC-hosted SignalR hub for reactive UX (workflow inbox, notification center,
+            // per-row partial updates). Cookie auth flows through automatically because the
+            // client connection rides the same browser session.
+            app.MapHub<ChuaErpHub>(ChuaErpHub.HubPath);
 
             app.Run();
             return 0;

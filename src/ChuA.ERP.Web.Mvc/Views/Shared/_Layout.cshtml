@@ -39,6 +39,8 @@
         <button class="btn btn-sm btn-outline-light me-3 d-md-none" id="sidebarToggle" aria-label="Toggle navigation" aria-controls="sidebar" aria-expanded="false">&#9776;</button>
         <a href="/" class="navbar-brand text-white fw-bold me-3">@env.ProductName</a>
         <span class="badge text-bg-@env.BadgeColor me-auto">@env.Label</span>
+        <partial name="_WorkflowApprovalsBadge" />
+        <partial name="_NotificationCenter" />
         <partial name="_LoginPartial" />
     </header>
 
@@ -62,11 +64,19 @@
 
     <partial name="_FullPageLoading" />
 
+    @* Page-wide antiforgery token: chua-reactive.js reads __RequestVerificationToken and
+       attaches it to AJAX/SignalR POSTs. AddAntiforgery(o => o.HeaderName = "RequestVerificationToken")
+       is already configured in Program.cs so the same value works as a header on partial endpoints. *@
+    <form id="__chua-antiforgery" method="post" style="display:none">@Html.AntiForgeryToken()</form>
+
     <script src="~/lib/jquery/jquery.min.js" asp-append-version="true"></script>
     <script src="~/lib/bootstrap/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
     <script src="~/lib/jquery-validation/jquery.validate.min.js" asp-append-version="true"></script>
     <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js" asp-append-version="true"></script>
+    <script src="~/lib/signalr/signalr.min.js" asp-append-version="true"></script>
     <script src="~/js/chua-loading.js" asp-append-version="true"></script>
+    <script src="~/js/chua-reactive.js" asp-append-version="true"></script>
+    <script src="~/js/chua-topbar.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

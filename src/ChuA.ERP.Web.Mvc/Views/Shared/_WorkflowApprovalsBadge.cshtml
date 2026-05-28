@@ -1,0 +1,30 @@
+@*
+    Copyright (c) 2026 Alvin Wilsen Chan Chua
+    GitHub: chuaalvw-y
+    Licensed under the Alvin Wilsen Chan Chua Proprietary Use-Only License.
+    See LICENSE.txt in the project root for full license information.
+
+    Topbar approvals badge. Renders for authenticated users only. The initial count is
+    loaded lazily by chua-topbar.js so a fresh page load does not block on a workflow
+    API round-trip; subsequent counts update via the SignalR workflowInboxChanged event.
+*@
+
+@inject ICurrentUserService CurrentUser
+
+@if (CurrentUser.IsAuthenticated)
+{
+    <a class="btn btn-sm btn-outline-light me-2 position-relative"
+       asp-area=""
+       asp-controller="Workflow"
+       asp-action="Index"
+       id="chua-approvals-badge"
+       data-count-url="@Url.Action("Count", "Workflow")"
+       title="My pending approvals"
+       aria-label="My pending approvals">
+        <i class="bi bi-inboxes" aria-hidden="true"></i>
+        <span class="ms-1">Approvals</span>
+        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill text-bg-warning d-none"
+              id="chua-approvals-count"
+              data-count="0">0</span>
+    </a>
+}

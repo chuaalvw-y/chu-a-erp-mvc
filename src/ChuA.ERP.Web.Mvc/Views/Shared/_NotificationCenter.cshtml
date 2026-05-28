@@ -28,10 +28,10 @@
         <ul class="dropdown-menu dropdown-menu-end p-0"
             style="width: 22rem; max-height: 28rem; overflow-y: auto;"
             aria-labelledby="chua-notification-center"
-            data-items-url="@Url.Action("Items", "Notifications")"
-            data-count-url="@Url.Action("Count", "Notifications")"
-            data-mark-read-url="@Url.Action("MarkRead", "Notifications")"
-            data-mark-all-url="@Url.Action("MarkAllRead", "Notifications")">
+            data-items-url="@Url.Action("Items", "Notifications", new { area = "" })"
+            data-count-url="@Url.Action("Count", "Notifications", new { area = "" })"
+            data-mark-read-url="@Url.Action("MarkRead", "Notifications", new { area = "" })"
+            data-mark-all-url="@Url.Action("MarkAllRead", "Notifications", new { area = "" })">
             <li class="dropdown-header d-flex justify-content-between align-items-center">
                 <span>Notifications</span>
                 <button type="button" class="btn btn-link btn-sm p-0" id="chua-mark-all-read">Mark all read</button>

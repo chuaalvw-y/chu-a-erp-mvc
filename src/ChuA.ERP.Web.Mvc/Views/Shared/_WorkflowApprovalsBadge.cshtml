@@ -18,7 +18,7 @@
        asp-controller="Workflow"
        asp-action="Index"
        id="chua-approvals-badge"
-       data-count-url="@Url.Action("Count", "Workflow")"
+       data-count-url="@Url.Action("Count", "Workflow", new { area = "" })"
        title="My pending approvals"
        aria-label="My pending approvals">
         <i class="bi bi-inboxes" aria-hidden="true"></i>

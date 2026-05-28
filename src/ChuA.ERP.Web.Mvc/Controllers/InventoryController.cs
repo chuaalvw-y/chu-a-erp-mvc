@@ -271,4 +271,89 @@ public sealed class InventoryController : Controller
         };
         return View();
     }
+
+    // ----- Reactive partial endpoints -----
+    // Mirror the Vendors reactive pattern. See VendorsController for narrative context.
+
+    [HttpGet]
+    [Authorize(Policy = AuthorizationPolicies.InventoryView)]
+    public async Task<IActionResult> IndexPartial(string? search, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default)
+    {
+        var result = await _inventory.ListAsync(search, pageNumber, pageSize, sort, cancellationToken).ConfigureAwait(false);
+        if (result.IsFailure)
+        {
+            ModelState.AddResultErrors(result);
+            return PartialView("_ItemRowsPartial", new InventoryListViewModel { Search = search });
+        }
+        return PartialView("_ItemRowsPartial", new InventoryListViewModel { Page = result.Value, Search = search });
+    }
+
+    [HttpGet]
+    [Authorize(Policy = AuthorizationPolicies.InventoryView)]
+    public async Task<IActionResult> RowPartial(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await _inventory.GetAsync(id, cancellationToken).ConfigureAwait(false);
+        if (result.IsFailure) return NotFound();
+        return PartialView("_ItemRow", result.Value);
+    }
+
+    [HttpGet]
+    [Authorize(Policy = AuthorizationPolicies.InventoryCreate)]
+    public IActionResult CreateModal() => PartialView("_ItemFormModal", new ItemFormViewModel());
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize(Policy = AuthorizationPolicies.InventoryCreate)]
+    public async Task<IActionResult> CreateModal(ItemFormViewModel model, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+        {
+            Response.StatusCode = StatusCodes.Status422UnprocessableEntity;
+            return PartialView("_ItemFormModal", model);
+        }
+        var result = await _inventory.CreateAsync(model.ToCreateRequest(), cancellationToken).ConfigureAwait(false);
+        if (result.IsFailure)
+        {
+            ModelState.AddResultErrors(result);
+            Response.StatusCode = StatusCodes.Status422UnprocessableEntity;
+            return PartialView("_ItemFormModal", model);
+        }
+        Response.Headers["X-Chua-Row-Action"] = "create";
+        Response.Headers["X-Chua-Item-Id"] = result.Value.Id.ToString();
+        return PartialView("_ItemRow", result.Value);
+    }
+
+    [HttpGet]
+    [Authorize(Policy = AuthorizationPolicies.InventoryUpdate)]
+    public async Task<IActionResult> EditModal(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await _inventory.GetAsync(id, cancellationToken).ConfigureAwait(false);
+        if (result.IsFailure) return NotFound();
+        return PartialView("_ItemFormModal", ItemFormViewModel.FromDto(result.Value));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize(Policy = AuthorizationPolicies.InventoryUpdate)]
+    public async Task<IActionResult> EditModal(Guid id, ItemFormViewModel model, CancellationToken cancellationToken)
+    {
+        model.Id = id;
+        if (!ModelState.IsValid)
+        {
+            Response.StatusCode = StatusCodes.Status422UnprocessableEntity;
+            return PartialView("_ItemFormModal", model);
+        }
+        var result = await _inventory.UpdateAsync(id, model.ToUpdateRequest(), cancellationToken).ConfigureAwait(false);
+        if (result.IsFailure)
+        {
+            ModelState.AddResultErrors(result);
+            Response.StatusCode = StatusCodes.Status422UnprocessableEntity;
+            return PartialView("_ItemFormModal", model);
+        }
+        var refresh = await _inventory.GetAsync(id, cancellationToken).ConfigureAwait(false);
+        if (refresh.IsFailure) return NotFound();
+        Response.Headers["X-Chua-Row-Action"] = "update";
+        Response.Headers["X-Chua-Item-Id"] = id.ToString();
+        return PartialView("_ItemRow", refresh.Value);
+    }
 }

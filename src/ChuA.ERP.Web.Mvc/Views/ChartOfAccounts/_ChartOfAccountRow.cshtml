@@ -1,0 +1,27 @@
+@*
+    Copyright (c) 2026 Alvin Wilsen Chan Chua
+    GitHub: chuaalvw-y
+    Licensed under the Alvin Wilsen Chan Chua Proprietary Use-Only License.
+    See LICENSE.txt in the project root for full license information.
+*@
+
+@model ChuA.ERP.Web.Mvc.Contracts.Dtos.ChartOfAccountDto
+
+<tr id="coa-row-@Model.Id" data-coa-id="@Model.Id">
+    <td><a asp-action="Details" asp-route-id="@Model.Id">@Model.AccountCode</a></td>
+    <td>@Model.Name</td>
+    <td>@Html.StatusBadge(Model.AccountType)</td>
+    <td>@Model.NormalBalance</td>
+    <td>@(Model.IsPostable ? "Yes" : "No")</td>
+    <td>@Model.CurrencyCode</td>
+    <td class="actions">
+        <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@Model.Id">View</a>
+        <button type="button"
+                class="btn btn-sm btn-outline-primary js-coa-edit"
+                data-coa-id="@Model.Id"
+                data-modal-url="@Url.Action("EditModal", "ChartOfAccounts", new { id = Model.Id })"
+                asp-authorize-policy="chart-of-accounts:update">
+            Edit
+        </button>
+    </td>
+</tr>

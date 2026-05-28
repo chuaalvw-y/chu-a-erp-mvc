@@ -1,0 +1,30 @@
+@*
+    Copyright (c) 2026 Alvin Wilsen Chan Chua
+    GitHub: chuaalvw-y
+    Licensed under the Alvin Wilsen Chan Chua Proprietary Use-Only License.
+    See LICENSE.txt in the project root for full license information.
+*@
+
+@model ChuA.ERP.Web.Mvc.ViewModels.ChartOfAccounts.ChartOfAccountListViewModel
+
+@if (Model.Page.Items.Count == 0)
+{
+    @Html.EmptyState("No chart-of-accounts entries match your filters yet.")
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped table-hover" id="coa-table">
+            <thead><tr>
+                <th>Code</th><th>Name</th><th>Type</th><th>Normal balance</th><th>Postable</th><th>Currency</th><th class="actions">Actions</th>
+            </tr></thead>
+            <tbody>
+            @foreach (var c in Model.Page.Items)
+            {
+                <partial name="_ChartOfAccountRow" model="c" />
+            }
+            </tbody>
+        </table>
+    </div>
+    <partial name="_Pager" model="Model.Page" />
+}

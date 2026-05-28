@@ -1,0 +1,41 @@
+@*
+    Copyright (c) 2026 Alvin Wilsen Chan Chua
+    GitHub: chuaalvw-y
+    Licensed under the Alvin Wilsen Chan Chua Proprietary Use-Only License.
+    See LICENSE.txt in the project root for full license information.
+*@
+
+@model ChuA.ERP.Web.Mvc.ViewModels.ChartOfAccounts.ChartOfAccountFormViewModel
+
+@{
+    var isEdit = Model.IsEdit;
+    var title = isEdit ? "Edit account" : "New account";
+    var submitUrl = isEdit
+        ? Url.Action("EditModal", "ChartOfAccounts", new { id = Model.Id })
+        : Url.Action("CreateModal", "ChartOfAccounts");
+}
+
+<div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+        <form id="coa-modal-form"
+              method="post"
+              action="@submitUrl"
+              data-coa-id="@(Model.Id?.ToString() ?? string.Empty)"
+              data-is-edit="@(isEdit.ToString().ToLowerInvariant())">
+            @Html.AntiForgeryToken()
+            <div class="modal-header">
+                <h5 class="modal-title">@title</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <partial name="_Form" model="Model" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary">
+                    @(isEdit ? "Save changes" : "Create account")
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

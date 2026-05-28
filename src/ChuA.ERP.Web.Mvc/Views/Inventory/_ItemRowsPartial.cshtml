@@ -1,0 +1,30 @@
+@*
+    Copyright (c) 2026 Alvin Wilsen Chan Chua
+    GitHub: chuaalvw-y
+    Licensed under the Alvin Wilsen Chan Chua Proprietary Use-Only License.
+    See LICENSE.txt in the project root for full license information.
+*@
+
+@model ChuA.ERP.Web.Mvc.ViewModels.Inventory.InventoryListViewModel
+
+@if (Model.Page.Items.Count == 0)
+{
+    @Html.EmptyState("No items match your search yet.")
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped table-hover" id="items-table">
+            <thead><tr>
+                <th>SKU</th><th>Name</th><th>UoM</th><th>Stocked</th><th>Reorder point</th><th class="actions">Actions</th>
+            </tr></thead>
+            <tbody>
+            @foreach (var item in Model.Page.Items)
+            {
+                <partial name="_ItemRow" model="item" />
+            }
+            </tbody>
+        </table>
+    </div>
+    <partial name="_Pager" model="Model.Page" />
+}

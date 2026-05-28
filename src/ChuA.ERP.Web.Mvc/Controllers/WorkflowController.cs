@@ -30,13 +30,16 @@ public sealed class WorkflowController : Controller
 
     private readonly IWorkflowApiClient _workflow;
     private readonly INotificationPublisher _notifications;
+    private readonly ILogger<WorkflowController> _logger;
 
     public WorkflowController(
         IWorkflowApiClient workflow,
-        INotificationPublisher notifications)
+        INotificationPublisher notifications,
+        ILogger<WorkflowController> logger)
     {
         _workflow = workflow;
         _notifications = notifications;
+        _logger = logger;
     }
 
     private string? CurrentUserId =>
@@ -218,6 +221,12 @@ public sealed class WorkflowController : Controller
         var result = await _workflow.ListTasksAsync(cancellationToken).ConfigureAwait(false);
         if (result.IsFailure)
         {
+            // ModelState gets the errors, but the inbox partial template
+            // doesn't render them — from the user's perspective the inbox
+            // just goes empty. Log so the failure surfaces somewhere.
+            _logger.LogWarning(
+                "Workflow.InboxPartial API call failed; rendering empty inbox. Errors: {Errors}",
+                string.Join("; ", result.Errors.Select(e => $"{e.Code}:{e.Message}")));
             ModelState.AddResultErrors(result);
             return PartialView("_WorkflowInboxTable", new WorkflowListViewModel());
         }
@@ -233,6 +242,18 @@ public sealed class WorkflowController : Controller
     public async Task<IActionResult> Count(CancellationToken cancellationToken = default)
     {
         var result = await _workflow.ListTasksAsync(cancellationToken).ConfigureAwait(false);
+        if (result.IsFailure)
+        {
+            // The topbar badge silently coerces failures to count=0 so a flaky
+            // API doesn't disrupt the chrome — but without this log the failure
+            // mode (a parseable 401/403/500 body that became Result.Failure
+            // before ApiClientBase could log it) is invisible. Surface it so
+            // the next bug like the erp_user_id one shows up immediately
+            // instead of as a quiet zero.
+            _logger.LogWarning(
+                "Workflow.Count API call failed; coercing badge to 0. Errors: {Errors}",
+                string.Join("; ", result.Errors.Select(e => $"{e.Code}:{e.Message}")));
+        }
         var count = result.IsSuccess ? result.Value.Count : 0;
         return Json(new { count });
     }

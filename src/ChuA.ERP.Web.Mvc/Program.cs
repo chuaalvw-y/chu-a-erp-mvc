@@ -6,12 +6,7 @@
 using ChuA.ERP.Dashboard.Mvc.Infrastructure;
 using ChuA.ERP.Web.Mvc.Extensions;
 using ChuA.ERP.Web.Mvc.Hubs;
-using ChuA.ERP.Web.Mvc.Security;
 using Serilog;
-
-#if DEBUG || ENABLE_DEV_BYPASS
-using ChuA.Authentication.DevBypass.Extensions;
-#endif
 
 namespace ChuA.ERP.Web.Mvc;
 
@@ -45,24 +40,6 @@ public class Program
                 .Enrich.FromLogContext());
 
             builder.Services.AddChuAErpMvc(builder.Configuration, builder.Environment);
-
-#if DEBUG || ENABLE_DEV_BYPASS
-            // DEVELOPMENT-ONLY: replace cookie/OIDC with a synthetic
-            // bypass principal so dev sessions skip the Auth0 login
-            // redirect entirely. Activated when configuration has
-            // Authentication:Bypass=true OR (compat) ChuAAuthentication:Dev:Bypass=true.
-            // The library guards itself against Production environments — it
-            // returns from registration without touching DI if IsProduction.
-            // Configure ERP permission constants on the synthetic principal
-            // so [Authorize(Policy = ...)] dashboard endpoints pass without
-            // hand-listing every policy name in appsettings.
-#pragma warning disable CS0618
-            builder.Services.AddChuADevAuthBypass(
-                builder.Configuration,
-                builder.Environment,
-                opts => opts.PermissionConstantSources.Add(typeof(AuthorizationPolicies)));
-#pragma warning restore CS0618
-#endif
 
             //Dashboard
             builder.Services.AddControllersWithViews();

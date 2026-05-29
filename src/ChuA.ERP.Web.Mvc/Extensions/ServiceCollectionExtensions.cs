@@ -5,6 +5,9 @@
 
 using ChuA.Authentication.Constants;
 using ChuA.Authentication.Extensions;
+#if DEBUG || ENABLE_DEV_BYPASS
+using ChuA.Authentication.DevBypass.Extensions;
+#endif
 using ChuA.ERP.Web.Mvc.ApiClients;
 using ChuA.ERP.Web.Mvc.Configuration;
 using ChuA.ERP.Web.Mvc.Filters;
@@ -130,6 +133,24 @@ public static class ServiceCollectionExtensions
         services.AddChuAAuthentication(
             configurationWithAuthDefaults,
             ChuAAuthenticationDefaults.ConfigurationSectionName);
+
+#if DEBUG || ENABLE_DEV_BYPASS
+        // DEVELOPMENT-ONLY: replace the cookie/OIDC default scheme with a
+        // synthetic bypass principal so dev sessions skip the Auth0 login
+        // redirect entirely. Activated when configuration has
+        // Authentication:Bypass=true OR (compat) ChuAAuthentication:Dev:Bypass=true.
+        // The library self-guards against IHostEnvironment.IsProduction —
+        // calling AddChuADevAuthBypass in Production is a no-op.
+        // Configure ERP permission constants on the synthetic principal so
+        // [Authorize(Policy = ...)] dashboard endpoints pass without
+        // hand-listing every policy name in appsettings.
+#pragma warning disable CS0618
+        services.AddChuADevAuthBypass(
+            configuration,
+            environment,
+            opts => opts.PermissionConstantSources.Add(typeof(AuthorizationPolicies)));
+#pragma warning restore CS0618
+#endif
 
         // PostConfigure the cookie scheme that ChuA.Authentication registered with the
         // ERP-specific paths, cookie name, expiry, and (in Production) a server-side ticket store.

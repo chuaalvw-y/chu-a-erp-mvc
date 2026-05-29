@@ -85,12 +85,45 @@ public sealed class AccountController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Logout()
     {
+        // Decide whether to federate the sign-out to the IdP BEFORE we sign
+        // the cookie out — the AuthenticationProperties (which carry the
+        // OIDC id_token stored by SaveTokens=true) disappear with the
+        // cookie.
+        //
+        // The previous gate checked only whether the OIDC scheme was
+        // REGISTERED (i.e. Auth0 ClientId is set in user-secrets) — so a
+        // session signed in via DevLogin (cookie-only, used when the dev
+        // bypass is active) still federated to Auth0, and Auth0's
+        // /v2/logout errored on the unknown id_token_hint. The session-
+        // level check below skips the federated call for any cookie-only
+        // sign-in, while preserving the real-Auth0 sign-out flow for
+        // sessions that were actually OIDC-established.
+        var hasFederatedSession = await HasOidcSessionAsync().ConfigureAwait(false);
+
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme).ConfigureAwait(false);
-        if (await IsOidcConfiguredAsync().ConfigureAwait(false))
+
+        if (hasFederatedSession && await IsOidcConfiguredAsync().ConfigureAwait(false))
         {
             return SignOut(new AuthenticationProperties { RedirectUri = "/" }, OpenIdConnectDefaults.AuthenticationScheme);
         }
         return RedirectToAction(nameof(Login));
+    }
+
+    /// <summary>
+    /// Returns <c>true</c> when the current cookie session was issued via
+    /// the OIDC handler — detected by the presence of a stored
+    /// <c>id_token</c> in the authentication properties (the
+    /// <c>SaveTokens=true</c> artefact of the OIDC sign-in). Returns
+    /// <c>false</c> for DevLogin / bypass sessions, which sign the cookie
+    /// directly without going through OIDC.
+    /// </summary>
+    private async Task<bool> HasOidcSessionAsync()
+    {
+        var auth = await HttpContext
+            .AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme)
+            .ConfigureAwait(false);
+        return auth.Succeeded
+            && auth.Properties?.GetTokenValue("id_token") is not null;
     }
 
     [HttpGet]

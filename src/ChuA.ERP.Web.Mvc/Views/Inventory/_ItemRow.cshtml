@@ -1,0 +1,26 @@
+@*
+    Copyright (c) 2026 Alvin Wilsen Chan Chua
+    GitHub: chuaalvw-y
+    Licensed under the Alvin Wilsen Chan Chua Proprietary Use-Only License.
+    See LICENSE.txt in the project root for full license information.
+*@
+
+@model ChuA.ERP.Web.Mvc.Contracts.Dtos.ItemDto
+
+<tr id="item-row-@Model.Id" data-item-id="@Model.Id">
+    <td><a asp-action="Details" asp-route-id="@Model.Id">@Model.Sku</a></td>
+    <td>@Model.Name</td>
+    <td>@Model.DefaultUnitOfMeasure</td>
+    <td>@(Model.IsStocked ? "Yes" : "No")</td>
+    <td>@(Model.ReorderPoint?.ToString("N2") ?? "—")</td>
+    <td class="actions">
+        <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@Model.Id">View</a>
+        <button type="button"
+                class="btn btn-sm btn-outline-primary js-item-edit"
+                data-item-id="@Model.Id"
+                data-modal-url="@Url.Action("EditModal", "Inventory", new { id = Model.Id })"
+                asp-authorize-policy="inventory:update">
+            Edit
+        </button>
+    </td>
+</tr>

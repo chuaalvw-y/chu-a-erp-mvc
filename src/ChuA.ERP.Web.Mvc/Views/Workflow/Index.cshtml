@@ -10,36 +10,79 @@
     ViewData["Title"] = "My workflow tasks";
 }
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h3 mb-0">My workflow tasks</h1>
+    <h1 class="h3 mb-0">
+        My workflow tasks
+        <span id="workflow-inbox-count-badge" class="badge text-bg-primary ms-2" data-count="@Model.Tasks.Count">@Model.Tasks.Count</span>
+    </h1>
+    <small class="text-muted" id="workflow-inbox-status" aria-live="polite"></small>
 </div>
 
-@if (Model.Tasks.Count == 0)
-{
-    @Html.EmptyState("No pending workflow approvals assigned to you.")
-}
-else
-{
-    <div class="table-responsive">
-        <table class="table table-striped table-hover">
-            <thead><tr>
-                <th>Approval id</th><th>Instance</th><th>Step</th><th>Assigned</th><th>Due</th><th>Status</th><th class="actions">Actions</th>
-            </tr></thead>
-            <tbody>
-            @foreach (var t in Model.Tasks)
-            {
-                <tr>
-                    <td><a asp-action="Details" asp-route-id="@t.Id"><code>@t.Id.ToString()[..8]</code></a></td>
-                    <td><code>@t.WorkflowInstanceId.ToString()[..8]</code></td>
-                    <td>@t.StepNumber</td>
-                    <td>@t.AssignedAt.ToString("yyyy-MM-dd HH:mm")</td>
-                    <td>@(t.DueAt?.ToString("yyyy-MM-dd HH:mm") ?? "—")</td>
-                    <td>@Html.StatusBadge(t.Decision)</td>
-                    <td class="actions">
-                        <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@t.Id">View</a>
-                    </td>
-                </tr>
+<div id="workflow-inbox-container"
+     data-refresh-url="@Url.Action("InboxPartial", "Workflow")"
+     data-count-url="@Url.Action("Count", "Workflow")">
+    <partial name="_WorkflowInboxTable" model="Model" />
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            'use strict';
+            if (!window.ChuaReactive) {
+                console.warn('ChuaReactive not loaded; workflow inbox will not auto-refresh');
+                return;
             }
-            </tbody>
-        </table>
-    </div>
+
+            var container = document.getElementById('workflow-inbox-container');
+            var badge = document.getElementById('workflow-inbox-count-badge');
+            var status = document.getElementById('workflow-inbox-status');
+            if (!container) { return; }
+
+            var refreshUrl = container.getAttribute('data-refresh-url');
+            var countUrl = container.getAttribute('data-count-url');
+            var inFlight = false;
+            var FALLBACK_POLL_MS = 30000; // cross-user updates without an API hub fall back to a slow poll
+
+            function setStatus(msg) {
+                if (status) { status.textContent = msg || ''; }
+            }
+
+            function refreshInbox(reason) {
+                if (inFlight) { return; }
+                inFlight = true;
+                setStatus('Refreshing…');
+                ChuaReactive.fetchPartial(refreshUrl, container).then(function () {
+                    setStatus(reason ? 'Updated · ' + reason : 'Updated');
+                    setTimeout(function () { setStatus(''); }, 1500);
+                }).catch(function (err) {
+                    console.warn('workflow-inbox refresh failed', err);
+                    setStatus('Refresh failed');
+                }).then(function () { inFlight = false; });
+            }
+
+            function refreshCountOnly() {
+                if (!countUrl || !badge) { return; }
+                fetch(countUrl, {
+                    credentials: 'same-origin',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+                }).then(function (r) { return r.ok ? r.json() : null; }).then(function (payload) {
+                    if (!payload) { return; }
+                    badge.textContent = payload.count;
+                    badge.setAttribute('data-count', payload.count);
+                    // Topbar badge (rendered in the layout) is updated by the topbar's own listener.
+                }).catch(function () { /* swallow — next poll will retry */ });
+            }
+
+            // Subscribe to the user-namespaced workflow-inbox topic so server-broadcast refresh
+            // events (this user's own actions, or a future API publisher) trigger an immediate refresh.
+            ChuaReactive.subscribe('workflow-inbox');
+            ChuaReactive.on('workflowInboxChanged', function () { refreshInbox('event'); });
+
+            // Slow poll covers cross-user updates while we don't yet have an API-side hub publisher.
+            setInterval(function () {
+                refreshCountOnly();
+                // Only re-render the rows if the count actually changed — avoids needless DOM churn.
+                // We compare against the badge attribute set on the last refresh.
+            }, FALLBACK_POLL_MS);
+        })();
+    </script>
 }

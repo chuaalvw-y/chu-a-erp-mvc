@@ -1,0 +1,45 @@
+@*
+    Copyright (c) 2026 Alvin Wilsen Chan Chua
+    GitHub: chuaalvw-y
+    Licensed under the Alvin Wilsen Chan Chua Proprietary Use-Only License.
+    See LICENSE.txt in the project root for full license information.
+
+    Topbar notification center — bell icon + dropdown. Authenticated users only.
+    Items are loaded lazily on first open and refreshed on every SignalR
+    notificationReceived event.
+*@
+
+@inject ICurrentUserService CurrentUser
+
+@if (CurrentUser.IsAuthenticated)
+{
+    <div class="dropdown me-2" id="chua-notification-center">
+        <button class="btn btn-sm btn-outline-light position-relative"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                title="Notifications"
+                aria-label="Notifications">
+            <i class="bi bi-bell" aria-hidden="true"></i>
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill text-bg-danger d-none"
+                  id="chua-notification-badge"
+                  data-count="0">0</span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end p-0"
+            style="width: 22rem; max-height: 28rem; overflow-y: auto;"
+            aria-labelledby="chua-notification-center"
+            data-items-url="@Url.Action("Items", "Notifications", new { area = "" })"
+            data-count-url="@Url.Action("Count", "Notifications", new { area = "" })"
+            data-mark-read-url="@Url.Action("MarkRead", "Notifications", new { area = "" })"
+            data-mark-all-url="@Url.Action("MarkAllRead", "Notifications", new { area = "" })">
+            <li class="dropdown-header d-flex justify-content-between align-items-center">
+                <span>Notifications</span>
+                <button type="button" class="btn btn-link btn-sm p-0" id="chua-mark-all-read">Mark all read</button>
+            </li>
+            <li><hr class="dropdown-divider my-0" /></li>
+            <div id="chua-notification-items">
+                <li class="px-3 py-2 text-muted small">Loading…</li>
+            </div>
+        </ul>
+    </div>
+}

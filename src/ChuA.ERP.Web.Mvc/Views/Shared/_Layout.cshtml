@@ -8,6 +8,7 @@
 @using Microsoft.Extensions.Options
 @using System.IO
 @inject IOptions<AppEnvironmentOptions> Env
+@inject IOptions<ApiOptions> ApiOpts
 @inject ICurrentUserService CurrentUser
 @inject IWebHostEnvironment WebHostEnvironment
 @{
@@ -15,6 +16,22 @@
     var title = ViewData["Title"] as string;
     var breadcrumbs = ViewData["Breadcrumbs"] as IReadOnlyList<Breadcrumb> ?? Array.Empty<Breadcrumb>();
     var bootstrapIconsCss = System.IO.Path.Combine(WebHostEnvironment.WebRootPath ?? string.Empty, "lib", "bootstrap-icons", "font", "bootstrap-icons.min.css");
+
+    // chua-workflow-bridge.js opens a second SignalR connection straight to the API's
+    // /hubs/workflow so cross-user push (someone else assigns YOU work) lands without
+    // a poll. Only emit the config block for authenticated users so we don't ask
+    // anonymous pages to fetch a token they will never receive.
+    string? workflowHubUrl = null;
+    string? signalRTokenUrl = null;
+    if (CurrentUser.IsAuthenticated)
+    {
+        var apiBase = ApiOpts.Value.BaseUrl?.TrimEnd('/');
+        if (!string.IsNullOrWhiteSpace(apiBase))
+        {
+            workflowHubUrl = apiBase + "/hubs/workflow";
+            signalRTokenUrl = Url.Action("Token", "SignalR");
+        }
+    }
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -39,6 +56,8 @@
         <button class="btn btn-sm btn-outline-light me-3 d-md-none" id="sidebarToggle" aria-label="Toggle navigation" aria-controls="sidebar" aria-expanded="false">&#9776;</button>
         <a href="/" class="navbar-brand text-white fw-bold me-3">@env.ProductName</a>
         <span class="badge text-bg-@env.BadgeColor me-auto">@env.Label</span>
+        <partial name="_WorkflowApprovalsBadge" />
+        <partial name="_NotificationCenter" />
         <partial name="_LoginPartial" />
     </header>
 
@@ -62,11 +81,32 @@
 
     <partial name="_FullPageLoading" />
 
+    @* Page-wide antiforgery token: chua-reactive.js reads __RequestVerificationToken and
+       attaches it to AJAX/SignalR POSTs. AddAntiforgery(o => o.HeaderName = "RequestVerificationToken")
+       is already configured in Program.cs so the same value works as a header on partial endpoints. *@
+    <form id="__chua-antiforgery" method="post" style="display:none">@Html.AntiForgeryToken()</form>
+
     <script src="~/lib/jquery/jquery.min.js" asp-append-version="true"></script>
     <script src="~/lib/bootstrap/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
     <script src="~/lib/jquery-validation/jquery.validate.min.js" asp-append-version="true"></script>
     <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js" asp-append-version="true"></script>
+    <script src="~/lib/signalr/signalr.min.js" asp-append-version="true"></script>
+    @if (!string.IsNullOrWhiteSpace(workflowHubUrl) && !string.IsNullOrWhiteSpace(signalRTokenUrl))
+    {
+        <script>
+            window.ChuaReactiveConfig = {
+                workflowHubUrl: '@Html.Raw(workflowHubUrl)',
+                signalRTokenUrl: '@Html.Raw(signalRTokenUrl)'
+            };
+        </script>
+    }
     <script src="~/js/chua-loading.js" asp-append-version="true"></script>
+    <script src="~/js/chua-reactive.js" asp-append-version="true"></script>
+    <script src="~/js/chua-topbar.js" asp-append-version="true"></script>
+    @if (!string.IsNullOrWhiteSpace(workflowHubUrl))
+    {
+        <script src="~/js/chua-workflow-bridge.js" asp-append-version="true"></script>
+    }
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

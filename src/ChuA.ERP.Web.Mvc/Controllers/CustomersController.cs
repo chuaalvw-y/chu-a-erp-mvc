@@ -169,4 +169,89 @@ public sealed class CustomersController : Controller
         TempData.AddToast("Customer deleted.", ToastLevel.Success);
         return RedirectToAction(nameof(Index));
     }
+
+    // ----- Reactive partial endpoints -----
+    // Mirror the Vendors reactive pattern. See VendorsController for narrative context.
+
+    [HttpGet]
+    [Authorize(Policy = AuthorizationPolicies.CustomerView)]
+    public async Task<IActionResult> IndexPartial(string? search, int pageNumber = 1, int pageSize = 25, string? sort = null, CancellationToken cancellationToken = default)
+    {
+        var result = await _customers.ListAsync(search, pageNumber, pageSize, sort, cancellationToken).ConfigureAwait(false);
+        if (result.IsFailure)
+        {
+            ModelState.AddResultErrors(result);
+            return PartialView("_CustomerRowsPartial", new CustomerListViewModel { Search = search });
+        }
+        return PartialView("_CustomerRowsPartial", new CustomerListViewModel { Page = result.Value, Search = search });
+    }
+
+    [HttpGet]
+    [Authorize(Policy = AuthorizationPolicies.CustomerView)]
+    public async Task<IActionResult> RowPartial(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await _customers.GetAsync(id, cancellationToken).ConfigureAwait(false);
+        if (result.IsFailure) return NotFound();
+        return PartialView("_CustomerRow", result.Value);
+    }
+
+    [HttpGet]
+    [Authorize(Policy = AuthorizationPolicies.CustomerCreate)]
+    public IActionResult CreateModal() => PartialView("_CustomerFormModal", new CustomerFormViewModel());
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize(Policy = AuthorizationPolicies.CustomerCreate)]
+    public async Task<IActionResult> CreateModal(CustomerFormViewModel model, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+        {
+            Response.StatusCode = StatusCodes.Status422UnprocessableEntity;
+            return PartialView("_CustomerFormModal", model);
+        }
+        var result = await _customers.CreateAsync(model.ToCreateRequest(), cancellationToken).ConfigureAwait(false);
+        if (result.IsFailure)
+        {
+            ModelState.AddResultErrors(result);
+            Response.StatusCode = StatusCodes.Status422UnprocessableEntity;
+            return PartialView("_CustomerFormModal", model);
+        }
+        Response.Headers["X-Chua-Row-Action"] = "create";
+        Response.Headers["X-Chua-Customer-Id"] = result.Value.Id.ToString();
+        return PartialView("_CustomerRow", result.Value);
+    }
+
+    [HttpGet]
+    [Authorize(Policy = AuthorizationPolicies.CustomerUpdate)]
+    public async Task<IActionResult> EditModal(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await _customers.GetAsync(id, cancellationToken).ConfigureAwait(false);
+        if (result.IsFailure) return NotFound();
+        return PartialView("_CustomerFormModal", CustomerFormViewModel.FromDto(result.Value));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize(Policy = AuthorizationPolicies.CustomerUpdate)]
+    public async Task<IActionResult> EditModal(Guid id, CustomerFormViewModel model, CancellationToken cancellationToken)
+    {
+        model.Id = id;
+        if (!ModelState.IsValid)
+        {
+            Response.StatusCode = StatusCodes.Status422UnprocessableEntity;
+            return PartialView("_CustomerFormModal", model);
+        }
+        var result = await _customers.UpdateAsync(id, model.ToUpdateRequest(), cancellationToken).ConfigureAwait(false);
+        if (result.IsFailure)
+        {
+            ModelState.AddResultErrors(result);
+            Response.StatusCode = StatusCodes.Status422UnprocessableEntity;
+            return PartialView("_CustomerFormModal", model);
+        }
+        var refresh = await _customers.GetAsync(id, cancellationToken).ConfigureAwait(false);
+        if (refresh.IsFailure) return NotFound();
+        Response.Headers["X-Chua-Row-Action"] = "update";
+        Response.Headers["X-Chua-Customer-Id"] = id.ToString();
+        return PartialView("_CustomerRow", refresh.Value);
+    }
 }

@@ -1,0 +1,46 @@
+@*
+    Copyright (c) 2026 Alvin Wilsen Chan Chua
+    GitHub: chuaalvw-y
+    Licensed under the Alvin Wilsen Chan Chua Proprietary Use-Only License.
+    See LICENSE.txt in the project root for full license information.
+
+    Bootstrap modal hosting the existing _Form partial. Returned by /Vendors/CreateModal
+    and /Vendors/EditModal; chua-vendors.js injects the response into a host div and
+    shows it. On validation failure the controller returns this same partial again with
+    the populated ModelState, and the JS swaps the modal contents in place.
+*@
+
+@model ChuA.ERP.Web.Mvc.ViewModels.Vendors.VendorFormViewModel
+
+@{
+    var isEdit = Model.IsEdit;
+    var title = isEdit ? "Edit vendor" : "New vendor";
+    var submitUrl = isEdit
+        ? Url.Action("EditModal", "Vendors", new { id = Model.Id })
+        : Url.Action("CreateModal", "Vendors");
+}
+
+<div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+        <form id="vendor-modal-form"
+              method="post"
+              action="@submitUrl"
+              data-vendor-id="@(Model.Id?.ToString() ?? string.Empty)"
+              data-is-edit="@(isEdit.ToString().ToLowerInvariant())">
+            @Html.AntiForgeryToken()
+            <div class="modal-header">
+                <h5 class="modal-title">@title</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <partial name="_Form" model="Model" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary">
+                    @(isEdit ? "Save changes" : "Create vendor")
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

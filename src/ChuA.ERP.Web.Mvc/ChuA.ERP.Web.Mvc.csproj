@@ -15,6 +15,20 @@
     <UserSecretsId>chua-erp-webmvc-usersecrets</UserSecretsId>
   </PropertyGroup>
 
+  <!-- Mirror the API host's DevBypass setup. The ChuA.Authentication.DevBypass
+       library replaces the cookie/OIDC default scheme with a synthetic bypass
+       handler so local dev avoids the Auth0 login redirect. Reference and
+       define are conditional: Debug builds get them automatically; Release
+       builds only opt in when `-p:EnableDevBypass=true` is passed at build
+       time, so production publish output never contains the bypass assembly. -->
+  <PropertyGroup Condition="'$(EnableDevBypass)' == 'true'">
+    <DefineConstants>$(DefineConstants);ENABLE_DEV_BYPASS</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Debug' Or '$(EnableDevBypass)' == 'true'">
+    <ProjectReference Include="..\..\..\..\..\GitHub\.NETCore10\chu-a-dotnet10-authentication-devbypass\src\ChuA.Authentication.DevBypass\ChuA.Authentication.DevBypass.csproj" />
+  </ItemGroup>
+
   <ItemGroup>
     <InternalsVisibleTo Include="ChuA.ERP.Web.Mvc.Tests" />
   </ItemGroup>

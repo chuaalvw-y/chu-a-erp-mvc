@@ -1,0 +1,30 @@
+@*
+    Copyright (c) 2026 Alvin Wilsen Chan Chua
+    GitHub: chuaalvw-y
+    Licensed under the Alvin Wilsen Chan Chua Proprietary Use-Only License.
+    See LICENSE.txt in the project root for full license information.
+
+    Single-row partial. Used both inside _VendorRowsPartial (the full table body) and as
+    the response of /Vendors/RowPartial when the JS layer needs to refresh exactly one
+    row after a successful modal save.
+*@
+
+@model ChuA.ERP.Web.Mvc.Contracts.Dtos.VendorDto
+
+<tr id="vendor-row-@Model.Id" data-vendor-id="@Model.Id">
+    <td><a asp-action="Details" asp-route-id="@Model.Id">@Model.VendorCode</a></td>
+    <td>@Model.LegalName</td>
+    <td>@Model.DefaultCurrencyCode</td>
+    <td>@Model.PaymentTermsDays days</td>
+    <td>@Html.StatusBadge(Model.IsBlocked ? "Blocked" : "Active")</td>
+    <td class="actions">
+        <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@Model.Id">View</a>
+        <button type="button"
+                class="btn btn-sm btn-outline-primary js-vendor-edit"
+                data-vendor-id="@Model.Id"
+                data-modal-url="@Url.Action("EditModal", "Vendors", new { id = Model.Id })"
+                asp-authorize-policy="vendor:update">
+            Edit
+        </button>
+    </td>
+</tr>

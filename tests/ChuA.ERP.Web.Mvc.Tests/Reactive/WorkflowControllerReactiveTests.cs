@@ -6,6 +6,7 @@
 using ChuA.ERP.Web.Mvc.ViewModels.Workflow;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ChuA.ERP.Web.Mvc.Tests.Reactive;
 
@@ -17,7 +18,7 @@ public class WorkflowControllerReactiveTests
         var publisher = new Mock<INotificationPublisher>();
         publisher.Setup(p => p.BroadcastEventAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<object?>(), It.IsAny<CancellationToken>()))
                  .Returns(Task.CompletedTask);
-        var ctrl = new WorkflowController(workflow.Object, publisher.Object);
+        var ctrl = new WorkflowController(workflow.Object, publisher.Object, NullLogger<WorkflowController>.Instance);
         ctrl.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
         return ctrl;
     }
